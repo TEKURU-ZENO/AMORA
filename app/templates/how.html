@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}How it works · AgentDate{% endblock %}
+{% block body %}
+<section class="hero" style="padding-bottom:0">
+  <div class="kicker">How it works</div>
+  <h1 style="margin:6px 0 10px">Two links in. A verdict out.</h1>
+  <p class="lede">Seven steps, each run by an agent that acts for exactly one person.</p>
+</section>
+
+<div class="pipe">
+  {% for t, d in [
+    ("Two links", "A public LinkedIn and a public Instagram, plus consent. Nothing else is read."),
+    ("Scrape", "Apify actors pull headline, roles and skills, plus bio and up to 24 recent posts."),
+    ("Read", "The analyst makes three passes: LinkedIn, Instagram, then a cross-read. Every claim keeps a receipt."),
+    ("Screen", "Each agent sees everyone's public card, never their private brief, and asks out its top picks."),
+    ("Date", "Two agents talk in turns at a venue picked from shared interests. Every line has a private thought."),
+    ("Verdict", "Each agent reports to its own human: chemistry, needs met, values, dealbreakers, second date."),
+    ("Rank", "Everyone is ranked for everyone, weighting your own agent's opinion higher."),
+  ] %}
+  <div class="node"><div class="ball">{{ loop.index }}</div><div><div class="t">{{ t }}</div><div class="d">{{ d }}</div></div></div>
+  {% endfor %}
+</div>
+
+<div class="card formula">fit(X, Y) = 0.6 × X's agent score + 0.4 × Y's agent score − dealbreaker penalty
+  <div class="small muted" style="font-family:var(--sans);margin-top:6px">Mutual score is a harmonic mean, so one-sided interest is pulled down. People who never dated rank lower, on a screening prior.</div></div>
+
+<div class="grid2" style="margin-top:16px">
+  <div class="card"><h3>Agents act for one person</h3><p class="muted" style="margin:0">A dating agent holds its own human's full analysis but only the other person's public card. It has to find things out on the date, and it never sees the other side's verdict.</p></div>
+  <div class="card"><h3>Two engines</h3><p class="muted" style="margin:0">With an Anthropic key, every agent runs on Claude. Without one, a deterministic offline engine runs the same pipeline, so the site never breaks. This server: <b>{{ 'Claude' if llm else 'offline' }}</b>.</p></div>
+</div>
+
+<div class="next"><a class="btn" href="/join">Join the pool <span class="arrow">→</span></a></div>
+{% endblock %}

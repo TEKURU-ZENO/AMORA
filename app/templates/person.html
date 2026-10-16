@@ -1,0 +1,98 @@
+{% extends "base.html" %}{% import "_ui.html" as ui %}
+{% block title %}{{ p.analysis.display_name if p.analysis else p.id }} · AgentDate{% endblock %}
+
+{% macro chip(text, cls="") -%}
+{% set r = receipt(text) %}{% if r is not none %}<button type="button" class="chip {{ cls }}" data-claim="{{ r }}" title="See the receipt">{{ text }}</button>{% else %}<span class="chip {{ cls }}">{{ text }}</span>{% endif %}
+{%- endmacro %}
+
+{% block body %}{% set a = p.analysis %}
+<div class="narrow{{ ' assemble' if assemble }}" id="profile">
+{% if not a %}
+  <div class="phead">{{ ui.mono(p, 'lg') }}<div><h1>{{ p.id }}</h1><div class="meta">{{ ui.pill(status_of(p)) }}</div></div></div>
+  {% if p.status == 'error' %}<div class="banner"><b>The agent couldn't build this profile.</b> {{ p.error }}</div>
+  {% else %}<div class="banner info"><b>Still reading.</b> The analyst hasn't finished this profile yet. Refresh in a moment.</div>{% endif %}
+  <div class="next" style="justify-content:flex-start"><a class="btn" href="/join">Try different links</a></div>
+{% else %}{% set fn = first(p) %}
+
+<header class="phead">{{ ui.mono(p, 'lg') }}
+  <div><h1>{{ a.display_name }}</h1><div class="muted" style="font-size:17px">{{ a.one_liner }}</div>
+    <div class="meta">{{ ui.pill(status_of(p)) }}
+      <a href="{{ p.linkedin_url }}" target="_blank" rel="noopener" class="src linkedin" style="text-decoration:none">LinkedIn ↗</a>
+      <a href="{{ p.instagram_url }}" target="_blank" rel="noopener" class="src instagram" style="text-decoration:none">Instagram ↗</a>
+      <span class="conf" title="How sure the analyst is, given how much both sources said">confidence <span class="bar"><i style="width:{{ a.confidence * 100 }}%"></i></span>{{ (a.confidence * 100)|round|int }}%</span>
+      {% if p.synthetic %}<span class="chip n" style="margin:0">synthetic test profile</span>{% endif %}</div></div>
+</header>
+
+{% for w in p.warnings %}<div class="banner"><b>Partial read.</b> {{ w }}. Built from {{ 'Instagram' if 'LinkedIn' in w else 'LinkedIn' }} only.</div>{% endfor %}
+
+<p class="summary">{{ a.summary }}</p>
+
+<section class="card needs"><h4>What {{ fn }} needs from a partner</h4>
+  <ol>{% for n in a.needs %}<li>{{ n }}</li>{% endfor %}</ol></section>
+
+<div class="quad">
+  <section class="card"><h3>Hobbies & interests</h3>
+    <div class="chips">{% for h in a.hobbies[:6] %}{{ chip(h) }}{% endfor %}</div>
+    {% if a.interests %}<div class="chips" style="margin-top:4px">{% for h in a.interests[:6] %}{{ chip(h, 'n') }}{% endfor %}</div>{% endif %}</section>
+  <section class="card"><h3>Values & personality</h3>
+    <div class="chips">{% for v in a.values[:6] %}{{ chip(v, 'g') }}{% endfor %}</div>
+    <div class="chips" style="margin-top:4px">{% for v in a.personality[:6] %}<span class="chip n">{{ v }}</span>{% endfor %}</div>
+    <p class="small" style="margin:8px 0 0"><span class="muted">Talks like:</span> {{ a.communication_style }}</p></section>
+  <section class="card"><h3>Lifestyle</h3>
+    <dl class="kv">{% for k, v in a.lifestyle.items() %}<dt>{{ k|capitalize }}</dt><dd>{{ v }}</dd>{% endfor %}</dl>
+    <p class="small" style="margin:12px 0 0"><span class="muted">Ideal date:</span> {{ a.ideal_date }}</p></section>
+  <section class="card"><h3>Green flags · Dealbreakers</h3>
+    <ul class="list ok">{% for n in a.green_flags %}<li>{{ n }}</li>{% else %}<li class="muted">None called out</li>{% endfor %}</ul>
+    <ul class="list warn" style="margin-top:8px">{% for n in a.dealbreakers %}<li>{{ n }}</li>{% else %}<li class="muted">No dealbreakers found</li>{% endfor %}</ul></section>
+</div>
+
+{% if p.sources %}{% set li_ev = a.evidence|selectattr('source', 'equalto', 'linkedin')|list %}{% set ig_ev = a.evidence|selectattr('source', 'equalto', 'instagram')|list %}
+<h2>Two selves</h2>
+<section class="card selves">
+  <div class="side-li"><span class="src linkedin">LinkedIn says</span>
+    <blockquote>{{ p.sources.linkedin.headline or 'Nothing public on LinkedIn.' }}</blockquote>
+    <div class="chips">{% for e in li_ev[:5] %}<span class="chip n">{{ e.claim }}</span>{% endfor %}</div></div>
+  <div class="vs">vs</div>
+  <div class="side-ig"><span class="src instagram">Instagram shows</span>
+    <blockquote>{{ p.sources.instagram.bio or ('@' ~ p.sources.instagram.username) }}</blockquote>
+    <div class="chips">{% for e in ig_ev[:5] %}<span class="chip">{{ e.claim }}</span>{% endfor %}</div></div>
+</section>{% endif %}
+
+<details class="card receipts" id="receipts">
+  <summary>Receipts <span class="small muted" style="font:400 14px var(--sans)">{{ a.evidence|length }} claims, each with the line it came from</span></summary>
+  <div style="margin-top:12px">{% for e in a.evidence %}
+    <div class="receipt" id="rc-{{ loop.index0 }}"><div>{{ ui.src(e.source) }}</div>
+      <div><b>{{ e.claim }}</b><q>{{ e.snippet }}</q></div></div>{% endfor %}</div>
+  {% if p.reading_log %}<details style="margin-top:14px"><summary class="small muted" style="font:500 14px var(--sans)">The analyst's reading log</summary>
+    {% for l in p.reading_log %}<p class="small muted" style="white-space:pre-wrap">{{ l }}</p>{% endfor %}</details>{% endif %}
+</details>
+
+<h2>Best fits for {{ fn }}</h2>
+{% if ranking %}<div class="fits">{% for r in ranking %}{% set o = by_id.get(r.id) %}{% if o and o.analysis %}
+  <div class="r"><div class="rank">{{ r.rank }}</div>{{ ui.mono(o) }}
+    <div><a class="nm" href="/person/{{ o.id }}">{{ o.analysis.display_name }}</a> {% if r.mutual_yes %}<span class="badge">mutual yes</span>{% endif %}
+      <div class="why">{{ r.why|join(' · ') }}</div></div>
+    <div>{{ ui.fit(r.fit) }}</div>
+    <div>{% if r.date_id %}<a class="btn ghost sm" href="/date/{{ r.date_id }}">Watch date</a>{% endif %}</div></div>{% endif %}{% endfor %}</div>
+{% else %}<div class="empty">Best fits appear after {{ fn }}'s agent has been on a dating round.
+  <div style="margin-top:12px"><a class="btn ghost sm" href="/round">Go to the dating floor</a></div></div>{% endif %}
+
+<h2>{{ fn }}'s dates</h2>
+{% if dates %}<div class="hscroll">{% for d in dates %}{% set oid = d.b if d.a == p.id else d.a %}{% set o = by_id.get(oid) %}{% if o and o.analysis %}
+  {% set mine = d.verdict_a if d.a == p.id else d.verdict_b %}{% set theirs = d.verdict_b if d.a == p.id else d.verdict_a %}
+  <a class="card lift" href="/date/{{ d.id }}"><div class="row">{{ ui.mono(o, 'sm') }}<b class="serif" style="font-size:17px">with {{ first(o) }}</b></div>
+    <div class="small muted" style="margin:8px 0">📍 {{ d.venue }}</div>
+    <div class="row" style="justify-content:space-between"><span class="serif" style="font-size:22px">{{ '%.1f'|format(d.mutual) }}</span>
+      {% if mine.second_date and theirs.second_date %}<span class="badge">mutual yes</span>{% elif mine.second_date %}<span class="small muted">one-sided</span>{% else %}<span class="small muted">no second date</span>{% endif %}</div></a>
+{% endif %}{% endfor %}</div>
+{% else %}<div class="empty">No dates yet. They happen when someone runs a round.</div>{% endif %}
+{% endif %}
+
+<div class="remove">
+  <button type="button" class="btn quiet start">Remove me from the pool</button>
+  <form method="post" action="/person/{{ p.id }}/delete" class="confirm">
+    <span class="small">This deletes the profile, both sources and every date. Sure?</span>
+    <button class="btn sm" type="submit">Yes, remove</button><button type="button" class="btn ghost sm cancel">Cancel</button></form>
+</div>
+{% if a %}<div class="next"><a class="btn" href="/round">Send {{ fn }}'s agent on dates <span class="arrow">→</span></a></div>{% endif %}
+</div>{% endblock %}

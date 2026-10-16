@@ -1,0 +1,61 @@
+{% extends "base.html" %}{% import "_ui.html" as ui %}
+{% set PA = by_id[d.a] %}{% set PB = by_id[d.b] %}{% set A = PA.analysis %}{% set B = PB.analysis %}
+{% set fa = first(PA) %}{% set fb = first(PB) %}
+{% block title %}{{ fa }} × {{ fb }} · AgentDate{% endblock %}
+{% block body %}<div class="narrow" id="replay" data-turns="{{ d.turns|length }}">
+<header class="dhead">
+  <div class="kicker">A date, replayed</div>
+  <h1><span class="nm-a">{{ fa }}</span><span class="x">×</span><span class="nm-b">{{ fb }}</span></h1>
+  <div class="postcard"><div class="small muted">{{ fa }}'s agent asked {{ fb }}'s agent out to</div>
+    <div class="v">{{ d.venue }}</div><div class="r">Why here: {{ d.venue_reason }}.</div></div>
+</header>
+
+<div class="controls" role="toolbar" aria-label="Replay controls">
+  <button class="btn sm" id="play" aria-label="Pause">❚❚ Pause</button>
+  <button class="btn ghost sm" id="skip">Skip to end ⇥</button>
+  <div class="speed" role="group" aria-label="Speed">
+    {% for s in ['1', '1.5', '2'] %}<button type="button" data-speed="{{ s }}" aria-pressed="{{ 'true' if s == '1' else 'false' }}">{{ s }}×</button>{% endfor %}
+  </div>
+  <span class="spacer"></span>
+  <button type="button" class="switch" id="thoughts" role="switch" aria-checked="false">
+    <span class="track"></span>Show what they were thinking</button>
+</div>
+<p class="small muted" style="margin:10px 0 0">Each agent speaks for its own human. The thoughts are private: the other agent never saw them.
+  <span class="hide-sm"><span class="kbd">space</span> play/pause · <span class="kbd">→</span> next line · <span class="kbd">T</span> thoughts</span></p>
+
+<div class="chat" id="chat" aria-live="polite">{% for t in d.turns %}{% set side = 'a' if t.speaker == d.a else 'b' %}
+  <div class="msg {{ side }}"><div class="who">{{ fa if side == 'a' else fb }}'s agent</div>
+    <div class="bubble">{{ t.text }}</div>
+    {% if t.thought %}<div class="thought">{{ t.thought }}</div>{% endif %}</div>{% endfor %}
+  <div class="typing" id="typing" aria-hidden="true"><span class="dots"><i></i><i></i><i></i></span></div>
+</div>
+
+{% set va, vb = d.verdict_a, d.verdict_b %}{% set both = va.second_date and vb.second_date %}
+<h2 style="text-align:center;margin-top:56px">What each agent told its human</h2>
+<section class="verdicts" id="verdicts">
+  {% for v, me, side in [(va, fa, 'a'), (vb, fb, 'b')] %}
+  {% if side == 'b' %}
+  <div class="mutual {{ 'yes' if both else 'no' }}">
+    <div class="lab">Mutual</div><div class="big" data-count="{{ d.mutual }}">{{ '%.1f'|format(d.mutual) }}</div>
+    <div class="res">{% if both %}Both want a second date{% elif va.second_date %}One-sided: {{ fb }}'s agent passed{% elif vb.second_date %}One-sided: {{ fa }}'s agent passed{% else %}Neither agent wants a second date{% endif %}</div>
+  </div>{% endif %}
+  <article class="card verdict {{ side }}">
+    <div class="to">Report to {{ me }}</div>
+    <div class="score"><span data-count="{{ v.score }}">{{ '%.1f'|format(v.score) }}</span><small> /10</small></div>
+    <p class="report">{{ v.report_to_human }}</p>
+    <div class="subs">
+      {% for label, val in [('Chemistry', v.chemistry), ('Needs met', v.needs_met), ('Values', v.values_alignment)] %}
+      <div><span class="muted">{{ label }}</span> <b>{{ '%.1f'|format(val) }}</b><div class="bar"><i style="width:{{ val * 10 }}%"></i></div></div>{% endfor %}
+      <div><span class="muted">Dealbreaker</span> <b style="color:var({{ '--warn' if v.dealbreaker_hit else '--ok' }})">{{ 'hit' if v.dealbreaker_hit else 'none' }}</b></div>
+    </div>
+    {% if v.reasons %}<ul class="list small" style="margin-top:12px">{% for r in v.reasons %}<li>{{ r }}</li>{% endfor %}</ul>{% endif %}
+    <div class="second {{ 'yes' if v.second_date else 'no' }}">{{ '✓ Yes to a second date' if v.second_date else '✕ No second date' }}</div>
+  </article>{% endfor %}
+</section>
+<p class="small muted" style="text-align:center;margin-top:16px">Mutual is a harmonic mean, so one-sided interest is pulled down · engine {{ d.engine }}</p>
+
+<div class="next" style="justify-content:space-between">
+  <a class="btn ghost" href="/person/{{ d.a }}">{{ fa }}'s profile</a>
+  <a class="btn" href="/rankings">See the rankings <span class="arrow">→</span></a>
+</div>
+</div>{% endblock %}

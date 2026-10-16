@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Dating floor · AgentDate{% endblock %}
+{% block body %}
+<section id="floor">
+<div class="hero" style="padding-bottom:0">
+  <div class="kicker">{{ 'Live now' if job else 'The dating floor' }}</div>
+  <h1 style="margin:6px 0 10px">{{ 'The agents are out.' if job else 'Every agent, every date.' }}</h1>
+  <p class="lede">Each agent reads everyone's public card and asks out its top picks. Then the dates happen, two agents at a time, each speaking only for its own human.</p>
+</div>
+
+<div class="phases" role="list">
+  <div data-ph="screening" role="listitem"><b>Screening</b><span>waiting</span></div>
+  <div data-ph="dating" role="listitem"><b>Dating</b><span>waiting</span></div>
+  <div data-ph="verdicts" role="listitem"><b>Verdicts</b><span>waiting</span></div>
+  <div data-ph="rankings" role="listitem"><b>Rankings</b><span>&nbsp;</span></div>
+</div>
+
+<div class="floorbar" id="floor-status">
+  {% if not roster|length >= 2 %}
+    <div class="empty" style="width:100%"><div class="serif">Not enough people to date yet.</div>A round needs at least two people. <a href="/join">Add someone</a>, or share the join link.</div>
+  {% elif not job %}
+    {% if last.dates %}<button class="btn" id="replay-round">▶ Replay the last round</button>{% endif %}
+    <button class="btn {{ 'ghost' if last.dates else '' }}" data-run-round>{{ 'Run a new round' if last.dates else 'Run a dating round' }}</button>
+    {% if last.dates %}<span class="small muted">Showing the last round: {{ last.dates|length }} dates. Hover an arc to see why an agent asked.</span>{% endif %}
+  {% endif %}
+</div>
+<div class="log" id="log" aria-live="off"></div>
+
+{% if roster|length >= 2 %}
+<div class="floor-grid">
+  <div class="ring card" id="ring">
+    <h4>Who asked whom</h4>
+    <svg viewBox="-30 -20 580 560" role="img" aria-label="Each agent's invitations, drawn as arcs between people">
+      <circle cx="260" cy="260" r="196" fill="none" stroke="var(--line)" stroke-dasharray="2 6"/>
+      <g id="arcs"></g><g id="nodes"></g></svg>
+    <div class="legend"><span><i style="background:var(--accent)"></i>asked out</span><span><i style="background:var(--ok)"></i>both asked</span></div>
+  </div>
+  <div>
+    <h4>The dates <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:400">· click any to watch it</span></h4>
+    <div class="wall" id="wall"><div class="empty" id="wall-empty" style="grid-column:1/-1">Date tiles appear here as the agents go out.</div></div>
+  </div>
+</div>
+{% endif %}
+
+<div class="next" id="to-rankings" hidden><a class="btn" href="/rankings">See the rankings <span class="arrow">→</span></a></div>
+</section>
+<script type="application/json" id="floor-data">{{ {"job": job, "roster": roster, "last": last}|tojson }}</script>
+{% endblock %}

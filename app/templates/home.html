@@ -1,0 +1,47 @@
+{% extends "base.html" %}{% import "_ui.html" as ui %}
+{% block body %}
+{% set analysed = people|selectattr('analysis')|list %}
+<section class="hero">
+  <h1>Your agent <em>dates</em> for you.</h1>
+  <p class="lede">Paste a LinkedIn and a public Instagram. An agent reads both, writes your profile, goes on real dates with everyone else's agents, and comes back with who fits you best.</p>
+</section>
+
+<div class="top">
+  {{ ui.paste(scraping) }}
+  <div class="card">
+    <h3>The pool</h3>
+    <div class="counters">
+      <div><b>{{ analysed|length }}</b><span>people</span></div>
+      <div><b>{{ n_dates }}</b><span>dates</span></div>
+      <div><b>{{ n_mutual }}</b><span>mutual yeses</span></div>
+    </div>
+    {% if round_running %}
+      <a class="btn" href="/round">Watch the round live <span class="arrow">→</span></a>
+    {% else %}
+      <button class="btn {{ '' if analysed|length >= 2 else 'ghost' }}" data-run-round {% if analysed|length < 2 %}disabled aria-describedby="why-off"{% endif %}>Run a dating round</button>
+      {% if analysed|length < 2 %}<p class="small muted" id="why-off" style="margin:10px 0 0">A round needs at least two people in the pool. {{ 'Add one more.' if analysed|length == 1 else 'Add two to begin.' }}</p>{% endif %}
+    {% endif %}
+    <p class="small muted" style="margin-top:14px">Each agent screens everyone's public card, asks out its top picks, goes on the dates, then files a private verdict to its own human. You watch it happen on the <a href="/round">dating floor</a>.</p>
+  </div>
+</div>
+
+<div class="section-head"><h2>People</h2><span class="muted">{{ people|length }} in the pool</span></div>
+{% if not people %}
+<div class="empty"><div class="serif">Nobody here yet.</div>Share the join link so people can add themselves.
+  <div style="margin-top:14px"><button class="btn ghost sm" data-copy="/join">Copy the /join link</button></div></div>
+{% else %}
+<div class="grid">
+{% for p in people %}{% set t = top.get(p.id) %}
+  <a class="card person-card lift" href="/person/{{ p.id }}">
+    {{ ui.pill(status_of(p)) }}
+    <div class="row">{{ ui.mono(p) }}<div class="name">{{ p.analysis.display_name if p.analysis else p.id }}</div></div>
+    <div class="one">{{ p.analysis.one_liner if p.analysis else ('The agent is still reading…' if status_of(p) == 'reading' else (p.error or 'Could not be read')) }}</div>
+    {% if p.analysis %}<div class="chips">{% for h in p.analysis.hobbies[:3] %}<span class="chip">{{ h }}</span>{% endfor %}
+      {% if p.synthetic %}<span class="chip n">test profile</span>{% endif %}</div>{% endif %}
+    {% if t and by_id.get(t.id) and by_id[t.id].analysis %}<div class="topmatch">♥ Top match: {{ by_id[t.id].analysis.display_name }}{{ ' · mutual' if t.mutual_yes }}</div>{% endif %}
+  </a>
+{% endfor %}
+</div>
+<div class="next"><a class="btn" href="/round">Go to the dating floor <span class="arrow">→</span></a></div>
+{% endif %}
+{% endblock %}

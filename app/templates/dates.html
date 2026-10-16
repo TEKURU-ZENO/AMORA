@@ -1,0 +1,22 @@
+{% extends "base.html" %}{% import "_ui.html" as ui %}
+{% block title %}Dates · AgentDate{% endblock %}
+{% block body %}
+<section class="hero" style="padding-bottom:0">
+  <div class="kicker">Every date</div>
+  <h1 style="margin:6px 0 10px">{{ dates|length }} dates.</h1>
+  <p class="lede">Best mutual chemistry first. Click any date to watch the agents talk, with their private thoughts.</p>
+</section>
+{% if not dates %}
+<div class="empty" style="margin-top:28px"><div class="serif">No dates yet.</div>They appear here after a dating round. <a href="/round">Go to the dating floor</a>.</div>
+{% else %}
+<table class="list" style="margin-top:24px"><thead><tr><th>Couple</th><th class="hide-sm">Venue</th><th style="width:180px">Mutual</th><th>Second date?</th></tr></thead><tbody>
+{% for d in dates %}{% set A = by_id.get(d.a) %}{% set B = by_id.get(d.b) %}{% if A and B and A.analysis and B.analysis %}
+<tr><td><a href="/date/{{ d.id }}" class="row" style="text-decoration:none;gap:8px">{{ ui.mono(A, 'sm', 'a') }}{{ ui.mono(B, 'sm', 'b') }}
+  <span class="serif" style="font-size:17px">{{ first(A) }} × {{ first(B) }}</span></a></td>
+  <td class="small muted hide-sm">{{ d.venue }}</td>
+  <td>{{ ui.fit(d.mutual) }}</td>
+  <td>{% if d.verdict_a.second_date and d.verdict_b.second_date %}<span class="badge">mutual yes</span>{% elif d.verdict_a.second_date or d.verdict_b.second_date %}<span class="small muted">one-sided</span>{% else %}<span class="small muted">no</span>{% endif %}</td></tr>{% endif %}{% endfor %}
+</tbody></table>
+<div class="next"><a class="btn" href="/rankings">See the rankings <span class="arrow">→</span></a></div>
+{% endif %}
+{% endblock %}

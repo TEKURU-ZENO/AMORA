@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Reading… · AgentDate{% endblock %}
+{% block body %}
+<section id="reading" data-job="{{ job }}" data-pid="{{ pid }}">
+<div class="hero" style="padding-bottom:0">
+  <div class="row"><div class="kicker">The analyst is reading</div><span class="pill reading">reading</span></div>
+  <h1 style="margin:8px 0 10px">Reading {{ pid }}.</h1>
+  <div class="saying" id="read-status" aria-live="polite"><span class="dots"><i></i><i></i><i></i></span> Connecting to the agent…</div>
+</div>
+
+<div class="reading">
+  <div class="card srcpane">
+    <h3>What it's reading</h3>
+    <div class="row" style="margin:14px 0 8px"><span class="src linkedin">LinkedIn</span></div>
+    <div id="src-li"><div class="waiting">Waiting to start…</div></div>
+    <div class="row" style="margin:18px 0 8px"><span class="src instagram">Instagram</span></div>
+    <div id="src-ig"><div class="waiting">Next, after LinkedIn.</div></div>
+  </div>
+  <div class="card">
+    <h3>What it's thinking</h3>
+    <ol class="stepper" style="margin-top:16px">
+      <li><span class="dot">1</span><div class="t">LinkedIn pass</div><div class="notes" aria-live="polite"></div></li>
+      <li><span class="dot">2</span><div class="t">Instagram pass</div><div class="notes" aria-live="polite"></div></li>
+      <li><span class="dot">3</span><div class="t">Cross-read</div><div class="notes" aria-live="polite"></div></li>
+    </ol>
+    <p class="small muted">Three passes: the LinkedIn self, the Instagram self, then a cross-read that reconciles the two and works out what this person needs. Every claim keeps a receipt.</p>
+  </div>
+</div>
+</section>
+{% endblock %}

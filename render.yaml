@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: agentdate
+    runtime: docker
+    plan: starter
+    disk: { name: data, mountPath: /data, sizeGB: 1 }
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: APIFY_TOKEN
+        sync: false

@@ -1,0 +1,66 @@
+{% extends "base.html" %}{% import "_ui.html" as ui %}
+{% block title %}Rankings · AgentDate{% endblock %}
+{% block body %}<section id="rankings">
+<div class="hero" style="padding-bottom:0">
+  <div class="kicker">The verdict</div>
+  <h1 style="margin:6px 0 10px">Who fits whom.</h1>
+  <p class="lede">For every person, who their agent thinks fits them best. Fit is 60% your own agent's verdict, 40% how the other agent felt about you, minus a penalty if a dealbreaker came up.</p>
+</div>
+
+{% if not ranked %}
+<div class="empty" style="margin-top:28px"><div class="serif">No verdicts yet.</div>Rankings appear here after a dating round.
+  <div style="margin-top:14px"><button class="btn" data-run-round {% if people|length < 2 %}disabled{% endif %}>Run a dating round</button></div></div>
+{% else %}
+
+<div class="highlights">
+  {% if hl.strongest %}{% set d = hl.strongest %}
+  <a class="card hl lift" href="/date/{{ d.id }}"><div class="k">Strongest match</div>
+    <div class="v">{{ first(by_id[d.a]) }} × {{ first(by_id[d.b]) }}</div>
+    <div class="d">Mutual {{ '%.1f'|format(d.mutual) }} · {{ 'both want a second date' if d.verdict_a.second_date and d.verdict_b.second_date else 'the best of a cautious round' }}</div></a>{% endif %}
+  {% if hl.most_asked %}{% set p, n = hl.most_asked %}
+  <a class="card hl lift" href="/person/{{ p.id }}"><div class="k">Most asked out</div>
+    <div class="v">{{ p.analysis.display_name }}</div>
+    <div class="d">{{ n }} agents asked {{ first(p) }} out in screening</div></a>{% endif %}
+  {% if hl.one_sided %}{% set d = hl.one_sided %}{% set keen = by_id[d.a] if d.verdict_a.score > d.verdict_b.score else by_id[d.b] %}{% set cool = by_id[d.b] if keen.id == d.a else by_id[d.a] %}
+  <a class="card hl lift" href="/date/{{ d.id }}"><div class="k">Most one-sided date</div>
+    <div class="v">{{ first(keen) }} → {{ first(cool) }}</div>
+    <div class="d">{{ first(keen) }}'s agent gave {{ '%.1f'|format([d.verdict_a.score, d.verdict_b.score]|max) }}, {{ first(cool) }}'s gave {{ '%.1f'|format([d.verdict_a.score, d.verdict_b.score]|min) }}</div></a>{% endif %}
+</div>
+
+<div class="toolbar">
+  <div class="seg" role="group" aria-label="View">
+    <button type="button" data-view="cards" aria-pressed="true">Top 5 per person</button>
+    <button type="button" class="mx" data-view="matrix" aria-pressed="false">Everyone × everyone</button>
+  </div>
+  <input type="search" id="rk-search" placeholder="Find a person…" aria-label="Filter by person">
+</div>
+
+<div class="grid cards-view">{% for p in ranked %}{% set rows = rankings[p.id] %}
+  <article class="card rk" data-name="{{ p.analysis.display_name|lower }}">
+    <div class="row">{{ ui.mono(p, 'sm') }}<a href="/person/{{ p.id }}" class="serif" style="font-size:19px;text-decoration:none">{{ p.analysis.display_name }}</a></div>
+    <div class="rows">{% for r in rows[:5] %}{% set o = by_id.get(r.id) %}{% if o and o.analysis %}
+      <div class="rr"><div class="n">{{ r.rank }}</div><div>
+        <div class="nm">{% if r.date_id %}<a href="/date/{{ r.date_id }}">{{ o.analysis.display_name }}</a>{% else %}<span>{{ o.analysis.display_name }}</span>{% endif %}
+          {% if r.mutual_yes %}<span class="badge">mutual</span>{% endif %}</div>
+        {{ ui.fit(r.fit, r.why[0] if r.why else '') }}</div></div>{% endif %}{% endfor %}</div>
+  </article>{% endfor %}
+</div>
+
+<div class="matrix-view" hidden>
+  <div class="matrix-wrap"><table class="matrix" aria-label="Fit of every person (row) for every candidate (column)">
+    <thead><tr><th></th>{% for o in ranked %}<th scope="col"><span>{{ first(o) }}</span></th>{% endfor %}</tr></thead>
+    <tbody>{% for p in ranked %}{% set row = matrix[p.id] %}
+      <tr data-name="{{ p.analysis.display_name|lower }}"><th scope="row">{{ first(p) }}</th>
+      {% for o in ranked %}{% if o.id == p.id %}<td class="self"></td>{% else %}{% set r = row.get(o.id) %}{% if r %}
+        <td style="--f:{{ (r.fit * 10)|round|int }}" class="{{ 'dated' if r.dated }} {{ 'mut' if r.mutual_yes }}"
+          {% if r.date_id %}data-date="{{ r.date_id }}"{% endif %}
+          data-fit="{{ '%.1f'|format(r.fit) }}"{% if r.dated %} data-my="{{ '%.1f'|format(r.my_agent) }}" data-their="{{ '%.1f'|format(r.their_agent) }}"{% endif %}></td>
+        {% else %}<td></td>{% endif %}{% endif %}{% endfor %}</tr>{% endfor %}</tbody>
+  </table></div>
+  <div class="legend"><span><i class="grad"></i>fit 0 → 10</span><span><i style="box-shadow:inset 0 0 0 1.5px var(--ink)"></i>went on a date</span>
+    <span><i style="background:var(--ok)"></i>mutual yes (dot)</span><span>Row = the person, column = the candidate. Click a dated cell to watch it.</span></div>
+</div>
+{% endif %}
+
+<div class="next"><a class="btn" href="/how">How it works <span class="arrow">→</span></a></div>
+</section>{% endblock %}

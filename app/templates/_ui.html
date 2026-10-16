@@ -1,0 +1,35 @@
+{# Shared components. Import with: {% import "_ui.html" as ui %} #}
+
+{% macro mono(p, size="", cls="") -%}
+{% set name = p.analysis.display_name if p.analysis else p.id %}
+<span class="mono {{ size }} {{ cls or p.id|tint }}" aria-hidden="true">{{ name[:1]|upper }}</span>
+{%- endmacro %}
+
+{% macro pill(status) -%}
+<span class="pill {{ status }}">{{ status }}</span>
+{%- endmacro %}
+
+{% macro src(source) -%}
+<span class="src {{ source }}">{{ 'LinkedIn' if source == 'linkedin' else 'Instagram' }}</span>
+{%- endmacro %}
+
+{% macro fit(value, why="") -%}
+<div class="fit"><div class="bar"><i style="width:{{ (value * 10)|round(1) }}%"></i></div><b>{{ '%.1f'|format(value) }}</b></div>
+{% if why %}<div class="why">{{ why }}</div>{% endif %}
+{%- endmacro %}
+
+{% macro paste(scraping) %}
+<form class="card stack" id="paste" novalidate>
+  <h3>Paste two links</h3>
+  {% if not scraping %}<div class="banner"><b>Scraping is off on this server.</b> No APIFY_TOKEN is set, so live links can't be read here. The pool below runs on pre-loaded profiles.</div>{% endif %}
+  <div class="field" data-kind="linkedin"><span class="ico li">in</span>
+    <input type="url" name="linkedin" placeholder="https://www.linkedin.com/in/your-handle" autocomplete="off" required aria-describedby="hint-li">
+    <div class="hint" id="hint-li" aria-live="polite">Your public LinkedIn profile</div></div>
+  <div class="field" data-kind="instagram"><span class="ico ig">ig</span>
+    <input type="url" name="instagram" placeholder="https://www.instagram.com/your_handle" autocomplete="off" required aria-describedby="hint-ig">
+    <div class="hint" id="hint-ig" aria-live="polite">A public Instagram profile, not a post</div></div>
+  <label class="consent"><input type="checkbox" name="consent" value="yes" required> This is me, or I have this person's permission to be profiled and matched here.</label>
+  <div class="row"><button class="btn" type="submit">Send my agent out <span class="arrow">→</span></button></div>
+  <div class="saying" id="paste-status" aria-live="polite"></div>
+</form>
+{% endmacro %}

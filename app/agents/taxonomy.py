@@ -1,0 +1,115 @@
+"""Keyword taxonomy used by the offline (no-LLM) engine.
+
+Each entry: label -> (kind, keywords, traits). `kind` is hobby or interest; `traits`
+feed personality / lifestyle / values inference. The LLM engine does not need this,
+but the offline engine stays deterministic and explainable because of it.
+"""
+from __future__ import annotations
+
+TAXONOMY: dict[str, tuple[str, list[str], list[str]]] = {
+    "Running": ("hobby", ["run", "marathon", "5k", "10k", "halfmarathon", "strava", "running"], ["disciplined", "active", "early-riser"]),
+    "Hiking & trekking": ("hobby", ["hike", "hiking", "trek", "trekking", "trail", "summit", "himalaya", "mountains"], ["adventurous", "active", "outdoorsy"]),
+    "Cycling": ("hobby", ["cycling", "bike ride", "cyclist", "peloton", "roadbike"], ["active", "disciplined"]),
+    "Climbing": ("hobby", ["climbing", "bouldering", "boulder"], ["adventurous", "active"]),
+    "Yoga & meditation": ("hobby", ["yoga", "meditation", "mindful", "vipassana", "breathwork"], ["calm", "reflective"]),
+    "Gym & strength": ("hobby", ["gym", "lifting", "deadlift", "crossfit", "workout", "fitness"], ["disciplined", "active"]),
+    "Football / cricket": ("hobby", ["football", "cricket", "ipl", "premierleague", "fifa", "matchday"], ["social", "competitive"]),
+    "Swimming & surfing": ("hobby", ["swim", "surf", "surfing", "scuba", "diving", "ocean"], ["adventurous", "outdoorsy"]),
+    "Cooking": ("hobby", ["cook", "cooking", "recipe", "homemade", "baking", "bake", "sourdough", "kitchen"], ["nurturing", "homebody"]),
+    "Food exploring": ("interest", ["foodie", "cafe", "brunch", "restaurant", "streetfood", "eats", "coffee"], ["social", "curious"]),
+    "Photography": ("hobby", ["photography", "35mm", "film camera", "shotoniphone", "portrait", "lightroom", "photo walk"], ["creative", "observant"]),
+    "Painting & sketching": ("hobby", ["painting", "sketch", "watercolor", "illustration", "artwork", "canvas"], ["creative", "introspective"]),
+    "Music (playing)": ("hobby", ["guitar", "piano", "singing", "band", "gig", "drums", "violin", "carnatic", "ukulele"], ["creative", "expressive"]),
+    "Music (listening) & concerts": ("interest", ["concert", "spotify", "playlist", "festival", "vinyl", "coldplay", "liveMusic", "lollapalooza"], ["social", "expressive"]),
+    "Dance": ("hobby", ["dance", "salsa", "bharatanatyam", "kathak", "hiphop dance", "choreo"], ["expressive", "social"]),
+    "Reading": ("hobby", ["book", "books", "reading", "bookstagram", "novel", "goodreads", "library"], ["curious", "introspective"]),
+    "Writing": ("hobby", ["writing", "poetry", "poem", "blog", "substack", "journal"], ["introspective", "expressive"]),
+    "Travel": ("interest", ["travel", "wanderlust", "backpacking", "roadtrip", "passport", "explore", "solo trip"], ["adventurous", "curious"]),
+    "Gaming": ("hobby", ["gaming", "playstation", "xbox", "valorant", "steam", "nintendo", "chess"], ["strategic", "homebody"]),
+    "Films & series": ("interest", ["movie", "film", "cinema", "netflix", "letterboxd", "series", "anime"], ["curious", "homebody"]),
+    "Fashion & style": ("interest", ["ootd", "fashion", "style", "thrift", "streetwear", "outfit"], ["expressive", "social"]),
+    "Pets & animals": ("interest", ["dog", "cat", "puppy", "pet", "doggo", "rescue", "kitten"], ["nurturing", "warm"]),
+    "Gardening & plants": ("hobby", ["plant", "plants", "garden", "gardening", "monstera", "terrace garden"], ["nurturing", "calm"]),
+    "Volunteering & social impact": ("interest", ["volunteer", "ngo", "nonprofit", "impact", "teaching kids", "climate", "sustainability", "sustainable"], ["altruistic", "purpose-driven"]),
+    "Startups & building": ("interest", ["startup", "founder", "building", "product", "yc", "shipping", "side project", "hackathon"], ["ambitious", "driven"]),
+    "AI & technology": ("interest", ["ai", "machine learning", "llm", "deep learning", "python", "software", "engineer", "data science", "robotics"], ["analytical", "curious"]),
+    "Design": ("interest", ["design", "ux", "ui", "figma", "typography", "branding", "architecture"], ["creative", "observant"]),
+    "Finance & investing": ("interest", ["investing", "stocks", "finance", "markets", "vc", "venture", "fintech"], ["strategic", "ambitious"]),
+    "Science & research": ("interest", ["research", "phd", "lab", "neuroscience", "biology", "physics", "publication", "paper"], ["analytical", "curious"]),
+    "Health & medicine": ("interest", ["doctor", "medicine", "mbbs", "healthcare", "clinic", "nurse", "public health"], ["nurturing", "purpose-driven"]),
+    "Spirituality & faith": ("interest", ["temple", "spiritual", "gratitude", "faith", "church", "prayer", "dharma"], ["reflective", "grounded"]),
+    "Family-oriented": ("interest", ["family", "mom", "dad", "sister", "brother", "nephew", "niece", "grandma"], ["warm", "grounded"]),
+    "Nightlife & parties": ("interest", ["party", "club", "nightout", "cocktails", "rooftop", "pub"], ["social", "spontaneous"]),
+    "Public speaking & teaching": ("interest", ["speaker", "talk", "keynote", "mentor", "teaching", "workshop", "ted"], ["expressive", "generous"]),
+}
+
+TRAIT_TO_VALUE = {
+    "purpose-driven": "Meaningful work",
+    "altruistic": "Giving back",
+    "ambitious": "Growth and ambition",
+    "driven": "Growth and ambition",
+    "warm": "Family and closeness",
+    "grounded": "Stability",
+    "curious": "Learning and curiosity",
+    "adventurous": "Freedom and new experiences",
+    "disciplined": "Health and discipline",
+    "creative": "Self-expression",
+    "nurturing": "Care and kindness",
+    "reflective": "Inner peace",
+}
+
+TRAIT_TO_NEED = {
+    "ambitious": "A partner who respects long hours and big goals, and pushes them without competing",
+    "driven": "Someone who gets excited about what they are building",
+    "adventurous": "A co-pilot for spontaneous trips and trying new things",
+    "active": "Someone who'll join a morning run or weekend hike rather than wait at the finish line",
+    "introspective": "Quiet time and deep one-on-one conversation over big groups",
+    "social": "A partner who enjoys being out with friends and meeting new people",
+    "nurturing": "Being able to look after someone, and having that care returned",
+    "warm": "Emotional openness and steady affection",
+    "creative": "Someone who takes their creative work seriously and shows up to see it",
+    "analytical": "Intellectual sparring partner who enjoys ideas and debate",
+    "homebody": "Cozy nights in to balance busy weeks",
+    "purpose-driven": "Shared sense that work and life should mean something",
+    "calm": "Low drama and emotional steadiness",
+    "spontaneous": "Room for last-minute plans",
+    "grounded": "Reliability and follow-through",
+    "curious": "Constant learning together, new places, new ideas",
+}
+
+DEALBREAKER_RULES = {
+    "disciplined": "Flaky plans and chronic lateness",
+    "purpose-driven": "Cynicism about trying to make a difference",
+    "warm": "Emotional unavailability",
+    "adventurous": "Someone who never wants to leave their comfort zone",
+    "analytical": "Not being able to disagree respectfully",
+    "nurturing": "Unkindness to service staff or animals",
+    "ambitious": "Feeling held back or resented for their goals",
+    "introspective": "Constant need to be out and performing socially",
+}
+
+VENUES = {
+    "Hiking & trekking": "a sunrise trail hike",
+    "Running": "a riverside run followed by filter coffee",
+    "Cooking": "a hands-on pasta-making class",
+    "Food exploring": "a street-food crawl",
+    "Photography": "a golden-hour photo walk through the old town",
+    "Painting & sketching": "an open sip-and-paint studio",
+    "Music (playing)": "an open-mic night",
+    "Music (listening) & concerts": "a small live-music bar",
+    "Reading": "a slow afternoon at an indie bookstore cafe",
+    "Travel": "a weekend day-trip to the coast",
+    "Gaming": "a board-game cafe",
+    "Films & series": "an indie film screening",
+    "Dance": "a beginner salsa social",
+    "Yoga & meditation": "a beach yoga session and fresh juice",
+    "Climbing": "a bouldering gym",
+    "Gardening & plants": "a botanical garden walk",
+    "Startups & building": "a builders' meetup and dinner after",
+    "AI & technology": "a science museum late night",
+    "Design": "an architecture walk and gallery visit",
+    "Pets & animals": "a dog-friendly cafe",
+    "Volunteering & social impact": "a morning volunteering shift then brunch",
+    "Swimming & surfing": "a beginner surf lesson",
+}
+DEFAULT_VENUE = "a quiet coffee shop with good music"
