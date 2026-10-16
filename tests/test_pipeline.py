@@ -2,8 +2,8 @@ import os
 import tempfile
 
 os.environ["DATA_DIR"] = tempfile.mkdtemp()
-os.environ.pop("ANTHROPIC_API_KEY", None)
-os.environ.pop("APIFY_TOKEN", None)
+os.environ["ANTHROPIC_API_KEY"] = ""  # set empty so a local .env cannot switch engines on
+os.environ["APIFY_TOKEN"] = ""
 
 import pytest
 from fastapi.testclient import TestClient
