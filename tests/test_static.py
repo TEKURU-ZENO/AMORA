@@ -34,3 +34,12 @@ def test_demo_flag_tolerates_host_ui_quoting(monkeypatch, value):
     from app import config
     monkeypatch.setenv("AMORA_DEMO", value)
     assert config.demo_mode()
+
+
+def test_deploy_env_is_non_secret_and_turns_on_demo():
+    root = Path(__file__).resolve().parent.parent
+    text = (root / "deploy.env").read_text(encoding="utf-8")
+    settings = dict(l.split("=", 1) for l in text.splitlines() if l.strip() and not l.startswith("#"))
+    assert settings.get("AMORA_DEMO") == "1"
+    assert not any(k in settings for k in ("APIFY_TOKEN", "ANTHROPIC_API_KEY", "ADMIN_API_KEY"))
+    assert "apify_api_" not in text and "sk-ant" not in text

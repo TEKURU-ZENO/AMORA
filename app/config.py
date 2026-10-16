@@ -16,6 +16,9 @@ def _load_dotenv(path: Path) -> None:
 
 
 _load_dotenv(ROOT / ".env")
+# Committed, non-secret deploy settings (e.g. AMORA_DEMO). Loaded last, so the host's env vars
+# and a local .env always win. Never put tokens or keys in deploy.env.
+_load_dotenv(ROOT / "deploy.env")
 
 
 def _env(name: str, default: str = "") -> str:
