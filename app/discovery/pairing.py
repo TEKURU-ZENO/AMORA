@@ -12,6 +12,7 @@ from typing import Optional
 
 from ..scrape import apify
 from ..scrape.links import LinkError, normalize_instagram
+from .search import provider
 
 
 class InstagramProfileCandidate:
@@ -29,7 +30,7 @@ class InstagramProfileCandidate:
 def _handle_from_search(name: str) -> Optional[str]:
     if not name.strip():
         return None
-    for r in apify.google_search(f'site:instagram.com "{name}"', limit=5):
+    for r in provider().google_search(f'site:instagram.com "{name}"', limit=5):
         try:
             return normalize_instagram(r["url"])[1]
         except LinkError:
@@ -46,7 +47,7 @@ def find_candidate_instagram(linkedin_candidate: dict) -> Optional[InstagramProf
         if not handle:
             return None
         url, handle = normalize_instagram(f"https://www.instagram.com/{handle}/")
-        ig = apify.fetch_instagram(url, handle, posts=1)
+        ig = provider().fetch_instagram(url, handle, posts=1)
     except (apify.ScrapeError, LinkError):
         return None
     return InstagramProfileCandidate(url=url, username=ig.username or handle, bio=ig.bio,

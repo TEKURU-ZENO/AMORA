@@ -92,6 +92,16 @@ def ingest(linkedin_url: str, instagram_url: str, consent: bool, progress: Progr
         raise
 
 
+def ingest_demo(pid: str, li: LinkedInData, ig: InstagramData, progress: Progress = _print) -> Person:
+    """Demo mode only: add a fictional persona without scraping, then analyse it like anyone else."""
+    if not config.demo_mode():
+        raise ValueError("Fictional personas are only allowed in demo mode (AGENTDATE_DEMO=1).")
+    p = Person(id=pid, linkedin_url=li.url, instagram_url=ig.url, consent=True, synthetic=True,
+               sources=SourceBundle(linkedin=li, instagram=ig), status="scraped")
+    store.save_person(p)
+    return analyse(p, progress)
+
+
 def analyse(p: Person, progress: Progress = _print) -> Person:
     progress(f"[{p.id}] analyst agent reading both sources")
     a, log, engine = analyst.analyze(p.sources, on_note=lambda i, note: progress({"type": "pass", "i": i, "text": note}))

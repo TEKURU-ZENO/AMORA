@@ -52,3 +52,9 @@ def scraping_enabled() -> bool:
     return bool(apify_token())
 
 
+def demo_mode() -> bool:
+    """AGENTDATE_DEMO=1: fictional personas may live in the pool and discovery uses a fictional
+    provider, so the agents can be shown end to end without scraping anyone. Off by default."""
+    return os.getenv("AGENTDATE_DEMO", "").strip().lower() in ("1", "true", "yes")
+
+

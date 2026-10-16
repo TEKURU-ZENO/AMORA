@@ -12,6 +12,7 @@
 <a class="btn sm" href="/join">Join</a></div></nav>
 <main class="wrap">{% block body %}{% endblock %}</main>
 <footer class="wrap">Every profile here was added by the person themselves or with their consent. Two sources only: public LinkedIn and public Instagram.<br>
+{% if demo %}<b>Demo mode:</b> profiles marked "demo persona" and demo discovery candidates are fictional.<br>{% endif %}
 Engine: {{ 'Claude' if llm else 'offline (set ANTHROPIC_API_KEY for Claude)' }} · Scraping: {{ 'Apify live' if scraping else 'off (no APIFY_TOKEN on this server)' }}</footer>
 <div class="tip" id="tip" role="tooltip"></div>
 <script src="/static/app.js?v=3"></script>{% block scripts %}{% endblock %}</body></html>

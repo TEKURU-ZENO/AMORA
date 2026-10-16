@@ -48,7 +48,9 @@ def init() -> None:
         c.execute("CREATE INDEX IF NOT EXISTS idx_jobs_idemp ON jobs(idempotency_key)")
         c.execute("CREATE INDEX IF NOT EXISTS idx_job_logs_jid ON job_logs(job_id)")
     recover_interrupted_jobs()
-    purge_synthetic()
+    from . import config
+    if not config.demo_mode():
+        purge_synthetic()
 
 
 def purge_synthetic() -> int:
@@ -171,6 +173,9 @@ def clear_all() -> None:
         c.execute("DELETE FROM meta")
         c.execute("DELETE FROM jobs")
         c.execute("DELETE FROM job_logs")
+        # the discovery registry lives in the same file but is created lazily by its own module
+        if c.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='candidate_registry'").fetchone():
+            c.execute("DELETE FROM candidate_registry")
 
 
 

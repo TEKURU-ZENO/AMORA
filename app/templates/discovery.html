@@ -29,7 +29,8 @@
 <div class="card stack" style="margin-bottom:28px">
   <h3>Run Discovery Agent</h3>
   <p class="small muted">Searches Google through Apify for public LinkedIn profiles, finds the matching Instagram (a handle they mention, or a name search), scrapes it, and checks for a direct cross-link. Each candidate costs a few Apify runs.</p>
-  {% if not scraping %}<div class="banner"><b>Discovery is off on this server.</b> It runs entirely on Apify, and no APIFY_TOKEN is set.</div>{% endif %}
+  {% if demo %}<div class="banner info"><b>Demo mode.</b> Discovery uses a fictional provider: every candidate below is invented, and nobody is searched or scraped.</div>{% endif %}
+  {% if not scraping and not demo %}<div class="banner"><b>Discovery is off on this server.</b> It runs entirely on Apify, and no APIFY_TOKEN is set.</div>{% endif %}
   {% if job %}<div class="saying" id="discovery-status"><span class="dots"><i></i><i></i><i></i></span> The discovery agent is searching. This page refreshes when it's done.</div>
   <div class="log on" id="discovery-log" data-job="{{ job }}" aria-live="off"></div>{% endif %}
   <form method="POST" action="/api/discovery/search" class="row wrap" style="gap:12px;align-items:flex-end">
@@ -42,7 +43,7 @@
       <input type="number" name="limit" value="6" min="1" max="20" style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:8px">
     </div>
     <div>
-      <button type="submit" class="btn"{% if not scraping or job %} disabled{% endif %}>Explore Candidates <span class="arrow">→</span></button>
+      <button type="submit" class="btn"{% if (not scraping and not demo) or job %} disabled{% endif %}>Explore Candidates <span class="arrow">→</span></button>
     </div>
   </form>
 </div>

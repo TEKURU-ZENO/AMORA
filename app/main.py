@@ -92,7 +92,7 @@ def _ctx(request, **kw):
     people = store.list_persons()
     return {"request": request, "people": people, "by_id": {p.id: p for p in people},
             "status_of": status_of, "first": first_name, "round_running": _round_running(),
-            "llm": config.llm_enabled(), "scraping": config.scraping_enabled(), **kw}
+            "llm": config.llm_enabled(), "scraping": config.scraping_enabled(), "demo": config.demo_mode(), **kw}
 
 
 def _highlights(people, dates, asks) -> dict:
@@ -213,7 +213,7 @@ def discovery_page(request: Request):
 
 @app.post("/api/discovery/search")
 def discovery_search(query: str = Form(""), limit: int = Form(6)):
-    if not config.scraping_enabled():
+    if not (config.scraping_enabled() or config.demo_mode()):
         return JSONResponse({"error": "Discovery searches the web through Apify, and no APIFY_TOKEN is set on this server."}, 503)
     # Real searches and Instagram scrapes take minutes, so this runs as a job the page streams.
     jid = _job(discovery.orchestrator.run_discovery_batch, query, max(1, min(limit, 20)), job_type="discovery")
@@ -361,4 +361,4 @@ def admin_export(request: Request):
 
 @app.get("/healthz")
 def health():
-    return {"ok": True, "llm": config.llm_enabled(), "scraping": config.scraping_enabled()}
+    return {"ok": True, "llm": config.llm_enabled(), "scraping": config.scraping_enabled(), "demo": config.demo_mode()}

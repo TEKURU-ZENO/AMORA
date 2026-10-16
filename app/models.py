@@ -127,3 +127,4 @@ class Person(BaseModel):
     analysis: Optional[Analysis] = None
     reading_log: list[str] = []  # the agent's step-by-step reading trace
     warnings: list[str] = []  # partial failures, e.g. one source could not be read
+    synthetic: bool = False  # a fictional demo persona (demo mode only); never a scraped person
