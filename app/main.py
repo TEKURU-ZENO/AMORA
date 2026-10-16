@@ -23,6 +23,18 @@ tpl = Jinja2Templates(directory=ROOT / "app" / "templates")
 tpl.env.filters["tint"] = lambda pid: f"t{sum(map(ord, pid)) % 7}"
 store.init()
 
+
+def _autoseed_demo() -> None:
+    """Demo mode with an empty pool: add the fictional personas and run one round, so the site is
+    populated at once. Serverless hosts (Vercel) start with an empty /tmp and may stop background
+    jobs, so this runs inline at startup rather than as a job."""
+    if config.demo_mode() and not any(p.analysis for p in store.list_persons()):
+        harness.add_demo_personas(progress=lambda m: None)
+        harness.run_round(progress=lambda m: None)
+
+
+_autoseed_demo()
+
 JOBS: dict[str, dict] = {}
 PERSON_JOBS: dict[str, str] = {}  # person id -> ingest job, so their page can show the live reading
 ROUND = {"job": None}  # the dating round currently running, if any

@@ -1,4 +1,4 @@
-"""25 clearly fictional personas for DEMO MODE (AMORA_DEMO=1) and for tests.
+"""50 clearly fictional personas for DEMO MODE (AMORA_DEMO=1) and for tests.
 
 Every name, company and handle here is invented, and every link points at example.com so a
 persona can never be mistaken for, or link to, a real person's profile. With demo mode off the
@@ -7,15 +7,23 @@ app purges these on startup: the live pool is real people scraped through Apify 
 from __future__ import annotations
 
 import random
+import re
 
 from app.models import InstagramData, InstagramPost, LinkedInData, LinkedInExperience
 
 FIRST = ["Aarav", "Meera", "Kabir", "Ananya", "Rohan", "Ishita", "Vikram", "Tara", "Neel", "Sana",
          "Arjun", "Diya", "Kiran", "Zoya", "Aditya", "Nisha", "Farhan", "Leela", "Siddharth", "Riya",
-         "Omar", "Priya", "Arnav", "Maya", "Yash"]
+         "Omar", "Priya", "Arnav", "Maya", "Yash",
+         # 26-50 (appended, so the first 25 stay exactly as they were)
+         "Ira", "Dev", "Saanvi", "Kabeer", "Aisha", "Rehan", "Tanvi", "Vihaan", "Noor", "Aryan",
+         "Mira", "Kunal", "Anika", "Zain", "Pooja", "Ritvik", "Esha", "Nikhil", "Sara", "Varun",
+         "Lavanya", "Imran", "Shreya", "Karan", "Alina"]
 LAST = ["Iyer", "Kapoor", "Menon", "Rao", "Shah", "Bose", "Pillai", "Nair", "Joshi", "Das",
         "Reddy", "Kulkarni", "Sen", "Mirza", "Varma", "Ghosh", "Qureshi", "Thomas", "Banerjee", "Chawla",
-        "Siddiqui", "Krishnan", "Arora", "Fernandes", "Patil"]
+        "Siddiqui", "Krishnan", "Arora", "Fernandes", "Patil",
+        "Bhatt", "Saxena", "Gupta", "Malhotra", "Sheikh", "Khanna", "Desai", "Agarwal", "Hussain", "Mehra",
+        "Pandey", "Bajaj", "Chopra", "Ahmed", "Hegde", "Trivedi", "Kaur", "Mishra", "D'Souza", "Kamath",
+        "Ramesh", "Ansari", "Venkatesh", "Sethi", "Kurien"]
 CITIES = ["Chennai", "Bengaluru", "Mumbai", "Pune", "Hyderabad", "Delhi"]
 ROLES = [("ML Engineer", "Fictive Labs", "Building LLM evaluation pipelines in Python"),
          ("Product Designer", "Imaginary Studio", "UX research and design systems in Figma"),
@@ -26,7 +34,12 @@ ROLES = [("ML Engineer", "Fictive Labs", "Building LLM evaluation pipelines in P
          ("Architect", "Sample & Co", "Sustainable housing design and architecture"),
          ("Teacher", "Fable School", "Teaching kids maths, running a weekend library"),
          ("Investment Analyst", "Hypothetical Capital", "Venture investing in climate startups"),
-         ("Software Engineer", "Mock Systems", "Backend software engineer, open source on weekends")]
+         ("Software Engineer", "Mock Systems", "Backend software engineer, open source on weekends"),
+         ("Chef", "Pretend Kitchen", "Running a small restaurant kitchen, seasonal menus"),
+         ("Journalist", "The Imaginary Times", "Long-form reporting on cities and culture"),
+         ("Musician", "Fictional Records", "Session guitarist and composer for indie films"),
+         ("Lawyer", "Example & Partners", "Public interest law and policy research"),
+         ("Game Developer", "Placeholder Games", "Building indie games in Unity and C#")]
 POSTS = {
     "run": ["Sunday long run done, 21k by the river #running #halfmarathon", "New PB at the 10k #strava #run"],
     "hike": ["Summit at 6am, worth every step #trekking #himalaya", "Weekend trail with the crew #hiking"],
@@ -54,9 +67,9 @@ def build() -> list[tuple[str, LinkedInData, InstagramData]]:
     r = random.Random(42)
     out = []
     keys = list(POSTS)
-    for i in range(25):
+    for i in range(len(FIRST)):
         name = f"{FIRST[i]} {LAST[i]}"
-        handle = f"{FIRST[i].lower()}-{LAST[i].lower()}-test"
+        handle = re.sub(r"[^a-z0-9]+", "-", f"{FIRST[i]} {LAST[i]}".lower()) + "-test"  # D'Souza -> dsouza
         role = ROLES[i % len(ROLES)]
         prev = ROLES[(i + 3) % len(ROLES)]
         likes = r.sample(keys, k=r.randint(3, 5))

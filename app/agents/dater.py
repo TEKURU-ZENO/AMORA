@@ -191,7 +191,8 @@ def _date_offline(a: Analysis, b: Analysis, ida: str, idb: str, venue: str, c: C
 
 
 def _verdict_offline(me: Analysis, other: Analysis, pid: str, c: Compat, mine_db: list[str], theirs_db: list[str]) -> Verdict:
-    r = random.Random(hash((pid, other.display_name)) & 0xffffffff)
+    # sha1, not hash(): str hashes are salted per process, so scores would differ between restarts/instances
+    r = random.Random(int(hashlib.sha1(f"{pid}|{other.display_name}".encode()).hexdigest()[:8], 16))
     shared = c.shared_hobbies + c.shared_interests
     chem = min(9.6, 2.6 + 1.4 * len(c.shared_hobbies) + 0.6 * len(c.shared_interests) + (1 if c.energy_match else -1) + r.uniform(-0.6, 0.6))
     needs_met = min(9.5, 3.4 + 1.3 * len(c.shared_values) + (1.5 if c.energy_match else 0) - 2.5 * len(mine_db) + r.uniform(-0.5, 0.5))

@@ -60,6 +60,16 @@ uvicorn app.main:app --reload
 pytest -q                                    # Apify is stubbed in tests/conftest.py; no network, no credits
 ```
 
+### Demo mode (no scraping)
+
+Set `AMORA_DEMO=1`. On startup, an empty pool fills itself with 50 fictional personas (`scripts/synthetic.py`,
+all links on example.com) and runs a dating round, so every page is populated with no Apify calls. Discovery
+switches to a fictional provider. Everything synthetic is labelled "demo" on the site. Locally you can also use
+the "Add demo personas" button on the pool card, or `python -m scripts.seed --synthetic`.
+
+On Vercel: Project → Settings → Environment Variables → add `AMORA_DEMO` = `1`, then redeploy. Vercel's storage
+is temporary, so each fresh instance re-seeds the same demo (results are deterministic).
+
 Deploy: `render.yaml` (Render) or the `Dockerfile` (any container host). Mount a disk at `DATA_DIR` so the SQLite file survives restarts.
 
 | Env var | Default | |

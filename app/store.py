@@ -18,6 +18,9 @@ def _conn():
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     with _lock:
         c = sqlite3.connect(DB_PATH)
+        # WAL + NORMAL sync: one fsync per checkpoint instead of per write (a demo seed is ~400 writes)
+        c.execute("PRAGMA journal_mode=WAL")
+        c.execute("PRAGMA synchronous=NORMAL")
         try:
             yield c
             c.commit()
