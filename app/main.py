@@ -31,6 +31,8 @@ def _autoseed_demo() -> None:
     if config.demo_mode() and not any(p.analysis for p in store.list_persons()):
         harness.add_demo_personas(progress=lambda m: None)
         harness.run_round(progress=lambda m: None)
+    if config.demo_mode() and not discovery.registry.list_candidates():
+        discovery.orchestrator.run_discovery_batch("", 6)  # fictional provider: instant, no network
 
 
 _autoseed_demo()
@@ -195,7 +197,11 @@ def date(request: Request, did: str):
     d = store.get_date(did)
     if not d:
         raise HTTPException(404, "No such date")
-    authorized = privacy.is_authorized(request)
+    # Thoughts and reports are private to real people. A date between two fictional demo personas
+    # has nothing private in it, so the replay shows everything (the demo's best part).
+    pa, pb = store.get_person(d.a), store.get_person(d.b)
+    demo_only = config.demo_mode() and bool(pa and pb and pa.synthetic and pb.synthetic)
+    authorized = privacy.is_authorized(request) or demo_only
     sanitized_d = privacy.sanitize_date(d, authorized=authorized)
     return tpl.TemplateResponse(request, "date.html", _ctx(request, d=sanitized_d, authorized=authorized))
 
@@ -228,6 +234,10 @@ def discovery_page(request: Request):
 def discovery_search(query: str = Form(""), limit: int = Form(6)):
     if not (config.scraping_enabled() or config.demo_mode()):
         return JSONResponse({"error": "Discovery searches the web through Apify, and no APIFY_TOKEN is set on this server."}, 503)
+    if config.demo_mode():
+        # the fictional provider answers instantly; run inline so serverless hosts keep the results
+        discovery.orchestrator.run_discovery_batch(query, max(1, min(limit, 20)))
+        return RedirectResponse("/discovery", status_code=303)
     # Real searches and Instagram scrapes take minutes, so this runs as a job the page streams.
     jid = _job(discovery.orchestrator.run_discovery_batch, query, max(1, min(limit, 20)), job_type="discovery")
     return RedirectResponse(f"/discovery?job={jid}", status_code=303)

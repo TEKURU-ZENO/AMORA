@@ -83,3 +83,22 @@ def test_buttons_endpoints(monkeypatch):
     monkeypatch.setenv("AMORA_DEMO", "1")
     assert "job" in c.post("/api/demo/personas").json()
     assert c.post("/api/people/nobody/date").status_code == 404
+
+
+
+def test_demo_replay_shows_thoughts_and_inline_discovery(monkeypatch):
+    from fastapi.testclient import TestClient
+    from app.main import app
+    monkeypatch.setenv("AMORA_DEMO", "1")
+    for pid, li, ig in build()[:4]:
+        harness.ingest_demo(pid, li, ig, progress=lambda m: None)
+    harness.run_round(progress=lambda m: None)
+    c = TestClient(app)
+    d = store.list_dates()[0]
+    page = c.get(f"/date/{d.id}").text
+    assert d.turns[0].thought and d.turns[0].thought in page  # not masked for demo-only dates
+    monkeypatch.setenv("AMORA_DEMO", "")
+    assert d.turns[0].thought not in c.get(f"/date/{d.id}").text  # masked outside demo mode
+    monkeypatch.setenv("AMORA_DEMO", "1")
+    r = c.post("/api/discovery/search", data={"query": "", "limit": 6}, follow_redirects=False)
+    assert r.headers["location"] == "/discovery" and len(discovery.registry.list_candidates()) == 6
