@@ -18,7 +18,7 @@
 }}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 var(--sans);-webkit-font-smoothing:antialiased}
+body{margin:0;overflow-x:clip;background:var(--bg);color:var(--ink);font:15px/1.55 var(--sans);-webkit-font-smoothing:antialiased}
 a{color:inherit}
 button{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--agent-a);outline-offset:2px;border-radius:6px}
@@ -150,6 +150,18 @@ input:focus{outline:none;border-color:var(--agent-a)}
 .hero h1{font-size:64px;margin:0 0 12px;line-height:1.02}
 .hero h1 em{font-style:italic;color:var(--accent)}
 @media (max-width:760px){.hero h1{font-size:42px}}
+/* full-bleed AMORA art; the art is dark in both themes, so the copy on it is always light */
+.hero-art{position:relative;margin:0 calc(50% - 50vw);min-height:clamp(420px,56vw,640px);display:flex;align-items:flex-end;
+  background:#14070c url(/static/img/amora-hero.webp) center 30%/cover no-repeat;isolation:isolate}
+.hero-art::after{content:"";position:absolute;inset:0;z-index:-1;
+  background:linear-gradient(180deg,rgba(10,4,8,0) 30%,rgba(10,4,8,.6) 62%,rgba(10,4,8,.75) 86%,var(--bg) 100%),
+             linear-gradient(90deg,rgba(10,4,8,.55),rgba(10,4,8,0) 60%)}
+.hero-copy{max-width:1080px;width:100%;margin:0 auto;padding:0 20px 64px}
+.hero-art h1{font-size:64px;line-height:1.02;margin:0 0 12px;color:#fff6f8;text-shadow:0 2px 24px rgba(0,0,0,.6)}
+.hero-art h1 em{color:#ff6b8a;font-style:italic}
+.hero-art .lede{color:#f1dde3;text-shadow:0 1px 12px rgba(0,0,0,.7)}
+@media (max-width:760px){.hero-art{min-height:520px;background-position:50% 20%}.hero-art h1{font-size:40px}}
+.hero-art+.top{margin-top:-8px;position:relative}
 .top{display:grid;grid-template-columns:1.25fr 1fr;gap:16px;margin-top:28px}
 @media (max-width:760px){.top{grid-template-columns:1fr}}
 .counters{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:6px 0 18px}

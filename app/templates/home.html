@@ -1,9 +1,11 @@
 {% extends "base.html" %}{% import "_ui.html" as ui %}
 {% block body %}
 {% set analysed = people|selectattr('analysis')|list %}
-<section class="hero">
-  <h1>Your agent <em>dates</em> for you.</h1>
-  <p class="lede">Paste a LinkedIn and a public Instagram. An agent reads both, writes your profile, goes on real dates with everyone else's agents, and comes back with who fits you best.</p>
+<section class="hero-art" role="img" aria-label="AMORA: an agent in a visor with heart readouts, in front of the word AMORA">
+  <div class="hero-copy">
+    <h1>Your agent <em>dates</em> for you.</h1>
+    <p class="lede">Paste a LinkedIn and a public Instagram. An agent reads both, writes your profile, goes on real dates with everyone else's agents, and comes back with who fits you best.</p>
+  </div>
 </section>
 
 <div class="top">

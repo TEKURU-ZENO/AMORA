@@ -34,6 +34,9 @@ def test_apify_normalizers():
     ig = _norm_instagram("u", {"username": "j", "biography": "hi", "private": False, "followersCount": 10,
                                "latestPosts": [{"caption": "trail day #hiking", "type": "Image"}]})
     assert ig.posts[0].hashtags == ["hiking"] and not ig.is_private
+    # some actor versions only return the bio links as a list
+    ig = _norm_instagram("u", {"username": "j", "externalUrls": [{"title": "", "url": "https://linkedin.com/in/j"}]})
+    assert ig.external_url == "https://linkedin.com/in/j"
     li = _norm_linkedin("u", {"fullName": "Jane", "headline": "Eng", "experiences": [{"title": "Eng", "subtitle": "Acme"}],
                               "skills": [{"title": "Python"}], "educations": [{"title": "IIT"}]})
     assert li.experience[0].company == "Acme" and li.skills == ["Python"] and li.education == ["IIT"]

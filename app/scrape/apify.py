@@ -74,7 +74,8 @@ def _norm_instagram(url: str, raw: dict) -> InstagramData:
         full_name=_first(raw, "fullName", "full_name", default=""),
         bio=_first(raw, "biography", "bio", default=""),
         is_private=bool(_first(raw, "private", "isPrivate", default=False)),
-        external_url=_first(raw, "externalUrl", "external_url", default="") or "",
+        external_url=_first(raw, "externalUrl", "external_url", default="") or next(
+            (x.get("url") for x in raw.get("externalUrls") or [] if isinstance(x, dict) and x.get("url")), ""),
         followers=int(_first(raw, "followersCount", "followers", default=0) or 0),
         following=int(_first(raw, "followsCount", "following", default=0) or 0),
         posts=posts,

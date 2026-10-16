@@ -5,3 +5,4 @@ data/*.sqlite3
 optins.csv
 .pytest_cache/
 .claude/
+data/*.csv
