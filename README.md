@@ -30,7 +30,8 @@ Design decisions worth knowing:
 - **Every turn has two channels.** `say` is what the date hears, `thought` is the agent's running read for its human. The replay page can toggle thoughts on, which is the best part of the demo.
 - **Verdicts are independent and asymmetric.** A can love B while B passes. The mutual score uses a harmonic mean so one-sided interest is punished, and rankings weight your own agent's opinion higher.
 - **Analysis is evidence-first.** Each claim on the profile links to a snippet from LinkedIn or Instagram. The analyst is told never to infer protected attributes or comment on looks.
-- **Two engines.** With `ANTHROPIC_API_KEY` set, all agents run on Claude (structured outputs via forced tool use). Without it, a deterministic offline engine (keyword taxonomy + compatibility model) runs the same pipeline, so the site and tests never break.
+- **Real people only, scraped through Apify.** Every profile in the pool comes from a live Apify scrape of a public LinkedIn and a public Instagram. There are no pre-seeded or fictional personas, and without `APIFY_TOKEN` nobody can join.
+- **Two analysis engines.** With `ANTHROPIC_API_KEY` set, all agents run on Claude (structured outputs via forced tool use). Without it, a deterministic offline engine (keyword taxonomy + compatibility model) analyses the same scraped data.
 
 ## Technical section: scraping
 
@@ -38,6 +39,7 @@ Design decisions worth knowing:
 |---|---|---|
 | Instagram | Apify `apify/instagram-profile-scraper` via the `run-sync-get-dataset-items` REST endpoint (`httpx`) | Pulls bio, counts and up to 24 recent posts (caption, hashtags, location, type). Private profiles are rejected. |
 | LinkedIn | Apify LinkedIn public-profile actor (default `dev_fusion/linkedin-profile-scraper`, set `APIFY_LINKEDIN_ACTOR` to swap) | Pulls headline, about, location, experience, education, skills, volunteering, languages. |
+| Discovery | Apify `apify/google-search-scraper` (set `APIFY_SEARCH_ACTOR` to swap) + the Instagram actor | Finds public `linkedin.com/in/` pages for a query, pairs an Instagram (a handle they mention, or a name search), scrapes its bio and bio link, and only auto-verifies on a direct cross-link. |
 
 Actor output is normalized into our own Pydantic models (`app/scrape/apify.py`), so swapping actors only touches two functions. Links are validated first: LinkedIn must be `/in/<handle>`, Instagram must be a profile, not a post.
 
@@ -52,11 +54,10 @@ People get into the pool by pasting **their own** links on `/join` (or someone d
 ```bash
 pip install -r requirements.txt
 export ANTHROPIC_API_KEY=...   # optional, enables Claude agents
-export APIFY_TOKEN=...         # required for pasting real links
-python -m scripts.seed --csv optins.csv      # real opted-in people, then a dating round
-# or: python -m scripts.seed --synthetic     # 25 fictional test personas, no network
+export APIFY_TOKEN=...         # required: the pool is built only from live Apify scrapes (or put it in .env)
+python -m scripts.seed --csv optins.csv      # opted-in people, scraped live, then a dating round
 uvicorn app.main:app --reload
-pytest -q
+pytest -q                                    # Apify is stubbed in tests/conftest.py; no network, no credits
 ```
 
 Deploy: `render.yaml` (Render) or the `Dockerfile` (any container host). Mount a disk at `DATA_DIR` so the SQLite file survives restarts.

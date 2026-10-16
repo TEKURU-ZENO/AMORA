@@ -14,8 +14,9 @@ from collections import Counter
 
 from .. import config
 from ..models import Analysis, Evidence, SourceBundle
-from . import llm
+from . import llm, validation
 from .taxonomy import DEALBREAKER_RULES, TAXONOMY, TRAIT_TO_NEED, TRAIT_TO_VALUE, VENUES, DEFAULT_VENUE
+
 
 SYSTEM = """You are a perceptive, kind matchmaking analyst representing ONE person.
 You may use exactly two sources: their public LinkedIn and their public Instagram, given below.
@@ -184,9 +185,27 @@ class _Log(list):
 
 def analyze(b: SourceBundle, on_note=None) -> tuple[Analysis, list[str], str]:
     log: list[str] = _Log(on_note)
+    engine = "offline"
+    fallback_occurred = False
+    fallback_reason = None
     if config.llm_enabled():
         try:
-            return _analyze_llm(b, log), log, "claude"
-        except Exception as e:  # never leave a person half-analysed
+            a = _analyze_llm(b, log)
+            engine = "claude"
+        except Exception as e:
+            fallback_occurred = True
+            fallback_reason = str(e)
             log.append(f"LLM analysis failed ({e}); falling back to offline engine")
-    return _analyze_offline(b, log), log, "offline"
+            a = _analyze_offline(b, log)
+    else:
+        a = _analyze_offline(b, log)
+
+    # Validate output grounding against source corpus
+    a, warnings = validation.validate_analysis(a, b)
+    a.engine_used = engine
+    a.fallback_occurred = fallback_occurred
+    a.fallback_reason = fallback_reason
+    if warnings:
+        log.append(f"Validation layer: {len(warnings)} notes ({'; '.join(warnings[:2])})")
+    return a, log, engine
+

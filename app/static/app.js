@@ -466,3 +466,18 @@ if (rk) {
   table?.addEventListener('mouseleave', hideTip);
   table?.addEventListener('click', e => { const td = e.target.closest('td[data-date]'); if (td) location.href = '/date/' + td.dataset.date; });
 }
+
+/* ================================================================ discovery: stream a running search, then reload */
+const dlog = $('#discovery-log');
+if (dlog) {
+  stream(dlog.dataset.job, {
+    onMsg: m => { dlog.textContent += m + '
+'; dlog.scrollTop = 1e9; },
+    onDone: m => {
+      const st = $('#discovery-status');
+      if (m.error) { st.className = 'saying err'; st.textContent = humanError(m.error); return; }
+      st.textContent = '✓ Done. Loading the results…';
+      setTimeout(() => location.href = '/discovery', 600);
+    },
+  });
+}

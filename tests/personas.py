@@ -1,6 +1,8 @@
-"""25 clearly fictional test personas so the pipeline can be exercised without touching
-anyone's real data. Every name, company and handle here is invented; URLs point at
-example.com. Real people join through /join or scripts/seed.py --csv.
+"""25 clearly fictional personas, used ONLY as test fixtures.
+
+The app itself never loads these: the pool is real people scraped through Apify. In tests,
+conftest.py serves these through a stubbed Apify so the real ingest() path is exercised
+without network calls. Every name, company and handle here is invented.
 """
 from __future__ import annotations
 
@@ -64,8 +66,9 @@ def build() -> list[tuple[str, LinkedInData, InstagramData]]:
                 posts.append(InstagramPost(caption=cap, hashtags=[t[1:] for t in cap.split() if t.startswith("#")],
                                            location=r.choice(PLACES)))
         r.shuffle(posts)
+        ig_handle = handle.replace("-", "_")
         li = LinkedInData(
-            url=f"https://example.com/linkedin/{handle}",
+            url=f"https://www.linkedin.com/in/{handle}/",
             full_name=name, headline=f"{role[0]} at {role[1]}", location=CITIES[i % len(CITIES)],
             about=f"{role[2]}. Outside work: {', '.join(likes[:2])}.",
             experience=[LinkedInExperience(title=role[0], company=role[1], duration="2024 - present", description=role[2]),
@@ -73,7 +76,7 @@ def build() -> list[tuple[str, LinkedInData, InstagramData]]:
             education=["Fictional University"], skills=role[2].split()[:4],
             volunteering=["Weekend teaching volunteer"] if "volunteer" in likes else [],
         )
-        ig = InstagramData(url=f"https://example.com/instagram/{handle}", username=handle, full_name=name,
+        ig = InstagramData(url=f"https://www.instagram.com/{ig_handle}/", username=ig_handle, full_name=name,
                            bio=f"{role[0].lower()} · {' · '.join(likes[:3])}", followers=r.randint(200, 3000),
                            following=r.randint(200, 900), posts=posts)
         out.append((handle, li, ig))

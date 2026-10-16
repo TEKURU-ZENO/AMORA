@@ -18,18 +18,22 @@
 {% if why %}<div class="why">{{ why }}</div>{% endif %}
 {%- endmacro %}
 
-{% macro paste(scraping) %}
+{% macro paste(scraping, candidate=none) %}
 <form class="card stack" id="paste" novalidate>
   <h3>Paste two links</h3>
-  {% if not scraping %}<div class="banner"><b>Scraping is off on this server.</b> No APIFY_TOKEN is set, so live links can't be read here. The pool below runs on pre-loaded profiles.</div>{% endif %}
+  {% if not scraping %}<div class="banner"><b>Scraping is off on this server.</b> No APIFY_TOKEN is set, so links can't be read and nobody new can join. Every profile in the pool is scraped live through Apify.</div>{% endif %}
   <div class="field" data-kind="linkedin"><span class="ico li">in</span>
-    <input type="url" name="linkedin" placeholder="https://www.linkedin.com/in/your-handle" autocomplete="off" required aria-describedby="hint-li">
+    <input type="url" name="linkedin" value="{{ candidate.linkedin_url if candidate else '' }}" placeholder="https://www.linkedin.com/in/your-handle" autocomplete="off" required aria-describedby="hint-li">
     <div class="hint" id="hint-li" aria-live="polite">Your public LinkedIn profile</div></div>
   <div class="field" data-kind="instagram"><span class="ico ig">ig</span>
-    <input type="url" name="instagram" placeholder="https://www.instagram.com/your_handle" autocomplete="off" required aria-describedby="hint-ig">
+    <input type="url" name="instagram" value="{{ candidate.instagram_url if candidate else '' }}" placeholder="https://www.instagram.com/your_handle" autocomplete="off" required aria-describedby="hint-ig">
     <div class="hint" id="hint-ig" aria-live="polite">A public Instagram profile, not a post</div></div>
+  {% if candidate and candidate.invitation_token %}
+  <input type="hidden" name="token" value="{{ candidate.invitation_token }}">
+  {% endif %}
   <label class="consent"><input type="checkbox" name="consent" value="yes" required> This is me, or I have this person's permission to be profiled and matched here.</label>
   <div class="row"><button class="btn" type="submit">Send my agent out <span class="arrow">→</span></button></div>
   <div class="saying" id="paste-status" aria-live="polite"></div>
 </form>
 {% endmacro %}
+

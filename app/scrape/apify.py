@@ -30,11 +30,12 @@ class PrivateProfile(ScrapeError):
 
 
 def _run_actor(actor: str, payload: dict) -> list[dict]:
-    if not config.APIFY_TOKEN:
+    token = config.apify_token()
+    if not token:
         raise ScrapeError("APIFY_TOKEN is not set on the server, live scraping is disabled")
     r = httpx.post(
         API.format(actor=actor),
-        params={"token": config.APIFY_TOKEN, "timeout": config.APIFY_TIMEOUT_S},
+        params={"token": token, "timeout": config.APIFY_TIMEOUT_S},
         json=payload,
         timeout=config.APIFY_TIMEOUT_S + 30,
     )
@@ -73,15 +74,21 @@ def _norm_instagram(url: str, raw: dict) -> InstagramData:
         full_name=_first(raw, "fullName", "full_name", default=""),
         bio=_first(raw, "biography", "bio", default=""),
         is_private=bool(_first(raw, "private", "isPrivate", default=False)),
+        external_url=_first(raw, "externalUrl", "external_url", default="") or "",
         followers=int(_first(raw, "followersCount", "followers", default=0) or 0),
         following=int(_first(raw, "followsCount", "following", default=0) or 0),
         posts=posts,
     )
 
 
+def fetch_instagram(url: str, username: str, posts: int = 24) -> InstagramData:
+    """Scrape a profile and report what is there, private or not (discovery needs to know)."""
+    items = _run_actor(config.APIFY_INSTAGRAM_ACTOR, {"usernames": [username], "resultsLimit": posts})
+    return _norm_instagram(url, items[0])
+
+
 def scrape_instagram(url: str, username: str) -> InstagramData:
-    items = _run_actor(config.APIFY_INSTAGRAM_ACTOR, {"usernames": [username], "resultsLimit": 24})
-    data = _norm_instagram(url, items[0])
+    data = fetch_instagram(url, username)
     if data.is_private:
         raise PrivateProfile("This Instagram is private. Only public profiles can be read.")
     return data
@@ -131,3 +138,19 @@ def _norm_linkedin(url: str, raw: dict) -> LinkedInData:
 def scrape_linkedin(url: str) -> LinkedInData:
     items = _run_actor(config.APIFY_LINKEDIN_ACTOR, {"profileUrls": [url]})
     return _norm_linkedin(url, items[0])
+
+
+# ---------------- Search (discovery) ----------------
+
+def google_search(query: str, limit: int = 10) -> list[dict]:
+    """Organic Google results via Apify: [{title, url, description}, ...]."""
+    items = _run_actor(config.APIFY_SEARCH_ACTOR, {
+        "queries": query, "maxPagesPerQuery": 1, "resultsPerPage": max(10, limit),
+        "mobileResults": False, "saveHtml": False,
+    })
+    out = []
+    for page in items:
+        for r in page.get("organicResults") or []:
+            if r.get("url"):
+                out.append({"title": r.get("title") or "", "url": r["url"], "description": r.get("description") or ""})
+    return out

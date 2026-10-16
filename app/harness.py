@@ -47,8 +47,16 @@ def ingest(linkedin_url: str, instagram_url: str, consent: bool, progress: Progr
     li_url, li_handle = normalize_linkedin(linkedin_url)
     ig_url, ig_handle = normalize_instagram(instagram_url)
     pid = person_id(li_handle, ig_handle)
+    existing = store.get_person(pid)
+    if existing and existing.status in ("scraped", "analyzed") and existing.sources:
+        progress(f"[{pid}] using existing scraped sources from checkpoint")
+        p = existing
+        if p.status == "analyzed" and p.analysis:
+            return p
+        return analyse(p, progress)
     p = Person(id=pid, linkedin_url=li_url, instagram_url=ig_url, consent=True)
     store.save_person(p)
+
     try:
         # If one source fails we still build a profile from the other, with a warning on the page.
         # A private Instagram is a hard stop: the person has not made it public, so we don't read it.
@@ -82,14 +90,6 @@ def ingest(linkedin_url: str, instagram_url: str, consent: bool, progress: Progr
         p.status, p.error = "error", str(e)
         store.save_person(p)
         raise
-
-
-def ingest_sources(pid: str, li: LinkedInData, ig: InstagramData, synthetic: bool, progress: Progress = _print) -> Person:
-    """Load already-collected sources (seed file / demo) and analyse them."""
-    p = Person(id=pid, linkedin_url=li.url, instagram_url=ig.url, consent=True, synthetic=synthetic,
-               sources=SourceBundle(linkedin=li, instagram=ig), status="scraped")
-    store.save_person(p)
-    return analyse(p, progress)
 
 
 def analyse(p: Person, progress: Progress = _print) -> Person:
@@ -227,12 +227,17 @@ def compute_rankings() -> dict[str, list[dict]]:
                 rows.append(dict(id=o.id, fit=round(max(0, fit), 2), dated=True, date_id=d.id,
                                  mutual_yes=mine.second_date and theirs.second_date,
                                  my_agent=mine.score, their_agent=theirs.score,
-                                 why=mine.reasons[:2]))
+                                 why=mine.reasons[:2],
+                                 assessment_status="dated",
+                                 uncertainty="low (evaluated in date conversation)"))
             else:
                 prior = compute(p.analysis, o.analysis).prior
                 rows.append(dict(id=o.id, fit=round(0.55 * prior, 2), dated=False, date_id=None,
                                  mutual_yes=False, my_agent=None, their_agent=None,
-                                 why=["Screened out before a date"]))
+                                 why=["Screened out before a date"],
+                                 assessment_status="unassessed_prior",
+                                 uncertainty="high (heuristic prior; unassessed in date)"))
+
         rows.sort(key=lambda r: (-r["fit"], r["id"]))
         for i, r in enumerate(rows, 1):
             r["rank"] = i

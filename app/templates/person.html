@@ -19,8 +19,7 @@
     <div class="meta">{{ ui.pill(status_of(p)) }}
       <a href="{{ p.linkedin_url }}" target="_blank" rel="noopener" class="src linkedin" style="text-decoration:none">LinkedIn ↗</a>
       <a href="{{ p.instagram_url }}" target="_blank" rel="noopener" class="src instagram" style="text-decoration:none">Instagram ↗</a>
-      <span class="conf" title="How sure the analyst is, given how much both sources said">confidence <span class="bar"><i style="width:{{ a.confidence * 100 }}%"></i></span>{{ (a.confidence * 100)|round|int }}%</span>
-      {% if p.synthetic %}<span class="chip n" style="margin:0">synthetic test profile</span>{% endif %}</div></div>
+      <span class="conf" title="How sure the analyst is, given how much both sources said">confidence <span class="bar"><i style="width:{{ a.confidence * 100 }}%"></i></span>{{ (a.confidence * 100)|round|int }}%</span></div></div>
 </header>
 
 {% for w in p.warnings %}<div class="banner"><b>Partial read.</b> {{ w }}. Built from {{ 'Instagram' if 'LinkedIn' in w else 'LinkedIn' }} only.</div>{% endfor %}

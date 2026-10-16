@@ -40,6 +40,7 @@ class InstagramData(BaseModel):
     full_name: str = ""
     bio: str = ""
     is_private: bool = False
+    external_url: str = ""  # the link in their bio, used to verify a LinkedIn cross-link
     followers: int = 0
     following: int = 0
     posts: list[InstagramPost] = []
@@ -75,6 +76,11 @@ class Analysis(BaseModel):
     conversation_starters: list[str]
     evidence: list[Evidence]
     confidence: float = Field(ge=0, le=1)
+    engine_used: str = "offline"
+    fallback_occurred: bool = False
+    fallback_reason: Optional[str] = None
+    validation_warnings: list[str] = []
+
 
 
 # ---------- Dating ----------
@@ -115,7 +121,6 @@ class Person(BaseModel):
     linkedin_url: str
     instagram_url: str
     consent: bool
-    synthetic: bool = False
     status: Literal["pending", "scraped", "analyzed", "error"] = "pending"
     error: Optional[str] = None
     sources: Optional[SourceBundle] = None

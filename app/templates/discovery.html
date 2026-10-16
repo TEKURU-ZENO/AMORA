@@ -1,0 +1,125 @@
+{% extends "base.html" %}{% import "_ui.html" as ui %}
+{% block title %}Autonomous Discovery · AgentDate{% endblock %}
+{% block body %}
+<section class="hero" style="padding-bottom:12px">
+  <div class="kicker">Discovery Subsystem</div>
+  <h1 style="margin:6px 0 10px">Autonomous Candidate Discovery</h1>
+  <p class="lede">The discovery agent explores the public web for candidate LinkedIn profiles and verifies matching Instagram accounts. Identity verification strictly requires <b>direct cross-links</b>. Ambiguous pairs require human sign-off; mismatched profiles are rejected.</p>
+</section>
+
+<div class="grid col-3" style="margin-bottom:24px">
+  <div class="card" style="text-align:center">
+    <div class="small muted">Total Evaluated</div>
+    <div style="font-size:32px;font-weight:700;margin-top:4px">{{ candidates|length }}</div>
+  </div>
+  <div class="card" style="text-align:center">
+    <div class="small muted">Verified Cross-Links</div>
+    <div style="font-size:32px;font-weight:700;color:var(--ok);margin-top:4px">
+      {{ candidates|selectattr('status', 'in', ['verified_crosslink', 'invited', 'consented'])|list|length }}
+    </div>
+  </div>
+  <div class="card" style="text-align:center">
+    <div class="small muted">Requires Human Review</div>
+    <div style="font-size:32px;font-weight:700;color:var(--warn);margin-top:4px">
+      {{ candidates|selectattr('status', 'equalto', 'requires_human_verification')|list|length }}
+    </div>
+  </div>
+</div>
+
+<div class="card stack" style="margin-bottom:28px">
+  <h3>Run Discovery Agent</h3>
+  <p class="small muted">Searches Google through Apify for public LinkedIn profiles, finds the matching Instagram (a handle they mention, or a name search), scrapes it, and checks for a direct cross-link. Each candidate costs a few Apify runs.</p>
+  {% if not scraping %}<div class="banner"><b>Discovery is off on this server.</b> It runs entirely on Apify, and no APIFY_TOKEN is set.</div>{% endif %}
+  {% if job %}<div class="saying" id="discovery-status"><span class="dots"><i></i><i></i><i></i></span> The discovery agent is searching. This page refreshes when it's done.</div>
+  <div class="log on" id="discovery-log" data-job="{{ job }}" aria-live="off"></div>{% endif %}
+  <form method="POST" action="/api/discovery/search" class="row wrap" style="gap:12px;align-items:flex-end">
+    <div style="flex:2;min-width:220px">
+      <label class="small muted">Search Query</label>
+      <input type="text" name="query" placeholder="e.g. product design San Francisco or robotics Seattle" style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:8px">
+    </div>
+    <div style="flex:1;min-width:120px">
+      <label class="small muted">Candidate Limit</label>
+      <input type="number" name="limit" value="6" min="1" max="20" style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:8px">
+    </div>
+    <div>
+      <button type="submit" class="btn"{% if not scraping or job %} disabled{% endif %}>Explore Candidates <span class="arrow">→</span></button>
+    </div>
+  </form>
+</div>
+
+<h2>Candidate Registry & Verification Log</h2>
+{% if not candidates %}
+<div class="card empty"><p class="muted">No candidates discovered yet. Run a discovery query above to populate the registry.</p></div>
+{% else %}
+<div class="card stack" style="padding:0;overflow-x:auto">
+  <table class="table" style="width:100%;border-collapse:collapse;font-size:14px;text-align:left">
+    <thead>
+      <tr style="border-bottom:1px solid var(--border);background:var(--bg2)">
+        <th style="padding:12px 16px">Candidate</th>
+        <th style="padding:12px 16px">LinkedIn</th>
+        <th style="padding:12px 16px">Instagram Pair</th>
+        <th style="padding:12px 16px">Status</th>
+        <th style="padding:12px 16px">Verification / Rejection Details</th>
+        <th style="padding:12px 16px">Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in candidates %}
+      <tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:12px 16px">
+          <b>{{ c.linkedin_name }}</b>
+          {% if c.linkedin_location %}<div class="small muted">{{ c.linkedin_location }}</div>{% endif %}
+        </td>
+        <td style="padding:12px 16px">
+          <a href="{{ c.linkedin_url }}" target="_blank" rel="noopener" class="small">{{ c.linkedin_handle }}</a>
+        </td>
+        <td style="padding:12px 16px">
+          {% if c.instagram_username %}
+          <a href="{{ c.instagram_url or '#' }}" target="_blank" rel="noopener" class="small">@{{ c.instagram_username }}</a>
+          {% else %}
+          <span class="muted small">—</span>
+          {% endif %}
+        </td>
+        <td style="padding:12px 16px">
+          {% if c.status in ['verified_crosslink', 'consented', 'invited'] %}
+          <span class="pill ready" style="color:var(--ok)">✓ Verified</span>
+          {% elif c.status == 'requires_human_verification' %}
+          <span class="pill" style="background:rgba(230,160,0,0.15);color:#d97706">⚠️ Needs Review</span>
+          {% else %}
+          <span class="pill error">✕ {{ c.status }}</span>
+          {% endif %}
+        </td>
+        <td style="padding:12px 16px" class="small">
+          {% if c.verification_evidence %}
+          <span style="color:var(--ok)">{{ c.verification_evidence }}</span>
+          {% elif c.rejection_reason %}
+          <span class="muted">{{ c.rejection_reason }}</span>
+          {% else %}
+          <span class="muted">Pending</span>
+          {% endif %}
+        </td>
+        <td style="padding:12px 16px">
+          {% if c.status == 'requires_human_verification' %}
+          <div class="row" style="gap:6px">
+            <form method="POST" action="/api/discovery/candidates/{{ c.id }}/review" style="display:inline">
+              <input type="hidden" name="action" value="approve">
+              <button type="submit" class="btn sm" style="font-size:12px;padding:4px 8px">Approve</button>
+            </form>
+            <form method="POST" action="/api/discovery/candidates/{{ c.id }}/review" style="display:inline">
+              <input type="hidden" name="action" value="reject">
+              <button type="submit" class="btn ghost sm" style="font-size:12px;padding:4px 8px">Reject</button>
+            </form>
+          </div>
+          {% elif c.invitation_token %}
+          <a href="/join?token={{ c.invitation_token }}" class="btn sm" style="font-size:12px;padding:4px 8px">Invite Link →</a>
+          {% else %}
+          <span class="muted small">—</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}

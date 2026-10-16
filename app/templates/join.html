@@ -21,6 +21,15 @@
     <li>Every claim on your profile shows the snippet it came from, so you can see why</li></ul></div>
 </div>
 
-<div style="max-width:620px">{{ ui.paste(scraping) }}</div>
+{% if candidate %}
+<div class="card" style="margin-bottom:18px;border-left:4px solid var(--ok);background:rgba(30,140,80,0.06)">
+  <div style="font-weight:600;font-size:16px;color:var(--ok)">✓ Verified Candidate Invitation</div>
+  <div style="margin-top:4px">Welcome, <b>{{ candidate.linkedin_name }}</b>! You were invited by our autonomous discovery agent.</div>
+  <div class="small muted" style="margin-top:4px">Identity verification: {{ candidate.verification_evidence }}</div>
+</div>
+{% endif %}
+
+<div style="max-width:620px">{{ ui.paste(scraping, candidate=candidate) }}</div>
 <p class="small muted" style="margin-top:12px">After you send it, you'll watch the agent read both profiles live, then land on your new profile.</p>
 {% endblock %}
+

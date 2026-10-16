@@ -10,8 +10,10 @@ from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Stre
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from . import config, harness, store
+from . import config, discovery, harness, privacy, store
 from .config import ROOT
+
+
 
 app = FastAPI(title="AgentDate")
 app.mount("/static", StaticFiles(directory=ROOT / "app" / "static"), name="static")
@@ -25,18 +27,28 @@ PERSON_JOBS: dict[str, str] = {}  # person id -> ingest job, so their page can s
 ROUND = {"job": None}  # the dating round currently running, if any
 
 
-def _job(fn, *args) -> str:
+def _job(fn, *args, job_type: str = "task", idempotency_key: str | None = None, entity_id: str | None = None) -> str:
     jid = uuid.uuid4().hex[:10]
-    JOBS[jid] = {"log": [], "done": False, "error": None, "result": None}
+    job_record, is_new = store.create_or_get_job(jid, job_type, idempotency_key=idempotency_key, entity_id=entity_id)
+    if not is_new:
+        return job_record["id"]
+
+    jid = job_record["id"]
+    JOBS[jid] = {"log": list(store.get_job_logs(jid)), "done": False, "error": None, "result": None}
+    store.update_job(jid, status="running")
 
     def progress(msg):  # a plain string for the log, or a dict event for the live screens
         JOBS[jid]["log"].append(msg)
+        store.append_job_log(jid, msg)
 
     def run():
         try:
-            JOBS[jid]["result"] = fn(*args, progress=progress)
+            res = fn(*args, progress=progress)
+            JOBS[jid]["result"] = res
+            store.update_job(jid, status="succeeded", stage="completed")
         except Exception as e:
             JOBS[jid]["error"] = str(e)
+            store.update_job(jid, status="failed", error=str(e))
             progress(f"error: {e}")
         finally:
             JOBS[jid]["done"] = True
@@ -46,7 +58,13 @@ def _job(fn, *args) -> str:
 
 
 def _running(jid) -> bool:
-    return bool(jid) and jid in JOBS and not JOBS[jid]["done"]
+    if not jid:
+        return False
+    if jid in JOBS:
+        return not JOBS[jid]["done"]
+    job = store.get_job(jid)
+    return bool(job and job["status"] in ("queued", "running"))
+
 
 
 def _round_running() -> bool:
@@ -110,8 +128,10 @@ def home(request: Request):
 
 
 @app.get("/join", response_class=HTMLResponse)
-def join(request: Request):
-    return tpl.TemplateResponse(request, "join.html", _ctx(request))
+def join(request: Request, token: str = ""):
+    cand = discovery.registry.get_candidate_by_token(token) if token else None
+    return tpl.TemplateResponse(request, "join.html", _ctx(request, candidate=cand))
+
 
 
 @app.get("/person/{pid}", response_class=HTMLResponse)
@@ -162,7 +182,10 @@ def date(request: Request, did: str):
     d = store.get_date(did)
     if not d:
         raise HTTPException(404, "No such date")
-    return tpl.TemplateResponse(request, "date.html", _ctx(request, d=d))
+    authorized = privacy.is_authorized(request)
+    sanitized_d = privacy.sanitize_date(d, authorized=authorized)
+    return tpl.TemplateResponse(request, "date.html", _ctx(request, d=sanitized_d, authorized=authorized))
+
 
 
 @app.get("/rankings", response_class=HTMLResponse)
@@ -180,10 +203,47 @@ def how(request: Request):
     return tpl.TemplateResponse(request, "how.html", _ctx(request))
 
 
+@app.get("/discovery", response_class=HTMLResponse)
+def discovery_page(request: Request):
+    candidates = discovery.registry.list_candidates()
+    job = request.query_params.get("job")
+    return tpl.TemplateResponse(request, "discovery.html", _ctx(
+        request, candidates=candidates, job=job if _running(job) else None))
+
+
+@app.post("/api/discovery/search")
+def discovery_search(query: str = Form(""), limit: int = Form(6)):
+    if not config.scraping_enabled():
+        return JSONResponse({"error": "Discovery searches the web through Apify, and no APIFY_TOKEN is set on this server."}, 503)
+    # Real searches and Instagram scrapes take minutes, so this runs as a job the page streams.
+    jid = _job(discovery.orchestrator.run_discovery_batch, query, max(1, min(limit, 20)), job_type="discovery")
+    return RedirectResponse(f"/discovery?job={jid}", status_code=303)
+
+
+@app.post("/api/discovery/candidates/{cid}/review")
+def discovery_review(cid: str, action: str = Form(...)):
+    cand = discovery.registry.get_candidate(cid)
+    if not cand:
+        raise HTTPException(404, "Candidate not found")
+    if action == "approve":
+        token = cand.invitation_token or f"inv_{uuid.uuid4().hex[:16]}"
+        cand.status = "verified_crosslink"
+        cand.verification_method = "human_review"
+        cand.verification_evidence = "Verified and approved by human reviewer"
+        cand.invitation_token = token
+        cand.rejection_reason = None
+        discovery.registry.save_candidate(cand)
+    elif action == "reject":
+        cand.status = "rejected"
+        cand.rejection_reason = "Rejected upon human review"
+        discovery.registry.save_candidate(cand)
+    return RedirectResponse("/discovery", status_code=303)
+
+
 # ---------------------------------------------------------------- actions
 
 @app.post("/api/people")
-def add_person(linkedin: str = Form(...), instagram: str = Form(...), consent: str = Form("")):
+def add_person(linkedin: str = Form(...), instagram: str = Form(...), consent: str = Form(""), token: str = Form("")):
     from .scrape.links import LinkError, normalize_instagram, normalize_linkedin, person_id
     try:
         normalize_linkedin(linkedin)
@@ -195,54 +255,108 @@ def add_person(linkedin: str = Form(...), instagram: str = Form(...), consent: s
     if not config.scraping_enabled():
         return JSONResponse({"error": "Scraping is off on this server: no APIFY_TOKEN is set, so live links "
                                       "can't be read. Everything else on the site still works."}, 503)
+    if token:
+        cand = discovery.registry.get_candidate_by_token(token)
+        if cand:
+            discovery.registry.update_status(cand.id, "consented", evidence="Participant consented via invitation")
     pid = person_id(normalize_linkedin(linkedin)[1], normalize_instagram(instagram)[1])
     if not _reading(pid):
-        PERSON_JOBS[pid] = _job(harness.ingest, linkedin, instagram, True)
+        PERSON_JOBS[pid] = _job(harness.ingest, linkedin, instagram, True, job_type="ingest", idempotency_key=f"ingest:{pid}", entity_id=pid)
     return {"job": PERSON_JOBS[pid], "person": pid}
+
 
 
 @app.post("/api/round")
 def start_round():
     if not _round_running():  # one round at a time; a second click joins the running one
-        ROUND["job"] = _job(harness.run_round)
+        ROUND["job"] = _job(harness.run_round, job_type="round", idempotency_key="round:active")
     return {"job": ROUND["job"]}
 
 
 @app.get("/api/jobs/{jid}/stream")
 async def stream(jid: str):
-    if jid not in JOBS:
+    persisted_job = store.get_job(jid)
+    if jid not in JOBS and not persisted_job:
         raise HTTPException(404)
 
     async def gen():
         sent = 0
         while True:
-            j = JOBS[jid]
-            while sent < len(j["log"]):
-                item = j["log"][sent]
+            logs = JOBS[jid]["log"] if jid in JOBS else store.get_job_logs(jid)
+            while sent < len(logs):
+                item = logs[sent]
                 yield f"data: {json.dumps({'event': item} if isinstance(item, dict) else {'msg': item})}\n\n"
                 sent += 1
-            if j["done"]:
-                res = j["result"]
-                extra = {"person": res.id} if hasattr(res, "id") else {}
-                yield f"data: {json.dumps({'done': True, 'error': j['error'], **extra})}\n\n"
+            is_done = JOBS[jid]["done"] if jid in JOBS else (persisted_job and persisted_job["status"] in ("succeeded", "failed", "cancelled"))
+            if is_done:
+                err = JOBS[jid]["error"] if jid in JOBS else (persisted_job.get("error") if persisted_job else None)
+                res = JOBS[jid].get("result") if jid in JOBS else None
+                extra = {"person": res.id} if hasattr(res, "id") else ({"person": persisted_job.get("entity_id")} if persisted_job and persisted_job.get("entity_id") else {})
+                yield f"data: {json.dumps({'done': True, 'error': err, **extra})}\n\n"
                 return
             await asyncio.sleep(0.3)
 
     return StreamingResponse(gen(), media_type="text/event-stream")
 
 
+
 @app.post("/person/{pid}/delete")
 def delete(pid: str):
+    if pid in PERSON_JOBS:
+        jid = PERSON_JOBS[pid]
+        if jid in JOBS:
+            JOBS[jid]["done"] = True
+            JOBS[jid]["error"] = "Job cancelled: person deleted"
     store.delete_person(pid)
-    store.set_meta("rankings", harness.compute_rankings())
+    try:
+        store.set_meta("rankings", harness.compute_rankings())
+    except Exception:
+        pass
     return RedirectResponse("/", status_code=303)
+
+
+@app.post("/person/{pid}/revoke-consent")
+def revoke_consent(pid: str):
+    p = store.get_person(pid)
+    if not p:
+        raise HTTPException(404, "No such person")
+    if pid in PERSON_JOBS:
+        jid = PERSON_JOBS[pid]
+        if jid in JOBS:
+            JOBS[jid]["done"] = True
+            JOBS[jid]["error"] = "Job cancelled: consent revoked"
+    store.revoke_consent(pid)
+    try:
+        store.set_meta("rankings", harness.compute_rankings())
+    except Exception:
+        pass
+    return JSONResponse({
+        "status": "revoked",
+        "person": pid,
+        "message": "Consent successfully revoked. Participant will not be paired or dated."
+    })
 
 
 @app.get("/api/export")
 def export():
-    return {"people": [p.model_dump(exclude={"sources"}) for p in store.list_persons()],
-            "dates": [d.model_dump() for d in store.list_dates()],
-            "rankings": store.get_meta("rankings", {})}
+    """Sanitized public export: inner agent thoughts and raw scraping data are stripped."""
+    return {
+        "people": [privacy.sanitize_person_dict(p, authorized=False) for p in store.list_persons()],
+        "dates": [privacy.sanitize_date_dict(d, authorized=False) for d in store.list_dates()],
+        "rankings": store.get_meta("rankings", {})
+    }
+
+
+@app.get("/api/admin/export")
+def admin_export(request: Request):
+    """Authorized administrative export: contains full date replays including agent thoughts."""
+    privacy.require_auth(request)
+    return {
+        "people": [privacy.sanitize_person_dict(p, authorized=True) for p in store.list_persons()],
+        "dates": [privacy.sanitize_date_dict(d, authorized=True) for d in store.list_dates()],
+        "rankings": store.get_meta("rankings", {})
+    }
+
 
 
 @app.get("/healthz")

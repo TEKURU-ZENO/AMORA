@@ -36,8 +36,7 @@
     {{ ui.pill(status_of(p)) }}
     <div class="row">{{ ui.mono(p) }}<div class="name">{{ p.analysis.display_name if p.analysis else p.id }}</div></div>
     <div class="one">{{ p.analysis.one_liner if p.analysis else ('The agent is still reading…' if status_of(p) == 'reading' else (p.error or 'Could not be read')) }}</div>
-    {% if p.analysis %}<div class="chips">{% for h in p.analysis.hobbies[:3] %}<span class="chip">{{ h }}</span>{% endfor %}
-      {% if p.synthetic %}<span class="chip n">test profile</span>{% endif %}</div>{% endif %}
+    {% if p.analysis %}<div class="chips">{% for h in p.analysis.hobbies[:3] %}<span class="chip">{{ h }}</span>{% endfor %}</div>{% endif %}
     {% if t and by_id.get(t.id) and by_id[t.id].analysis %}<div class="topmatch">♥ Top match: {{ by_id[t.id].analysis.display_name }}{{ ' · mutual' if t.mutual_yes }}</div>{% endif %}
   </a>
 {% endfor %}

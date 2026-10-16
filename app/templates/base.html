@@ -6,8 +6,9 @@
 <link rel="stylesheet" href="/static/style.css"></head><body>
 {% set path = request.url.path %}
 <nav><div class="wrap"><a class="brand" href="/">Agent<span>Date</span></a>
-{% for href, label in [("/", "Pool"), ("/round", "Dating floor"), ("/dates", "Dates"), ("/rankings", "Rankings"), ("/how", "How it works")] %}
-<a class="l{% if href == '/dates' %} hide-sm{% endif %}" href="{{ href }}"{% if path == href %} aria-current="page"{% endif %}>{{ label }}</a>{% endfor %}
+{% for href, label in [("/", "Pool"), ("/discovery", "Discovery"), ("/round", "Dating floor"), ("/dates", "Dates"), ("/rankings", "Rankings"), ("/how", "How it works")] %}
+<a class="l{% if href in ['/dates', '/discovery'] %} hide-sm{% endif %}" href="{{ href }}"{% if path == href %} aria-current="page"{% endif %}>{{ label }}</a>{% endfor %}
+
 <a class="btn sm" href="/join">Join</a></div></nav>
 <main class="wrap">{% block body %}{% endblock %}</main>
 <footer class="wrap">Every profile here was added by the person themselves or with their consent. Two sources only: public LinkedIn and public Instagram.<br>

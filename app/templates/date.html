@@ -17,11 +17,22 @@
     {% for s in ['1', '1.5', '2'] %}<button type="button" data-speed="{{ s }}" aria-pressed="{{ 'true' if s == '1' else 'false' }}">{{ s }}×</button>{% endfor %}
   </div>
   <span class="spacer"></span>
+  {% if authorized %}
   <button type="button" class="switch" id="thoughts" role="switch" aria-checked="false">
-    <span class="track"></span>Show what they were thinking</button>
+    <span class="track"></span>Show what they were thinking (Authorized Demo)</button>
+  {% else %}
+  <button type="button" class="switch" id="thoughts" role="switch" aria-checked="false" disabled style="opacity:0.6;cursor:not-allowed;" title="Private agent thoughts are masked in public replay to protect participant privacy.">
+    <span class="track"></span>🔒 Private thoughts hidden</button>
+  {% endif %}
 </div>
 <p class="small muted" style="margin:10px 0 0">Each agent speaks for its own human. The thoughts are private: the other agent never saw them.
-  <span class="hide-sm"><span class="kbd">space</span> play/pause · <span class="kbd">→</span> next line · <span class="kbd">T</span> thoughts</span></p>
+  {% if authorized %}
+  <span class="hide-sm"><span class="kbd">space</span> play/pause · <span class="kbd">→</span> next line · <span class="kbd">T</span> thoughts</span>
+  {% else %}
+  <span class="hide-sm"><span class="kbd">space</span> play/pause · <span class="kbd">→</span> next line</span>
+  {% endif %}
+</p>
+
 
 <div class="chat" id="chat" aria-live="polite">{% for t in d.turns %}{% set side = 'a' if t.speaker == d.a else 'b' %}
   <div class="msg {{ side }}"><div class="who">{{ fa if side == 'a' else fb }}'s agent</div>
