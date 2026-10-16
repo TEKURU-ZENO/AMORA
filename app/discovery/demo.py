@@ -1,4 +1,4 @@
-"""Fictional discovery provider for demo mode (AGENTDATE_DEMO=1).
+"""Fictional discovery provider for demo mode (AMORA_DEMO=1).
 
 Shaped exactly like the Apify Google-search and Instagram results the live provider gets, so the
 real verification rules run on it and every outcome shows up: direct cross-link, handle mentioned

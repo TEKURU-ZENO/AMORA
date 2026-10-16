@@ -36,7 +36,7 @@ def verify_identity_pair(
             "rejected",
             "none",
             "",
-            f"Instagram profile @{ig.username} is private. AgentDate requires public profiles."
+            f"Instagram profile @{ig.username} is private. AMORA requires public profiles."
         )
 
     li_handle = li.get("handle", "").lower()

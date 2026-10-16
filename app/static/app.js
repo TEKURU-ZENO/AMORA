@@ -1,4 +1,4 @@
-/* AgentDate front end. One file, small modules keyed off what's on the page. No build step. */
+/* AMORA front end. One file, small modules keyed off what's on the page. No build step. */
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;

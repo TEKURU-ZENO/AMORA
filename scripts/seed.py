@@ -1,7 +1,7 @@
 """Add people to the pool, then run a dating round.
 
   python -m scripts.seed --csv optins.csv      # opted-in people, scraped live through Apify
-  python -m scripts.seed --synthetic           # 25 fictional personas; needs AGENTDATE_DEMO=1
+  python -m scripts.seed --synthetic           # 25 fictional personas; needs AMORA_DEMO=1
 
 The CSV needs columns: linkedin,instagram,consent  (consent must be "yes" for every row,
 collected from the person themselves, e.g. via the /join form or a signup sheet).
@@ -31,7 +31,7 @@ def main():
         sys.exit("Pass --csv optins.csv and/or --synthetic.")
     if args.synthetic:
         if not config.demo_mode():
-            sys.exit("--synthetic needs demo mode: set AGENTDATE_DEMO=1 (e.g. in .env).")
+            sys.exit("--synthetic needs demo mode: set AMORA_DEMO=1 (e.g. in .env).")
         from scripts.synthetic import build
         for pid, li, ig in build():
             harness.ingest_demo(pid, li, ig)

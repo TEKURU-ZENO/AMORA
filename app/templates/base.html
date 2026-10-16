@@ -1,11 +1,11 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{% block title %}AgentDate{% endblock %}</title>
+<title>{% block title %}AMORA{% endblock %}</title>
 <script>document.documentElement.classList.add('js')</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/static/style.css?v=4"></head><body>
 {% set path = request.url.path %}
-<nav><div class="wrap"><a class="brand" href="/">Agent<span>Date</span></a>
+<nav><div class="wrap"><a class="brand" href="/">AM<span>O</span>RA</a>
 {% for href, label in [("/", "Pool"), ("/discovery", "Discovery"), ("/round", "Dating floor"), ("/dates", "Dates"), ("/rankings", "Rankings"), ("/how", "How it works")] %}
 <a class="l{% if href in ['/dates', '/discovery'] %} hide-sm{% endif %}" href="{{ href }}"{% if path == href %} aria-current="page"{% endif %}>{{ label }}</a>{% endfor %}
 

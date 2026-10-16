@@ -16,19 +16,26 @@ def _load_dotenv(path: Path) -> None:
 
 
 _load_dotenv(ROOT / ".env")
+
+
+def _env(name: str, default: str = "") -> str:
+    """AMORA_<name>, falling back to the pre-rename AGENTDATE_<name> so old .env files keep working."""
+    return os.getenv(f"AMORA_{name}") or os.getenv(f"AGENTDATE_{name}") or default
+
+
 def _default_data_dir() -> Path:
     # Vercel serves the deployed files read-only; /tmp is the only writable place there.
     # It is per-instance and wiped on cold starts, so set DATA_DIR to a real disk elsewhere.
     if os.getenv("VERCEL"):
-        return Path("/tmp/agentdate")
+        return Path("/tmp/amora")
     return ROOT / "data"
 
 
 DATA_DIR = Path(os.getenv("DATA_DIR") or _default_data_dir())
-DB_PATH = DATA_DIR / "agentdate.sqlite3"
+DB_PATH = DATA_DIR / "agentdate.sqlite3"  # filename kept from before the rename so existing data still loads
 
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
-MODEL = os.getenv("AGENTDATE_MODEL", "claude-sonnet-4-5")
+MODEL = _env("MODEL", "claude-sonnet-4-5")
 
 APIFY_TOKEN = os.getenv("APIFY_TOKEN", "")
 # Actor IDs are configurable because Apify marketplace actors change over time.
@@ -44,7 +51,7 @@ DATE_TURNS = int(os.getenv("DATE_TURNS", "10"))         # messages per date (bot
 MAX_PARALLEL_DATES = int(os.getenv("MAX_PARALLEL_DATES", "6"))
 
 # Access & Privacy
-ADMIN_API_KEY = os.getenv("ADMIN_API_KEY", os.getenv("AGENTDATE_DEMO_KEY", "agentdate-demo-secret"))
+ADMIN_API_KEY = os.getenv("ADMIN_API_KEY") or _env("DEMO_KEY", "amora-demo-secret")
 
 
 def llm_enabled() -> bool:
@@ -61,8 +68,8 @@ def scraping_enabled() -> bool:
 
 
 def demo_mode() -> bool:
-    """AGENTDATE_DEMO=1: fictional personas may live in the pool and discovery uses a fictional
+    """AMORA_DEMO=1 (or the old AGENTDATE_DEMO=1): fictional personas may live in the pool and discovery uses a fictional
     provider, so the agents can be shown end to end without scraping anyone. Off by default."""
-    return os.getenv("AGENTDATE_DEMO", "").strip().lower() in ("1", "true", "yes")
+    return _env("DEMO").strip().lower() in ("1", "true", "yes")
 
 

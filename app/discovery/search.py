@@ -1,7 +1,7 @@
 """Find candidate LinkedIn profiles on the public web, through Apify's Google Search actor.
 
 Every candidate is a real public LinkedIn page that Google returned for the query, unless the
-server is in demo mode (AGENTDATE_DEMO=1), where a clearly fictional provider (demo.py) stands in.
+server is in demo mode (AMORA_DEMO=1), where a clearly fictional provider (demo.py) stands in.
 Without APIFY_TOKEN and outside demo mode, discovery refuses to run.
 """
 from __future__ import annotations
@@ -39,7 +39,7 @@ def _parse_result(r: dict) -> dict | None:
 
 
 def provider():
-    """Live Apify, or the fictional demo provider when AGENTDATE_DEMO=1 (never both)."""
+    """Live Apify, or the fictional demo provider when AMORA_DEMO=1 (never both)."""
     if config.demo_mode():
         from . import demo
         return demo

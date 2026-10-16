@@ -1,7 +1,7 @@
 {% extends "base.html" %}{% import "_ui.html" as ui %}
 {% set PA = by_id[d.a] %}{% set PB = by_id[d.b] %}{% set A = PA.analysis %}{% set B = PB.analysis %}
 {% set fa = first(PA) %}{% set fb = first(PB) %}
-{% block title %}{{ fa }} × {{ fb }} · AgentDate{% endblock %}
+{% block title %}{{ fa }} × {{ fb }} · AMORA{% endblock %}
 {% block body %}<div class="narrow" id="replay" data-turns="{{ d.turns|length }}">
 <header class="dhead">
   <div class="kicker">A date, replayed</div>

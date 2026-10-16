@@ -1,5 +1,5 @@
 {% extends "base.html" %}{% import "_ui.html" as ui %}
-{% block title %}{{ p.analysis.display_name if p.analysis else p.id }} · AgentDate{% endblock %}
+{% block title %}{{ p.analysis.display_name if p.analysis else p.id }} · AMORA{% endblock %}
 
 {% macro chip(text, cls="") -%}
 {% set r = receipt(text) %}{% if r is not none %}<button type="button" class="chip {{ cls }}" data-claim="{{ r }}" title="See the receipt">{{ text }}</button>{% else %}<span class="chip {{ cls }}">{{ text }}</span>{% endif %}

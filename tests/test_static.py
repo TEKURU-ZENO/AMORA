@@ -17,6 +17,13 @@ def test_vercel_uses_writable_tmp(monkeypatch):
     # Vercel's deployed files are read-only: a DB under the project dir broke /discovery there
     from app import config
     monkeypatch.setenv("VERCEL", "1")
-    assert str(config._default_data_dir()).replace("\\", "/") == "/tmp/agentdate"
+    assert str(config._default_data_dir()).replace("\\", "/") == "/tmp/amora"
     monkeypatch.delenv("VERCEL")
     assert config._default_data_dir() == config.ROOT / "data"
+
+
+def test_old_env_names_still_work(monkeypatch):
+    from app import config
+    monkeypatch.setenv("AMORA_DEMO", "")
+    monkeypatch.setenv("AGENTDATE_DEMO", "1")
+    assert config.demo_mode()

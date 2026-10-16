@@ -42,7 +42,7 @@ def run_discovery_batch(
     for li in found_li:
         norm_url = li["url"].lower()
         if norm_url in existing_persons:
-            log(f"Skipping {li['name']}: already enrolled in AgentDate pool")
+            log(f"Skipping {li['name']}: already enrolled in AMORA pool")
             continue
 
         cid = _candidate_id(li["handle"])

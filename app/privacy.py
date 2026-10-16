@@ -1,4 +1,4 @@
-"""Privacy boundary and access control layer for AgentDate.
+"""Privacy boundary and access control layer for AMORA.
 
 Enforces:
 1. Stripping private inner agent monologue (Turn.thought) from unauthorized views and public exports.
@@ -25,8 +25,8 @@ def is_authorized(request: Request) -> bool:
         return False
 
 
-    # Check X-AgentDate-Key header
-    header_key = request.headers.get("X-AgentDate-Key")
+    # Check X-Amora-Key header (X-AgentDate-Key still accepted)
+    header_key = request.headers.get("X-Amora-Key") or request.headers.get("X-AgentDate-Key")
     if header_key and hmac.compare_digest(header_key, expected):
         return True
 
@@ -44,7 +44,7 @@ def is_authorized(request: Request) -> bool:
         return True
 
     # Check cookie
-    cookie_key = request.cookies.get("agentdate_key")
+    cookie_key = request.cookies.get("amora_key") or request.cookies.get("agentdate_key")
     if cookie_key and hmac.compare_digest(cookie_key, expected):
         return True
 
@@ -56,7 +56,7 @@ def require_auth(request: Request) -> None:
     if not is_authorized(request):
         raise HTTPException(
             status_code=401,
-            detail="Unauthorized: Valid X-AgentDate-Key or demo_key required for this resource."
+            detail="Unauthorized: Valid X-Amora-Key or demo_key required for this resource."
         )
 
 

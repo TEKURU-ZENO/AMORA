@@ -95,7 +95,7 @@ def ingest(linkedin_url: str, instagram_url: str, consent: bool, progress: Progr
 def ingest_demo(pid: str, li: LinkedInData, ig: InstagramData, progress: Progress = _print) -> Person:
     """Demo mode only: add a fictional persona without scraping, then analyse it like anyone else."""
     if not config.demo_mode():
-        raise ValueError("Fictional personas are only allowed in demo mode (AGENTDATE_DEMO=1).")
+        raise ValueError("Fictional personas are only allowed in demo mode (AMORA_DEMO=1).")
     p = Person(id=pid, linkedin_url=li.url, instagram_url=ig.url, consent=True, synthetic=True,
                sources=SourceBundle(linkedin=li, instagram=ig), status="scraped")
     store.save_person(p)

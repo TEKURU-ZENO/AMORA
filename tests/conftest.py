@@ -11,7 +11,8 @@ os.environ["DATA_DIR"] = tempfile.mkdtemp()
 os.environ["APIFY_TOKEN"] = "test-token"  # never a real token; nothing below reaches Apify
 os.environ["ANTHROPIC_API_KEY"] = ""
 os.environ["ADMIN_API_KEY"] = "test-secret-key-123"
-os.environ["AGENTDATE_DEMO"] = ""  # tests opt in per test with monkeypatch
+os.environ["AMORA_DEMO"] = ""  # tests opt in per test with monkeypatch
+os.environ["AGENTDATE_DEMO"] = ""  # old name, so a local .env using it can't leak in
 
 from app import config  # noqa: E402
 from app.models import InstagramData  # noqa: E402

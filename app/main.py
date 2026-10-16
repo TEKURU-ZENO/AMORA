@@ -16,7 +16,7 @@ from .config import ROOT
 
 
 
-app = FastAPI(title="AgentDate")
+app = FastAPI(title="AMORA")
 app.mount("/static", StaticFiles(directory=ROOT / "app" / "static"), name="static")
 tpl = Jinja2Templates(directory=ROOT / "app" / "templates")
 # a stable monogram tint per person (app.js uses the same formula)
@@ -291,7 +291,7 @@ def date_the_pool(pid: str):
 @app.post("/api/demo/personas")
 def add_demo_personas():
     if not config.demo_mode():
-        return JSONResponse({"error": "Demo personas are only available in demo mode (AGENTDATE_DEMO=1)."}, 403)
+        return JSONResponse({"error": "Demo personas are only available in demo mode (AMORA_DEMO=1)."}, 403)
     return {"job": _job(harness.add_demo_personas, job_type="demo_seed", idempotency_key="demo:personas")}
 
 

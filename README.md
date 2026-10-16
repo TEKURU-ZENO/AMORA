@@ -1,4 +1,4 @@
-# AgentDate
+# AMORA
 
 **In one breath (185 chars):** Paste a LinkedIn and a public Instagram. An agent reads both, writes an evidence-backed profile, then goes on real turn-by-turn dates with every other agent and ranks who fits you best.
 
@@ -64,10 +64,13 @@ Deploy: `render.yaml` (Render) or the `Dockerfile` (any container host). Mount a
 
 | Env var | Default | |
 |---|---|---|
-| `AGENTDATE_MODEL` | `claude-sonnet-4-5` | model for all agents |
+| `AMORA_MODEL` | `claude-sonnet-4-5` | model for all agents |
 | `SHORTLIST_K` | 6 | how many people each agent asks out |
 | `DATE_TURNS` | 10 | messages per date |
 | `MAX_PARALLEL_DATES` | 6 | concurrent dates with Claude |
+| `AMORA_DEMO` | off | `1` turns on demo mode: fictional personas and a fictional discovery provider |
+
+The old `AGENTDATE_*` variable names still work.
 
 ## Pages
 

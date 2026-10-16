@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: agentdate
+    name: amora
     runtime: docker
     plan: starter
     disk: { name: data, mountPath: /data, sizeGB: 1 }

@@ -1,4 +1,4 @@
-"""25 clearly fictional personas for DEMO MODE (AGENTDATE_DEMO=1) and for tests.
+"""25 clearly fictional personas for DEMO MODE (AMORA_DEMO=1) and for tests.
 
 Every name, company and handle here is invented, and every link points at example.com so a
 persona can never be mistaken for, or link to, a real person's profile. With demo mode off the
