@@ -1,0 +1,7 @@
+# Never upload local state or secrets to Vercel
+.env
+data/
+.claude/
+.pytest_cache/
+__pycache__/
+tests/

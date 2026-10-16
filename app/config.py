@@ -16,7 +16,15 @@ def _load_dotenv(path: Path) -> None:
 
 
 _load_dotenv(ROOT / ".env")
-DATA_DIR = Path(os.getenv("DATA_DIR", ROOT / "data"))
+def _default_data_dir() -> Path:
+    # Vercel serves the deployed files read-only; /tmp is the only writable place there.
+    # It is per-instance and wiped on cold starts, so set DATA_DIR to a real disk elsewhere.
+    if os.getenv("VERCEL"):
+        return Path("/tmp/agentdate")
+    return ROOT / "data"
+
+
+DATA_DIR = Path(os.getenv("DATA_DIR") or _default_data_dir())
 DB_PATH = DATA_DIR / "agentdate.sqlite3"
 
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
