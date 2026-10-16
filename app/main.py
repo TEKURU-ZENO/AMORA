@@ -395,4 +395,8 @@ def admin_export(request: Request):
 
 @app.get("/healthz")
 def health():
-    return {"ok": True, "llm": config.llm_enabled(), "scraping": config.scraping_enabled(), "demo": config.demo_mode()}
+    import os
+    # which deploy is answering (Vercel sets these): tells a missing env var apart from a stale deploy
+    return {"ok": True, "llm": config.llm_enabled(), "scraping": config.scraping_enabled(), "demo": config.demo_mode(),
+            "demo_var_set": bool(os.getenv("AMORA_DEMO") or os.getenv("AGENTDATE_DEMO")),
+            "env": os.getenv("VERCEL_ENV", "local"), "commit": os.getenv("VERCEL_GIT_COMMIT_SHA", "")[:7]}
