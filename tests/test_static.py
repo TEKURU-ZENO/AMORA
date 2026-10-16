@@ -27,3 +27,10 @@ def test_old_env_names_still_work(monkeypatch):
     monkeypatch.setenv("AMORA_DEMO", "")
     monkeypatch.setenv("AGENTDATE_DEMO", "1")
     assert config.demo_mode()
+
+
+@pytest.mark.parametrize("value", ['1', '"1"', " 1 ", "'true'", "on"])
+def test_demo_flag_tolerates_host_ui_quoting(monkeypatch, value):
+    from app import config
+    monkeypatch.setenv("AMORA_DEMO", value)
+    assert config.demo_mode()

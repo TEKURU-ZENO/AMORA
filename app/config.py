@@ -70,6 +70,7 @@ def scraping_enabled() -> bool:
 def demo_mode() -> bool:
     """AMORA_DEMO=1 (or the old AGENTDATE_DEMO=1): fictional personas may live in the pool and discovery uses a fictional
     provider, so the agents can be shown end to end without scraping anyone. Off by default."""
-    return _env("DEMO").strip().lower() in ("1", "true", "yes")
+    # tolerate values pasted with quotes or spaces in a host's env-var UI ("1", ' true ')
+    return _env("DEMO").strip().strip("'\"").strip().lower() in ("1", "true", "yes", "on")
 
 
