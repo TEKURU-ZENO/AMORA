@@ -23,6 +23,8 @@
       <button class="btn {{ '' if analysed|length >= 2 else 'ghost' }}" data-run-round {% if analysed|length < 2 %}disabled aria-describedby="why-off"{% endif %}>Run a dating round</button>
       {% if analysed|length < 2 %}<p class="small muted" id="why-off" style="margin:10px 0 0">A round needs at least two people in the pool. {{ 'Add one more.' if analysed|length == 1 else 'Add two to begin.' }}</p>{% endif %}
     {% endif %}
+    {% if demo %}<div class="row" style="margin-top:12px;flex-wrap:wrap"><button class="btn ghost sm" data-demo-personas>Add 25 demo personas</button>
+      <span class="small muted" id="demo-status">Fictional people your agent can date in demo mode.</span></div>{% endif %}
     <p class="small muted" style="margin-top:14px">Each agent screens everyone's public card, asks out its top picks, goes on the dates, then files a private verdict to its own human. You watch it happen on the <a href="/round">dating floor</a>.</p>
   </div>
 </div>

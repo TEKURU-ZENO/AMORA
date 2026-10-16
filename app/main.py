@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import functools
 import json
 import threading
 import uuid
@@ -271,6 +272,27 @@ def start_round():
     if not _round_running():  # one round at a time; a second click joins the running one
         ROUND["job"] = _job(harness.run_round, job_type="round", idempotency_key="round:active")
     return {"job": ROUND["job"]}
+
+
+@app.post("/api/people/{pid}/date")
+def date_the_pool(pid: str):
+    """This person's agent asks out the existing pool (demo personas included) and goes on the dates."""
+    p = store.get_person(pid)
+    if not p or not p.analysis:
+        return JSONResponse({"error": "That profile isn't ready to date yet."}, 404)
+    if len([x for x in store.list_persons() if x.analysis]) < 2:
+        return JSONResponse({"error": "A round needs at least two people in the pool."}, 400)
+    if not _round_running():  # shares the round slot, so two runs never write dates at once
+        ROUND["job"] = _job(functools.partial(harness.run_round, only=pid), job_type="round",
+                            idempotency_key="round:active")
+    return {"job": ROUND["job"]}
+
+
+@app.post("/api/demo/personas")
+def add_demo_personas():
+    if not config.demo_mode():
+        return JSONResponse({"error": "Demo personas are only available in demo mode (AGENTDATE_DEMO=1)."}, 403)
+    return {"job": _job(harness.add_demo_personas, job_type="demo_seed", idempotency_key="demo:personas")}
 
 
 @app.get("/api/jobs/{jid}/stream")

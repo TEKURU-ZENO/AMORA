@@ -57,3 +57,29 @@ def test_demo_discovery_uses_fictional_provider_only(monkeypatch):
         "aravind-nair-demo": "verified_crosslink",
         "omar-haddad-demo": "pairing_failed",          # no Instagram found
     }
+
+
+def test_new_joiner_dates_the_pool_without_redoing_others(monkeypatch):
+    monkeypatch.setenv("AGENTDATE_DEMO", "1")
+    from tests.conftest import PERSONAS
+    for pid, li, ig in build()[:6]:
+        harness.ingest_demo(pid, li, ig, progress=lambda m: None)
+    harness.run_round(progress=lambda m: None)
+    before = {d.id for d in store.list_dates()}
+    _, li, ig = PERSONAS[10]  # a person outside the six, joining through ingest() (stubbed Apify)
+    me = harness.ingest(li.url, ig.url, True, progress=lambda m: None)
+    assert not me.synthetic
+    new = harness.run_round(progress=lambda m: None, only=me.id)
+    assert new and all(me.id in (d.a, d.b) for d in new)
+    assert {d.id for d in store.list_dates() if me.id not in (d.a, d.b)} == before  # nobody else's dates redone
+    assert any(by.synthetic for d in new for by in [store.get_person(d.b if d.a == me.id else d.a)])
+
+
+def test_buttons_endpoints(monkeypatch):
+    from fastapi.testclient import TestClient
+    from app.main import app
+    c = TestClient(app)
+    assert c.post("/api/demo/personas").status_code == 403  # demo mode off
+    monkeypatch.setenv("AGENTDATE_DEMO", "1")
+    assert "job" in c.post("/api/demo/personas").json()
+    assert c.post("/api/people/nobody/date").status_code == 404

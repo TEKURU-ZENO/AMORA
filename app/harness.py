@@ -102,6 +102,20 @@ def ingest_demo(pid: str, li: LinkedInData, ig: InstagramData, progress: Progres
     return analyse(p, progress)
 
 
+def add_demo_personas(progress: Progress = _print) -> int:
+    """Demo mode only: put the 25 fictional personas in the pool (skipping any already there)."""
+    from scripts.synthetic import build
+    added = 0
+    for pid, li, ig in build():
+        if store.get_person(pid):
+            continue
+        progress(f"adding demo persona {li.full_name}")
+        ingest_demo(pid, li, ig, progress)
+        added += 1
+    progress(f"{added} demo personas added")
+    return added
+
+
 def analyse(p: Person, progress: Progress = _print) -> Person:
     progress(f"[{p.id}] analyst agent reading both sources")
     a, log, engine = analyst.analyze(p.sources, on_note=lambda i, note: progress({"type": "pass", "i": i, "text": note}))
@@ -122,10 +136,10 @@ class Swipes(BaseModel):
     picks: list[SwipePick]
 
 
-def screen(people: list[Person]) -> dict[str, list[tuple[str, str]]]:
-    """Return {person_id: [(other_id, why), ...]} = who each agent asks out."""
+def screen(people: list[Person], askers: list[Person] | None = None) -> dict[str, list[tuple[str, str]]]:
+    """Return {person_id: [(other_id, why), ...]} = who each agent asks out (all of `people`, or just `askers`)."""
     asks: dict[str, list[tuple[str, str]]] = {}
-    for p in people:
+    for p in askers or people:
         others = [o for o in people if o.id != p.id]
         priors = sorted(((compute(p.analysis, o.analysis).prior, o) for o in others), key=lambda t: -t[0])
         picks = None
@@ -166,24 +180,35 @@ def date_tile(d: DateRecord, by_id: dict[str, Person]) -> dict:
             "lines": [[_first(by_id[t.speaker]) if t.speaker in by_id else "", t.text[:110]] for t in d.turns]}
 
 
-def run_round(progress: Progress = _print) -> list[DateRecord]:
+def run_round(progress: Progress = _print, only: str | None = None) -> list[DateRecord]:
+    """A full round, or with `only`, just that person's agent asking out the existing pool
+    (a new joiner dates everyone, demo personas included, without redoing anyone else's dates)."""
     people = [p for p in store.list_persons() if p.status == "analyzed" and p.analysis]
     if len(people) < 2:
         raise ValueError("Need at least two analysed people to start dating.")
-    progress(f"{len(people)} agents entering the pool")
+    by_id = {p.id: p for p in people}
+    if only and only not in by_id:
+        raise ValueError("That profile isn't ready to date yet.")
+    progress(f"{len(people)} agents in the pool" + (f"; {by_id[only].analysis.display_name}'s agent is going out" if only else ""))
     progress({"type": "phase", "phase": "screening", "people": len(people)})
-    asks = screen(people)
+    fresh = screen(people, askers=[by_id[only]] if only else None)
+    if only:  # keep everyone else's asks and dates; replace this person's
+        asks = {k: v for k, v in (store.get_meta("asks", {}) or {}).items() if k != only} | fresh
+    else:
+        asks = fresh
     store.set_meta("asks", asks)
-    for pid, picks in asks.items():
+    for pid, picks in fresh.items():
         progress({"type": "asks", "from": pid, "picks": [{"id": o, "why": w} for o, w in picks]})
     pairs = set()
-    for pid, picks in asks.items():
+    for pid, picks in fresh.items():
         for oid, _ in picks:
             pairs.add(tuple(sorted((pid, oid))))
-    progress(f"screening done: {sum(len(v) for v in asks.values())} invitations -> {len(pairs)} dates")
+    progress(f"screening done: {sum(len(v) for v in fresh.values())} invitations -> {len(pairs)} dates")
     progress({"type": "phase", "phase": "dating", "dates": len(pairs)})
-    store.clear_dates()
-    by_id = {p.id: p for p in people}
+    if only:
+        store.clear_dates(only)
+    else:
+        store.clear_dates()
     out = []
 
     def one(pair):

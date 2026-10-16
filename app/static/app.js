@@ -124,6 +124,31 @@ $$('[data-run-round]').forEach(b => b.addEventListener('click', async () => {
   } catch (err) { b.innerHTML = label; b.disabled = false; alert(humanError(err.message)); }
 }));
 
+/* One person's agent dates the existing pool (demo personas included), watched on the floor */
+$$('[data-date-person]').forEach(b => b.addEventListener('click', async () => {
+  b.disabled = true; const label = b.innerHTML; b.textContent = 'Sending the agent out…';
+  try {
+    const r = await fetch(`/api/people/${encodeURIComponent(b.dataset.datePerson)}/date`, {method: 'POST'});
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error);
+    location.href = `/round?job=${j.job}`;
+  } catch (err) { b.innerHTML = label; b.disabled = false; alert(humanError(err.message)); }
+}));
+
+/* Demo mode: add the fictional personas to the pool */
+$$('[data-demo-personas]').forEach(b => b.addEventListener('click', async () => {
+  const st = $('#demo-status'); b.disabled = true;
+  st.className = 'saying'; st.innerHTML = '<span class="dots"><i></i><i></i><i></i></span> Adding demo personas…';
+  try {
+    const r = await fetch('/api/demo/personas', {method: 'POST'}); const j = await r.json();
+    if (!r.ok) throw new Error(j.error);
+    stream(j.job, {
+      onMsg: m => { st.textContent = m; },
+      onDone: m => { if (m.error) { st.className = 'saying err'; st.textContent = humanError(m.error); b.disabled = false; } else location.reload(); },
+    });
+  } catch (err) { st.className = 'saying err'; st.textContent = humanError(err.message); b.disabled = false; }
+}));
+
 /* ================================================================ date replay */
 const replay = $('#replay');
 if (replay) {
@@ -471,8 +496,7 @@ if (rk) {
 const dlog = $('#discovery-log');
 if (dlog) {
   stream(dlog.dataset.job, {
-    onMsg: m => { dlog.textContent += m + '
-'; dlog.scrollTop = 1e9; },
+    onMsg: m => { dlog.textContent += m + '\n'; dlog.scrollTop = 1e9; },
     onDone: m => {
       const st = $('#discovery-status');
       if (m.error) { st.className = 'saying err'; st.textContent = humanError(m.error); return; }

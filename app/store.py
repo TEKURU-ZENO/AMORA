@@ -161,9 +161,12 @@ def list_dates(pid: str | None = None) -> list[DateRecord]:
     return sorted(ds, key=lambda d: -d.mutual)
 
 
-def clear_dates() -> None:
+def clear_dates(pid: str | None = None) -> None:
     with _conn() as c:
-        c.execute("DELETE FROM dates")
+        if pid:
+            c.execute("DELETE FROM dates WHERE a=? OR b=?", (pid, pid))
+        else:
+            c.execute("DELETE FROM dates")
 
 
 def clear_all() -> None:
