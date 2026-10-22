@@ -41,13 +41,18 @@ def pick_venue(a: Analysis, b: Analysis, c: Compat) -> tuple[str, str]:
 
 class AgentTurn(BaseModel):
     thought: str = Field(description="Private read for your own human: what you just learned, what to probe next")
+    observation: str = Field(default="", description="Specific deduction about your date's character, priorities, or lifestyle from their words")
     say: str = Field(description="What you say out loud on the date, 1-3 sentences, in character as your human")
 
 
-def _brief(me: Analysis) -> str:
-    return (f"Name: {me.display_name}\nSummary: {me.summary}\nNeeds: {me.needs}\nHobbies: {me.hobbies}\n"
+def _brief(me: Analysis, coaching: list[str] | None = None) -> str:
+    base = (f"Name: {me.display_name}\nSummary: {me.summary}\nNeeds: {me.needs}\nHobbies: {me.hobbies}\n"
             f"Interests: {me.interests}\nValues: {me.values}\nPersonality: {me.personality}\n"
             f"Lifestyle: {me.lifestyle}\nCommunication: {me.communication_style}\nDealbreakers: {me.dealbreakers}")
+    if coaching:
+        coach_lines = "\n".join(f"- {c}" for c in coaching)
+        base += f"\nCOACHING FROM YOUR HUMAN (follow these closely):\n{coach_lines}"
+    return base
 
 
 def _card(other: Analysis) -> str:
@@ -55,12 +60,12 @@ def _card(other: Analysis) -> str:
     return f"{other.display_name}: {other.one_liner}. Hobbies {other.hobbies[:4]}, interests {other.interests[:4]}."
 
 
-def _agent_system(me: Analysis, other: Analysis, venue: str) -> str:
+def _agent_system(me: Analysis, other: Analysis, venue: str, coaching: list[str] | None = None) -> str:
     return (f"You are the dating agent for {me.display_name}. You go on this date ON THEIR BEHALF and speak "
             f"as them, grounded strictly in the brief below. Your job is to find out, honestly, whether "
-            f"{first(other)} is good for {first(me)}: probe their needs and your human's dealbreakers, share "
-            f"real things about your human, be warm and natural, never invent facts beyond the brief. "
-            f"Do not oversell. Never discuss looks.\n\nPRIVATE BRIEF\n{_brief(me)}\n\n"
+            f"{first(other)} is good for {first(me)}: probe their needs and your human's dealbreakers, follow "
+            f"your human's coaching directives, share real things about your human, be warm and natural, never "
+            f"invent facts beyond the brief. Do not oversell. Never discuss looks.\n\nPRIVATE BRIEF\n{_brief(me, coaching)}\n\n"
             f"WHAT YOU KNOW ABOUT YOUR DATE (their public card)\n{_card(other)}\n\nVENUE: {venue}")
 
 
@@ -70,26 +75,30 @@ PHASES = ["arriving, opening line", "small talk about the venue", "ask about som
           "talk about what a normal week looks like", "light, fun moment", "wrap up, hint whether you'd meet again"]
 
 
-def _date_llm(a: Analysis, b: Analysis, ida: str, idb: str, venue: str) -> list[Turn]:
+def _date_llm(a: Analysis, b: Analysis, ida: str, idb: str, venue: str,
+              coaching_a: list[str] | None = None, coaching_b: list[str] | None = None) -> list[Turn]:
     turns: list[Turn] = []
-    agents = [(ida, a, b), (idb, b, a)]
+    agents = [(ida, a, b, coaching_a), (idb, b, a, coaching_b)]
     for i in range(config.DATE_TURNS):
-        pid, me, other = agents[i % 2]
+        pid, me, other, coach = agents[i % 2]
         transcript = "\n".join(f"{first(a) if t.speaker == ida else first(b)}: {t.text}" for t in turns) or "(date just started)"
         phase = PHASES[min(i, len(PHASES) - 1)]
-        out = llm.structured(_agent_system(me, other, venue),
+        out = llm.structured(_agent_system(me, other, venue, coach),
                              f"Conversation so far:\n{transcript}\n\nYour turn ({phase}).", AgentTurn, max_tokens=500)
-        turns.append(Turn(speaker=pid, text=out.say.strip(), thought=out.thought.strip()))
+        turns.append(Turn(speaker=pid, text=out.say.strip(), thought=out.thought.strip(),
+                          observation=getattr(out, "observation", "").strip()))
     return turns
 
 
-def _verdict_llm(me: Analysis, other: Analysis, pid: str, turns: list[Turn], ida: str, venue: str) -> Verdict:
+def _verdict_llm(me: Analysis, other: Analysis, pid: str, turns: list[Turn], ida: str, venue: str,
+                 coaching: list[str] | None = None) -> Verdict:
     transcript = "\n".join(f"{'YOU' if t.speaker == pid else first(other)}: {t.text}" for t in turns)
     thoughts = "\n".join(t.thought for t in turns if t.speaker == pid)
-    v = llm.structured(_agent_system(me, other, venue),
+    v = llm.structured(_agent_system(me, other, venue, coaching),
         f"The date is over. Transcript:\n{transcript}\n\nYour private notes during the date:\n{thoughts}\n\n"
         f"File your verdict to {first(me)}. Be honest, calibrated (most dates are 4-7), and specific. "
-        f"score = overall fit for {first(me)}. report_to_human is 2-3 sentences addressed to {first(me)}.",
+        f"score = overall fit for {first(me)}. report_to_human is 2-3 sentences addressed to {first(me)}. "
+        f"learned_about_other = 2-4 key things you deduced about {first(other)} (unspoken priorities, lifestyle realities, communication style).",
         Verdict, max_tokens=800)
     v.agent_for = pid
     return v
@@ -108,89 +117,134 @@ def _ev(a: Analysis, claim_pool: list[str]) -> tuple[str, str] | None:
     return (a.evidence[0].claim, a.evidence[0].snippet) if a.evidence else None
 
 
-def _date_offline(a: Analysis, b: Analysis, ida: str, idb: str, venue: str, c: Compat) -> list[Turn]:
+def _date_offline(a: Analysis, b: Analysis, ida: str, idb: str, venue: str, c: Compat,
+                  coaching_a: list[str] | None = None, coaching_b: list[str] | None = None) -> list[Turn]:
     r = _rng(ida, idb)
     A, B = first(a), first(b)
     shared = c.shared_hobbies + c.shared_interests
     T: list[Turn] = []
 
-    def say(pid, text, thought):
-        T.append(Turn(speaker=pid, text=text, thought=thought))
+    def say(pid, text, thought, observation=""):
+        T.append(Turn(speaker=pid, text=text, thought=thought, observation=observation))
 
     opener = r.choice(["Hey, you must be {B}! I hope {v} sounded okay to you.",
                        "{B}? Hi! Glad you said yes to {v}.",
                        "Hi {B}, I'm {A}. Fair warning, I picked {v} so blame me if it's a disaster."])
     say(ida, opener.format(A=A, B=B, v=venue),
         f"Picked {venue} because {('we share ' + shared[0].lower()) if shared else 'it is easy to talk there'}. "
-        f"Watching for: {', '.join(a.needs[:1]).lower() or 'general warmth'}.")
+        f"Watching for: {', '.join(a.needs[:1]).lower() or 'general warmth'}.",
+        f"Observes {B}'s opening demeanor arriving at {venue}.")
 
     b_top = (b.hobbies + b.interests + ["meeting new people"])[0]
     say(idb, r.choice([f"It's perfect actually. Anything with {b_top.lower()} energy and I'm in.",
                        f"Honestly great choice. I've been meaning to do more of this, {b_top.lower()} has taken over my weekends lately.",
                        f"Ha, no, it's a good call. I'm a {b.communication_style.lower().split(',')[0]} kind of person, this works."]),
-        f"First impression: {A} thought about the venue. {'Promising, we overlap on ' + ', '.join(shared[:2]).lower() if shared else 'Not much overlap on paper, need to dig.'}")
+        f"First impression: {A} thought about the venue. {'Promising, we overlap on ' + ', '.join(shared[:2]).lower() if shared else 'Not much overlap on paper, need to dig.'}",
+        f"Notes {A} took initiative on venue selection.")
+
+    # Pre-date coaching intervention if instructed
+    if coaching_a:
+        c_inst = coaching_a[0]
+        if "work" in c_inst.lower() and ("don't" in c_inst.lower() or "avoid" in c_inst.lower() or "no " in c_inst.lower()):
+            say(ida, "Before we get into small talk, one rule: let's not talk about work at all tonight. What's something exciting in your life right now?",
+                f"Following coaching instruction: '{c_inst}'. Steering clear of professional talk.",
+                f"Probing {B}'s identity outside work.")
+            say(idb, f"I love that rule. Outside of work, I'm really all about {b_top.lower()} and recharging my battery.",
+                "Glad to skip work talk.",
+                f"Noticed {A} set an intentional boundary early.")
+        elif "abroad" in c_inst.lower() or "move" in c_inst.lower() or "relocate" in c_inst.lower():
+            say(ida, "Quick spontaneous question: could you ever see yourself living or moving abroad in the next few years?",
+                f"Following coaching instruction: '{c_inst}'. Probing long-term life vision.",
+                f"Testing {B}'s willingness to embrace major life transitions.")
+            say(idb, "Honestly? With the right person and purpose, absolutely. I value adventure and new chapters.",
+                "Answered authentically about moving abroad.",
+                f"Noticed {A} values life flexibility.")
+        else:
+            say(ida, f"I have to ask something my human wanted me to check on: {c_inst.rstrip('.')}?",
+                f"Following coaching: '{c_inst}'.",
+                f"Evaluating {B}'s candid response to human's personal priority.")
+            say(idb, f"I respect directness! I'd say that aligns pretty well with how I approach things.",
+                "Appreciated straightforward communication.",
+                f"Deduces {A} has very specific criteria in mind.")
 
     eb = _ev(b, shared or b.hobbies + b.interests)
     if eb:
         claim, snip = eb
         say(ida, f"Okay I have to ask, I saw something about {claim.lower()}. \"{snip[:60].strip()}...\" What's the story there?",
-            f"Using a real thread from {B}'s profile rather than generic questions.")
+            f"Using a real thread from {B}'s profile rather than generic questions.",
+            f"Testing depth and authenticity behind {claim.lower()}.")
         say(idb, r.choice([f"Oh, that! It's become a big part of who I am. It's where I switch off from work, and honestly where most of my friends come from.",
                            f"Ha, you did your homework. It started as a one-off and now I plan my weeks around it.",
                            f"That's my reset button. Work is {(b.lifestyle or {}).get('pace', 'busy')}, so I need something that's just mine."]) +
             f" What about you, what does your free time actually look like?",
-            f"{A} asked about something I care about. Good sign for curiosity.")
+            f"{A} asked about something I care about. Good sign for curiosity.",
+            f"Observes {A} pays close attention to detail.")
     else:
-        say(ida, f"So tell me something that's not on your LinkedIn.", "Thin profile on their side, opening it up.")
-        say(idb, "I'm more interesting offline, I promise. What about you?", "Deflected a little.")
+        say(ida, f"So tell me something that's not on your LinkedIn.", "Thin profile on their side, opening it up.",
+            f"Checking whether {B} can speak comfortably off-script.")
+        say(idb, "I'm more interesting offline, I promise. What about you?", "Deflected a little.",
+            f"Observes {A} is gently teasing.")
 
     a_top = (a.hobbies + ["work, if I'm honest"])[0]
     say(ida, f"Mostly {a_top.lower()}{', and ' + a.hobbies[1].lower() if len(a.hobbies) > 1 else ''}. "
              f"{'Wait, you do that too, right?' if a_top in shared else 'Have you ever tried it?'}",
-        f"Sharing {A}'s real routine. {'This is a shared thing, leaning in.' if a_top in shared else 'Testing if ' + B + ' is open to it.'}")
+        f"Sharing {A}'s real routine. {'This is a shared thing, leaning in.' if a_top in shared else 'Testing if ' + B + ' is open to it.'}",
+        f"Checking lifestyle compatibility around {a_top.lower()}.")
 
     if a_top in shared:
         say(idb, r.choice(["Yes! Okay this changes things. We have to do that together sometime.",
                            "No way. Okay, now I want to know your favourite spot for it."]),
-            f"Real overlap on {a_top.lower()}. Chemistry going up.")
+            f"Real overlap on {a_top.lower()}. Chemistry going up.",
+            f"Discovered genuine shared enthusiasm for {a_top.lower()}.")
     elif "adventurous" in b.personality or "curious" in b.personality:
-        say(idb, "Never, but I'd try it. I'm usually up for anything once.", f"Not my thing yet, but I'm open. {A} might widen my world.")
+        say(idb, "Never, but I'd try it. I'm usually up for anything once.", f"Not my thing yet, but I'm open. {A} might widen my world.",
+            f"Observes {B} has a growth mindset and open curiosity.")
     else:
         say(idb, "Not really my thing, if I'm being honest. But I like that you have something you're that into.",
-            f"No overlap here. Respect the passion, but noting it.")
+            f"No overlap here. Respect the passion, but noting it.",
+            f"Notices {B} is grounded in their own routines.")
 
     a_need = a.needs[0] if a.needs else "someone kind"
     say(ida, f"Can I ask a slightly bigger question? What do you actually need from someone? Not the dating-app answer.",
-        f"Probing needs. {A} needs: {a_need.lower()}.")
+        f"Probing needs. {A} needs: {a_need.lower()}.",
+        f"Probing emotional depth and relationship maturity.")
     b_need = b.needs[0] if b.needs else "someone kind and consistent"
     say(idb, f"Hm. Honestly? {b_need}. I've learned that the hard way.",
-        f"Told the truth. Watching how {A} reacts.")
+        f"Told the truth. Watching how {A} reacts.",
+        f"Revelation: {B}'s primary relationship need is {b_need.lower()}.")
 
     if c.dealbreakers_a:
         db = c.dealbreakers_a[0]
         say(ida, f"I appreciate that. I'll be honest too, something that doesn't work for me is {db.lower()}. How do you feel about that?",
-            f"Red flag check: {B}'s traits brush up against {A}'s dealbreaker ({db.lower()}).")
+            f"Red flag check: {B}'s traits brush up against {A}'s dealbreaker ({db.lower()}).",
+            f"Testing {B}'s reaction to dealbreaker: {db.lower()}.")
         say(idb, r.choice(["That's fair. I'd be lying if I said that's never me.", "Hm, okay. I think I'm a bit like that, yeah."]),
-            "Honest friction. Not hiding it.")
+            "Honest friction. Not hiding it.",
+            f"Observes {B} admits potential friction rather than hiding it.")
     else:
         fit = len(c.shared_values) > 0 or c.energy_match
         say(ida, (f"That actually makes a lot of sense to me. I think I'd be good at that." if fit
                   else f"I get that. I'm not sure I'm naturally that person, but I respect knowing what you want."),
-            f"{'Their need fits what ' + A + ' can give.' if fit else 'Need mismatch, logging it.'}")
+            f"{'Their need fits what ' + A + ' can give.' if fit else 'Need mismatch, logging it.'}",
+            f"Evaluating whether {A} can fulfill {b_need.lower()}.")
         say(idb, (f"And yours? You've got a {', '.join(a.personality[:2])} vibe, so I'm guessing it's something like {a_need.lower()}?"
-                  ), f"Testing whether I read {A} right.")
+                  ), f"Testing whether I read {A} right.",
+            f"Observes {A}'s communication style is {a.communication_style.lower()}.")
 
     good = c.prior >= 5
     say(ida, r.choice(["This was genuinely fun. I'd like to do it again." if good else "This was really nice, thank you for coming.",
                        f"Next time I'm picking {VENUES.get(shared[0], 'somewhere new') if shared else 'somewhere new'}, if you're up for it." if good else
                        "I'm glad we did this. Get home safe."]),
-        f"Closing. Gut read: {'second date' if good else 'probably friends'}.")
+        f"Closing. Gut read: {'second date' if good else 'probably friends'}.",
+        f"Closing perception: {B} is {'a compelling romantic prospect' if good else 'better suited as a friend'}.")
     say(idb, ("I'd really like that. Text me." if good else "Same, it was lovely meeting you."),
-        f"{'Would see ' + A + ' again.' if good else 'Nice, but not the one.'}")
+        f"{'Would see ' + A + ' again.' if good else 'Nice, but not the one.'}",
+        f"Closing perception: {A} {'matches desired energy' if good else 'has divergent lifestyle'}.")
     return T
 
 
-def _verdict_offline(me: Analysis, other: Analysis, pid: str, c: Compat, mine_db: list[str], theirs_db: list[str]) -> Verdict:
+def _verdict_offline(me: Analysis, other: Analysis, pid: str, c: Compat,
+                     mine_db: list[str], theirs_db: list[str], coaching: list[str] | None = None) -> Verdict:
     # sha1, not hash(): str hashes are salted per process, so scores would differ between restarts/instances
     r = random.Random(int(hashlib.sha1(f"{pid}|{other.display_name}".encode()).hexdigest()[:8], 16))
     shared = c.shared_hobbies + c.shared_interests
@@ -214,31 +268,48 @@ def _verdict_offline(me: Analysis, other: Analysis, pid: str, c: Compat, mine_db
               f"{' over ' + shared[0].lower() if shared else ''}. "
               f"{'I think they could give you ' + me.needs[0][0].lower() + me.needs[0][1:] + '.' if me.needs and score >= 6.3 else 'I am not convinced they meet what you need.'} "
               f"{'I would say yes to a second date.' if second else 'I would pass, kindly.'}")
+
+    # Synthesize running mental model: what the agent figured out on the date
+    learned = [
+        f"Unspoken priority: {other.needs[0] if other.needs else 'consistency and quiet respect'}",
+        f"Communication style: {other.communication_style}",
+        f"Lifestyle pace: {(other.lifestyle or {}).get('pace', 'balanced')}, values personal downtime",
+    ]
+    if mine_db:
+        learned.append(f"Boundary alert: touches your dealbreaker on {mine_db[0].lower()}")
+    elif c.shared_values:
+        learned.append(f"Grounded value: strong emphasis on {c.shared_values[0].lower()}")
+
     return Verdict(agent_for=pid, score=round(score, 2), chemistry=round(max(0, chem), 2),
                    needs_met=round(max(0, needs_met), 2), values_alignment=round(vals, 2),
-                   dealbreaker_hit=bool(mine_db), second_date=second, reasons=reasons, report_to_human=report)
+                   dealbreaker_hit=bool(mine_db), second_date=second, reasons=reasons, report_to_human=report,
+                   learned_about_other=learned)
 
 
 # =================================================================== entry point
 
-def go_on_date(ida: str, a: Analysis, idb: str, b: Analysis) -> DateRecord:
+def go_on_date(ida: str, a: Analysis, idb: str, b: Analysis,
+               coaching_a: list[str] | None = None, coaching_b: list[str] | None = None) -> DateRecord:
     c = compute(a, b)
     venue, why = pick_venue(a, b, c)
     engine = "offline"
     if config.llm_enabled():
         try:
-            turns = _date_llm(a, b, ida, idb, venue)
-            va = _verdict_llm(a, b, ida, turns, ida, venue)
-            vb = _verdict_llm(b, a, idb, turns, ida, venue)
+            turns = _date_llm(a, b, ida, idb, venue, coaching_a, coaching_b)
+            va = _verdict_llm(a, b, ida, turns, ida, venue, coaching_a)
+            vb = _verdict_llm(b, a, idb, turns, ida, venue, coaching_b)
             engine = "claude"
         except Exception:
             turns = None
     if engine == "offline":
-        turns = _date_offline(a, b, ida, idb, venue, c)
-        va = _verdict_offline(a, b, ida, c, c.dealbreakers_a, c.dealbreakers_b)
-        vb = _verdict_offline(b, a, idb, c, c.dealbreakers_b, c.dealbreakers_a)
+        turns = _date_offline(a, b, ida, idb, venue, c, coaching_a, coaching_b)
+        va = _verdict_offline(a, b, ida, c, c.dealbreakers_a, c.dealbreakers_b, coaching_a)
+        vb = _verdict_offline(b, a, idb, c, c.dealbreakers_b, c.dealbreakers_a, coaching_b)
     # mutual = harmonic-ish mean so one-sided interest is punished
     mutual = round(2 * va.score * vb.score / (va.score + vb.score), 2) if va.score + vb.score else 0.0
     did = hashlib.sha1(f"{ida}|{idb}".encode()).hexdigest()[:10]
-    return DateRecord(id=did, a=ida, b=idb, venue=venue, venue_reason=why, turns=turns,
-                      verdict_a=va, verdict_b=vb, mutual=mutual, engine=engine)
+    obs_a = [t.observation for t in (turns or []) if t.speaker == ida and t.observation]
+    obs_b = [t.observation for t in (turns or []) if t.speaker == idb and t.observation]
+    return DateRecord(id=did, a=ida, b=idb, venue=venue, venue_reason=why, turns=turns or [],
+                      verdict_a=va, verdict_b=vb, mutual=mutual, engine=engine,
+                      observations_a=obs_a, observations_b=obs_b)

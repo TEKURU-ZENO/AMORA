@@ -89,6 +89,7 @@ class Turn(BaseModel):
     speaker: str  # person id
     text: str
     thought: str = ""  # private inner monologue of the agent (shown in replay)
+    observation: str = ""  # running read / deduction about the other person this turn
 
 
 class Verdict(BaseModel):
@@ -101,6 +102,7 @@ class Verdict(BaseModel):
     second_date: bool
     reasons: list[str]
     report_to_human: str
+    learned_about_other: list[str] = Field(default_factory=list, description="Key insights discovered about the date during conversation")
 
 
 class DateRecord(BaseModel):
@@ -114,6 +116,8 @@ class DateRecord(BaseModel):
     verdict_b: Verdict
     mutual: float
     engine: str
+    observations_a: list[str] = Field(default_factory=list, description="What agent A deduced about B")
+    observations_b: list[str] = Field(default_factory=list, description="What agent B deduced about A")
 
 
 class Person(BaseModel):
@@ -128,3 +132,6 @@ class Person(BaseModel):
     reading_log: list[str] = []  # the agent's step-by-step reading trace
     warnings: list[str] = []  # partial failures, e.g. one source could not be read
     synthetic: bool = False  # a fictional demo persona (demo mode only); never a scraped person
+    coaching_notes: list[str] = Field(default_factory=list, description="Pre-date instructions from human to agent")
+    dating_learnings: list[str] = Field(default_factory=list, description="Cross-date insights learned by agent across rounds")
+    feedback_history: list[dict] = Field(default_factory=list, description="History of post-date user corrections and brief updates")

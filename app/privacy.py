@@ -61,23 +61,24 @@ def require_auth(request: Request) -> None:
 
 
 def sanitize_turn(t: Turn, authorized: bool = False) -> Turn:
-    """Mask private agent thoughts unless authorized."""
+    """Mask private agent thoughts and running observations unless authorized."""
     if authorized:
         return t
-    return Turn(speaker=t.speaker, text=t.text, thought="")
+    return Turn(speaker=t.speaker, text=t.text, thought="", observation="")
 
 
 def sanitize_verdict(v: Verdict, authorized: bool = False) -> Verdict:
-    """Mask private agent reports unless authorized."""
+    """Mask private agent reports and date revelations unless authorized."""
     if authorized:
         return v
     v_copy = v.model_copy()
     v_copy.report_to_human = "[Private agent report to human]"
+    v_copy.learned_about_other = ["[Private agent discovery]"]
     return v_copy
 
 
 def sanitize_date(d: DateRecord, authorized: bool = False) -> DateRecord:
-    """Return a DateRecord copy with private thoughts and internal reports masked if unauthorized."""
+    """Return a DateRecord copy with private thoughts, observations and internal reports masked if unauthorized."""
     if authorized:
         return d
     sanitized_turns = [sanitize_turn(t, authorized=False) for t in d.turns]
@@ -87,6 +88,8 @@ def sanitize_date(d: DateRecord, authorized: bool = False) -> DateRecord:
         "turns": sanitized_turns,
         "verdict_a": va,
         "verdict_b": vb,
+        "observations_a": [],
+        "observations_b": [],
     })
 
 
@@ -96,5 +99,5 @@ def sanitize_date_dict(d: DateRecord, authorized: bool = False) -> dict:
 
 
 def sanitize_person_dict(p: Person, authorized: bool = False) -> dict:
-    """Serialize person, hiding raw scraped source data from unauthorized public view."""
-    return p.model_dump(exclude={"sources"} if not authorized else None)
+    """Serialize person, hiding raw scraped source data and private coaching instructions from unauthorized public view."""
+    return p.model_dump(exclude={"sources", "coaching_notes", "feedback_history"} if not authorized else None)

@@ -67,6 +67,65 @@
     {% for l in p.reading_log %}<p class="small muted" style="white-space:pre-wrap">{{ l }}</p>{% endfor %}</details>{% endif %}
 </details>
 
+<h2 id="coaching">Coach {{ fn }}'s Agent</h2>
+<section class="card" style="margin-bottom:24px">
+  <p class="small muted" style="margin:0 0 12px">Tell your agent what to probe or avoid on dates (e.g. <i>“ask if they’d move abroad”</i>, <i>“don’t bring up work”</i>, <i>“focus on creative hobbies”</i>). The agent carries these directives into every conversation.</p>
+  {% if p.coaching_notes %}
+  <div class="chips" style="margin-bottom:14px">
+    {% for note in p.coaching_notes %}
+    <span class="chip g" style="display:inline-flex;align-items:center;gap:6px">
+      <span>{{ note }}</span>
+      <form method="post" action="/person/{{ p.id }}/coach" style="display:inline;margin:0">
+        <input type="hidden" name="action" value="remove">
+        <input type="hidden" name="index" value="{{ loop.index0 }}">
+        <button type="submit" style="background:none;border:none;cursor:pointer;color:inherit;padding:0;font-size:14px;line-height:1" title="Remove directive">×</button>
+      </form>
+    </span>
+    {% endfor %}
+  </div>
+  {% endif %}
+  <form method="post" action="/person/{{ p.id }}/coach" style="display:flex;gap:8px">
+    <input type="hidden" name="action" value="add">
+    <input type="text" name="note" placeholder="e.g. Ask if they would ever move abroad..." required style="flex:1;padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg)">
+    <button type="submit" class="btn sm">Give Directive</button>
+  </form>
+</section>
+
+<h2 id="learnings">What My Agent Learned About You From Dating</h2>
+<section class="card" style="margin-bottom:24px">
+  {% if p.dating_learnings %}
+  <ul class="list ok">
+    {% for learning in p.dating_learnings %}
+    <li>{{ learning }}</li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="small muted" style="margin:0">After each date, your agent reflects on what worked and adjusts what it looks for across rounds. Run a dating round to start learning.</p>
+  {% endif %}
+
+  {% if p.feedback_history %}
+  <details style="margin-top:14px">
+    <summary class="small muted" style="font:500 14px var(--sans);cursor:pointer">Brief adjustments & feedback audit ({{ p.feedback_history|length }})</summary>
+    <div style="margin-top:10px">
+      {% for fb in p.feedback_history %}
+      <div style="border-left:2px solid var(--accent);padding-left:10px;margin-bottom:10px">
+        <div class="small"><b>"{{ fb.feedback }}"</b></div>
+        <div class="small muted">{{ fb.changes|join(' · ') }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </details>
+  {% endif %}
+
+  <form method="post" action="/person/{{ p.id }}/feedback" style="margin-top:16px;border-top:1px solid var(--border);padding-top:14px">
+    <label class="small muted" style="display:block;margin-bottom:6px">Got something wrong? Correct your agent's brief (e.g. <i>"you got me wrong, I hate clubs"</i> or <i>"need someone ambitious"</i>):</label>
+    <div style="display:flex;gap:8px">
+      <input type="text" name="feedback" placeholder="Correct your agent..." required style="flex:1;padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg)">
+      <button type="submit" class="btn ghost sm">Update & Re-rank</button>
+    </div>
+  </form>
+</section>
+
 <h2>Best fits for {{ fn }}</h2>
 {% if ranking %}<div class="fits">{% for r in ranking %}{% set o = by_id.get(r.id) %}{% if o and o.analysis %}
   <div class="r"><div class="rank">{{ r.rank }}</div>{{ ui.mono(o) }}

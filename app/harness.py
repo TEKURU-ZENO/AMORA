@@ -221,7 +221,9 @@ def run_round(progress: Progress = _print, only: str | None = None) -> list[Date
         else:
             ida, idb = idb, ida
         progress({"type": "date_start", "a": ida, "b": idb})
-        return go_on_date(ida, by_id[ida].analysis, idb, by_id[idb].analysis)
+        ca = by_id[ida].coaching_notes if ida in by_id else []
+        cb = by_id[idb].coaching_notes if idb in by_id else []
+        return go_on_date(ida, by_id[ida].analysis, idb, by_id[idb].analysis, coaching_a=ca, coaching_b=cb)
 
     workers = config.MAX_PARALLEL_DATES if config.llm_enabled() else 1
     with cf.ThreadPoolExecutor(max_workers=workers) as ex:
@@ -233,6 +235,13 @@ def run_round(progress: Progress = _print, only: str | None = None) -> list[Date
             progress({"type": "date_done", **date_tile(d, by_id)})
     progress({"type": "phase", "phase": "verdicts",
               "mutual_yes": sum(d.verdict_a.second_date and d.verdict_b.second_date for d in out)})
+    from .agents import coaching
+    active_pids = [only] if only else list(by_id.keys())
+    for pid in active_pids:
+        p = by_id.get(pid)
+        if p and p.analysis:
+            coaching.reflect_on_dates(p, store.list_dates(p.id), people)
+            store.save_person(p)
     store.set_meta("rankings", compute_rankings())
     progress("rankings computed")
     progress({"type": "phase", "phase": "rankings"})

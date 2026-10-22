@@ -203,7 +203,7 @@ def date(request: Request, did: str):
     demo_only = config.demo_mode() and bool(pa and pb and pa.synthetic and pb.synthetic)
     authorized = privacy.is_authorized(request) or demo_only
     sanitized_d = privacy.sanitize_date(d, authorized=authorized)
-    return tpl.TemplateResponse(request, "date.html", _ctx(request, d=sanitized_d, authorized=authorized))
+    return tpl.TemplateResponse(request, "date.html", _ctx(request, d=sanitized_d, authorized=authorized, pa=pa, pb=pb))
 
 
 
@@ -357,6 +357,53 @@ def delete(pid: str):
     except Exception:
         pass
     return RedirectResponse("/", status_code=303)
+
+
+@app.post("/person/{pid}/coach")
+def coach_person(pid: str, action: str = Form("add"), note: str = Form(""), index: int = Form(-1)):
+    p = store.get_person(pid)
+    if not p:
+        raise HTTPException(404, "No such person")
+    from .agents import coaching
+    if action == "add" and note:
+        coaching.add_coaching_note(p, note)
+    elif action == "remove" and index >= 0:
+        coaching.remove_coaching_note(p, index)
+    store.save_person(p)
+    return RedirectResponse(f"/person/{pid}#coaching", status_code=303)
+
+
+@app.post("/person/{pid}/feedback")
+def person_feedback(pid: str, feedback: str = Form(...), date_id: str = Form("")):
+    p = store.get_person(pid)
+    if not p:
+        raise HTTPException(404, "No such person")
+    from .agents import coaching
+    coaching.apply_feedback(p, feedback, date_id=date_id or None)
+    store.save_person(p)
+    try:
+        store.set_meta("rankings", harness.compute_rankings())
+    except Exception:
+        pass
+    return RedirectResponse(f"/person/{pid}#learnings", status_code=303)
+
+
+@app.post("/date/{did}/feedback")
+def date_feedback(did: str, pid: str = Form(...), feedback: str = Form(...)):
+    d = store.get_date(did)
+    if not d:
+        raise HTTPException(404, "No such date")
+    p = store.get_person(pid)
+    if not p:
+        raise HTTPException(404, "No such person")
+    from .agents import coaching
+    coaching.apply_feedback(p, feedback, date_id=did)
+    store.save_person(p)
+    try:
+        store.set_meta("rankings", harness.compute_rankings())
+    except Exception:
+        pass
+    return RedirectResponse(f"/date/{did}#feedback", status_code=303)
 
 
 @app.post("/person/{pid}/revoke-consent")

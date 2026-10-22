@@ -37,7 +37,8 @@
 <div class="chat" id="chat" aria-live="polite">{% for t in d.turns %}{% set side = 'a' if t.speaker == d.a else 'b' %}
   <div class="msg {{ side }}"><div class="who">{{ fa if side == 'a' else fb }}'s agent</div>
     <div class="bubble">{{ t.text }}</div>
-    {% if t.thought %}<div class="thought">{{ t.thought }}</div>{% endif %}</div>{% endfor %}
+    {% if t.thought %}<div class="thought">{{ t.thought }}</div>{% endif %}
+    {% if t.observation and authorized %}<div class="thought" style="margin-top:4px;border-left:2px solid var(--accent);background:rgba(255,255,255,0.05);font-size:13px"><b style="color:var(--accent)">Running read:</b> {{ t.observation }}</div>{% endif %}</div>{% endfor %}
   <div class="typing" id="typing" aria-hidden="true"><span class="dots"><i></i><i></i><i></i></span></div>
 </div>
 
@@ -64,6 +65,54 @@
   </article>{% endfor %}
 </section>
 <p class="small muted" style="text-align:center;margin-top:16px">Mutual is a harmonic mean, so one-sided interest is pulled down · engine {{ d.engine }}</p>
+
+<h2 style="text-align:center;margin-top:48px" id="figuring-out">What the agents figured out about each other</h2>
+<p class="small muted" style="text-align:center;margin:-8px 0 24px">Contrasting public profile cards with what the agents actually deduced on the date.</p>
+
+<div class="quad" style="margin-bottom:32px">
+  <section class="card">
+    <div class="small muted" style="text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px">Public Card</div>
+    <h3 style="margin-top:0">{{ fb }}'s Public Profile</h3>
+    <p class="small"><b>One-liner:</b> {{ B.one_liner if B else 'Public overview' }}</p>
+    {% if B %}<div class="chips">{% for h in B.hobbies[:4] %}<span class="chip">{{ h }}</span>{% endfor %}</div>{% endif %}
+    <p class="small" style="margin:10px 0 0"><span class="muted">Lifestyle:</span> {{ (B.lifestyle or {}).get('pace', 'balanced rhythm') if B else 'balanced' }}</p>
+  </section>
+
+  <section class="card" style="border:1px solid var(--accent)">
+    <div class="small muted" style="text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;color:var(--accent)">What {{ fa }}'s Agent Figured Out</div>
+    <h3 style="margin-top:0">Date Discoveries on {{ fb }}</h3>
+    {% if authorized %}
+    <ul class="list ok">
+      {% for disc in va.learned_about_other %}
+      <li>{{ disc }}</li>
+      {% else %}
+      <li class="muted">Agent assessed chemistry and conversation pacing.</li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="small muted">🔒 Private agent discoveries masked in public replay to protect participant boundaries.</p>
+    {% endif %}
+  </section>
+</div>
+
+<h2 style="text-align:center;margin-top:32px" id="feedback">Coach Your Agent After This Date</h2>
+<section class="card" style="margin-bottom:32px">
+  <p class="small muted" style="margin:0 0 12px">Tell your agent what it got right or wrong about you on this date (e.g. <i>"you got me wrong, I hate clubs"</i>, <i>"I actually want someone quieter"</i>, or <i>"focus more on shared values"</i>). The agent will update its brief and re-rank immediately.</p>
+  <form method="post" action="/date/{{ d.id }}/feedback">
+    <div style="display:flex;gap:16px;margin-bottom:12px">
+      <label class="small" style="display:flex;align-items:center;gap:6px;cursor:pointer">
+        <input type="radio" name="pid" value="{{ d.a }}" checked> Coach {{ fa }}'s Agent
+      </label>
+      <label class="small" style="display:flex;align-items:center;gap:6px;cursor:pointer">
+        <input type="radio" name="pid" value="{{ d.b }}"> Coach {{ fb }}'s Agent
+      </label>
+    </div>
+    <div style="display:flex;gap:8px">
+      <input type="text" name="feedback" placeholder="Tell your agent what it got right or wrong..." required style="flex:1;padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg)">
+      <button type="submit" class="btn sm">Update Brief & Re-rank</button>
+    </div>
+  </form>
+</section>
 
 <div class="next" style="justify-content:space-between">
   <a class="btn ghost" href="/person/{{ d.a }}">{{ fa }}'s profile</a>
