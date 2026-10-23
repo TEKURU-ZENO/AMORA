@@ -95,6 +95,74 @@
   </section>
 </div>
 
+{% set ff = d.first_fight %}
+<h2 style="text-align:center;margin-top:48px" id="first-fight">The "First Fight": Compatibility Under Stress</h2>
+{% if ff %}
+<p class="small muted" style="text-align:center;margin:-8px 0 24px">How {{ fa }} and {{ fb }} communicate through high-stakes tension and emotional boundaries.</p>
+
+<section class="card" style="margin-bottom:28px;border-top:3px solid var(--accent)">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+    <span class="chip" style="font-size:12px;text-transform:uppercase;letter-spacing:0.05em">Stress Scenario</span>
+    <span class="badge" style="font-size:13px">
+      {% if ff.outcome == 'stronger_together' %}✨ Stronger Together
+      {% elif ff.outcome == 'navigable_compromise' %}🤝 Navigable Compromise
+      {% else %}⚠️ High Friction Under Stress{% endif %}
+    </span>
+  </div>
+  <h3 style="margin:4px 0 8px">{{ ff.scenario_title }}</h3>
+  <p class="small muted" style="margin:0 0 16px;line-height:1.5">{{ ff.scenario_prompt }}</p>
+
+  <div class="chat" style="margin-top:16px;border-top:1px solid var(--border);padding-top:16px">
+    {% for st in ff.turns %}
+    {% set s_side = 'a' if st.speaker == d.a else 'b' %}
+    <div class="msg {{ s_side }}" style="margin-bottom:16px">
+      <div class="who" style="display:flex;align-items:center;gap:8px">
+        <span>{{ fa if s_side == 'a' else fb }}'s agent</span>
+        <span class="chip sm" style="font-size:11px;padding:1px 6px;opacity:0.8">{{ st.emotional_tone }}</span>
+      </div>
+      <div class="bubble">{{ st.text }}</div>
+      {% if st.thought and authorized %}
+      <div class="thought" style="margin-top:4px;border-left:2px solid var(--warn);background:rgba(255,255,255,0.04);font-size:13px">
+        <b style="color:var(--warn)">Inner reaction:</b> {{ st.thought }}
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+  <div style="margin-top:24px;border-top:1px solid var(--border);padding-top:20px">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px">
+      <h4 style="margin:0">Mutual Conflict Resilience</h4>
+      <div class="serif" style="font-size:24px;color:var(--accent)">{{ '%.1f'|format(ff.mutual_resilience) }} <small style="font-size:14px;color:var(--muted)">/10</small></div>
+    </div>
+    <div class="quad" style="margin:0">
+      <div class="card" style="padding:16px;background:var(--bg)">
+        <div class="small muted">{{ fa }}'s Resolution Style</div>
+        <div style="font-weight:600;margin:4px 0">{{ ff.verdict_a.resolution_style }}</div>
+        <p class="small muted" style="margin:6px 0 0">{{ ff.verdict_a.key_takeaway }}</p>
+        <div class="small" style="margin-top:8px;color:var(--ok)">Outlook: {{ ff.verdict_a.growth_potential }}</div>
+      </div>
+      <div class="card" style="padding:16px;background:var(--bg)">
+        <div class="small muted">{{ fb }}'s Resolution Style</div>
+        <div style="font-weight:600;margin:4px 0">{{ ff.verdict_b.resolution_style }}</div>
+        <p class="small muted" style="margin:6px 0 0">{{ ff.verdict_b.key_takeaway }}</p>
+        <div class="small" style="margin-top:8px;color:var(--ok)">Outlook: {{ ff.verdict_b.growth_potential }}</div>
+      </div>
+    </div>
+  </div>
+</section>
+{% else %}
+<p class="small muted" style="text-align:center;margin:-8px 0 20px">Small talk reveals charm, but conflict reveals character. Stress-test how {{ fa }} and {{ fb }} resolve real-world relationship tension.</p>
+<div class="card" style="text-align:center;padding:28px 20px;margin-bottom:28px">
+  <div style="font-size:28px;margin-bottom:8px">⚡</div>
+  <h3 style="margin:0 0 8px">Simulate "First Fight" Scenario</h3>
+  <p class="small muted" style="max-width:480px;margin:0 auto 16px">Puts both agents into an unexpected tension scenario (relocation, energy clash, or financial habits) to evaluate their conflict resolution and emotional co-regulation.</p>
+  <form method="post" action="/date/{{ d.id }}/first-fight">
+    <button type="submit" class="btn">Simulate Conflict & Measure Resilience</button>
+  </form>
+</div>
+{% endif %}
+
 <h2 style="text-align:center;margin-top:32px" id="feedback">Coach Your Agent After This Date</h2>
 <section class="card" style="margin-bottom:32px">
   <p class="small muted" style="margin:0 0 12px">Tell your agent what it got right or wrong about you on this date (e.g. <i>"you got me wrong, I hate clubs"</i>, <i>"I actually want someone quieter"</i>, or <i>"focus more on shared values"</i>). The agent will update its brief and re-rank immediately.</p>

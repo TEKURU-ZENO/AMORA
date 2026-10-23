@@ -105,6 +105,37 @@ class Verdict(BaseModel):
     learned_about_other: list[str] = Field(default_factory=list, description="Key insights discovered about the date during conversation")
 
 
+class StressTurn(BaseModel):
+    speaker: str  # person id
+    text: str
+    thought: str = ""
+    emotional_tone: str = "open"  # empathetic, defensive, conciliatory, firm, collaborative, curious, guarded
+
+
+class StressVerdict(BaseModel):
+    agent_for: str
+    resilience_score: float = Field(ge=0, le=10)
+    resolution_style: str
+    stress_verdict: Literal["passed", "conditional", "failed"]
+    key_takeaway: str
+    growth_potential: str
+
+
+class FirstFightRecord(BaseModel):
+    id: str
+    date_id: str
+    a: str
+    b: str
+    scenario_title: str
+    scenario_prompt: str
+    turns: list[StressTurn] = []
+    verdict_a: StressVerdict
+    verdict_b: StressVerdict
+    mutual_resilience: float
+    outcome: Literal["stronger_together", "navigable_compromise", "irreconcilable_friction"]
+    engine: str = "offline"
+
+
 class DateRecord(BaseModel):
     id: str
     a: str
@@ -118,6 +149,7 @@ class DateRecord(BaseModel):
     engine: str
     observations_a: list[str] = Field(default_factory=list, description="What agent A deduced about B")
     observations_b: list[str] = Field(default_factory=list, description="What agent B deduced about A")
+    first_fight: Optional[FirstFightRecord] = None
 
 
 class Person(BaseModel):

@@ -15,7 +15,7 @@ from fastapi import HTTPException, Request
 
 
 from . import config
-from .models import DateRecord, Person, Turn, Verdict
+from .models import DateRecord, FirstFightRecord, Person, StressTurn, StressVerdict, Turn, Verdict
 
 
 def is_authorized(request: Request) -> bool:
@@ -77,6 +77,31 @@ def sanitize_verdict(v: Verdict, authorized: bool = False) -> Verdict:
     return v_copy
 
 
+def sanitize_stress_turn(t: StressTurn, authorized: bool = False) -> StressTurn:
+    """Mask private stress thoughts unless authorized."""
+    if authorized:
+        return t
+    return StressTurn(speaker=t.speaker, text=t.text, thought="", emotional_tone=t.emotional_tone)
+
+
+def sanitize_first_fight(ff: Optional[FirstFightRecord], authorized: bool = False) -> Optional[FirstFightRecord]:
+    """Mask private conflict analysis in first fight scenario unless authorized."""
+    if not ff:
+        return None
+    if authorized:
+        return ff
+    sanitized_turns = [sanitize_stress_turn(t, authorized=False) for t in ff.turns]
+    va = ff.verdict_a.model_copy()
+    vb = ff.verdict_b.model_copy()
+    va.key_takeaway = "[Private conflict analysis]"
+    vb.key_takeaway = "[Private conflict analysis]"
+    return ff.model_copy(update={
+        "turns": sanitized_turns,
+        "verdict_a": va,
+        "verdict_b": vb,
+    })
+
+
 def sanitize_date(d: DateRecord, authorized: bool = False) -> DateRecord:
     """Return a DateRecord copy with private thoughts, observations and internal reports masked if unauthorized."""
     if authorized:
@@ -84,12 +109,14 @@ def sanitize_date(d: DateRecord, authorized: bool = False) -> DateRecord:
     sanitized_turns = [sanitize_turn(t, authorized=False) for t in d.turns]
     va = sanitize_verdict(d.verdict_a, authorized=False)
     vb = sanitize_verdict(d.verdict_b, authorized=False)
+    s_ff = sanitize_first_fight(d.first_fight, authorized=authorized)
     return d.model_copy(update={
         "turns": sanitized_turns,
         "verdict_a": va,
         "verdict_b": vb,
         "observations_a": [],
         "observations_b": [],
+        "first_fight": s_ff,
     })
 
 

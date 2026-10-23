@@ -406,6 +406,21 @@ def date_feedback(did: str, pid: str = Form(...), feedback: str = Form(...)):
     return RedirectResponse(f"/date/{did}#feedback", status_code=303)
 
 
+@app.post("/date/{did}/first-fight")
+def trigger_first_fight(did: str):
+    d = store.get_date(did)
+    if not d:
+        raise HTTPException(404, "No such date")
+    pa = store.get_person(d.a)
+    pb = store.get_person(d.b)
+    if not pa or not pb or not pa.analysis or not pb.analysis:
+        raise HTTPException(400, "Participants not ready")
+    from .agents import stress
+    stress.simulate_first_fight(d, pa, pb)
+    store.save_date(d)
+    return RedirectResponse(f"/date/{did}#first-fight", status_code=303)
+
+
 @app.post("/person/{pid}/revoke-consent")
 def revoke_consent(pid: str):
     p = store.get_person(pid)

@@ -228,6 +228,12 @@ def run_round(progress: Progress = _print, only: str | None = None) -> list[Date
     workers = config.MAX_PARALLEL_DATES if config.llm_enabled() else 1
     with cf.ThreadPoolExecutor(max_workers=workers) as ex:
         for d in ex.map(one, sorted(pairs)):
+            if d.verdict_a.second_date and d.verdict_b.second_date:
+                try:
+                    from .agents import stress
+                    stress.simulate_first_fight(d, by_id[d.a], by_id[d.b])
+                except Exception:
+                    pass
             store.save_date(d)
             out.append(d)
             na, nb = by_id[d.a].analysis.display_name, by_id[d.b].analysis.display_name
