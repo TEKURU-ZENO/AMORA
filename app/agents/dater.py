@@ -289,7 +289,8 @@ def _verdict_offline(me: Analysis, other: Analysis, pid: str, c: Compat,
 # =================================================================== entry point
 
 def go_on_date(ida: str, a: Analysis, idb: str, b: Analysis,
-               coaching_a: list[str] | None = None, coaching_b: list[str] | None = None) -> DateRecord:
+               coaching_a: list[str] | None = None, coaching_b: list[str] | None = None,
+               stage: str = "standard") -> DateRecord:
     c = compute(a, b)
     venue, why = pick_venue(a, b, c)
     engine = "offline"
@@ -310,6 +311,9 @@ def go_on_date(ida: str, a: Analysis, idb: str, b: Analysis,
     did = hashlib.sha1(f"{ida}|{idb}".encode()).hexdigest()[:10]
     obs_a = [t.observation for t in (turns or []) if t.speaker == ida and t.observation]
     obs_b = [t.observation for t in (turns or []) if t.speaker == idb and t.observation]
-    return DateRecord(id=did, a=ida, b=idb, venue=venue, venue_reason=why, turns=turns or [],
+    selected_turns = (turns or [])
+    if stage == "speed" and len(selected_turns) > 4:
+        selected_turns = selected_turns[:4]
+    return DateRecord(id=did, a=ida, b=idb, venue=venue, venue_reason=why, turns=selected_turns,
                       verdict_a=va, verdict_b=vb, mutual=mutual, engine=engine,
-                      observations_a=obs_a, observations_b=obs_b)
+                      stage=stage, observations_a=obs_a, observations_b=obs_b)

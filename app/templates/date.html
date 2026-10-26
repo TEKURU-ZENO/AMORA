@@ -163,6 +163,91 @@
 </div>
 {% endif %}
 
+<!-- Second-Date Planner & DM Drafter -->
+{% set plan = d.second_date_plan %}
+<h2 style="text-align:center;margin-top:48px" id="plan">The Second-Date Plan & Human Intro</h2>
+{% if plan %}
+<p class="small muted" style="text-align:center;margin:-8px 0 24px">Your agents negotiated an actionable real-world date and drafted first messages ready to send.</p>
+<section class="card" style="margin-bottom:28px;border-top:3px solid var(--ok)">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+    <div style="display:flex;align-items:center;gap:8px">
+      <span class="badge" style="background:rgba(46,204,113,0.15);color:var(--ok)">Agreed Plan</span>
+      <span class="small muted">{{ plan.budget_tier }} · {{ plan.vibe }}</span>
+    </div>
+    <div class="serif" style="font-size:18px;color:var(--fg)">📍 {{ plan.venue_name }}</div>
+  </div>
+
+  <h3 style="margin:0 0 6px">{{ plan.activity }}</h3>
+  <div class="small muted" style="margin-bottom:12px">⏰ {{ plan.day_and_time }} · {{ plan.location_idea }}</div>
+  <p class="small" style="line-height:1.4;margin:0 0 16px">{{ plan.plan_notes }}</p>
+
+  <div class="quad" style="margin:0">
+    <div class="card" style="padding:14px;background:var(--bg)">
+      <div class="small muted" style="margin-bottom:6px">Drafted DM for <b>{{ fa }}</b> to send:</div>
+      <blockquote style="margin:0;font-style:normal;font-size:13px;line-height:1.4;color:var(--fg);border-left:2px solid var(--accent);padding-left:10px">
+        "{{ plan.drafted_intro_for_a }}"
+      </blockquote>
+    </div>
+    <div class="card" style="padding:14px;background:var(--bg)">
+      <div class="small muted" style="margin-bottom:6px">Drafted DM for <b>{{ fb }}</b> to send:</div>
+      <blockquote style="margin:0;font-style:normal;font-size:13px;line-height:1.4;color:var(--fg);border-left:2px solid var(--accent);padding-left:10px">
+        "{{ plan.drafted_intro_for_b }}"
+      </blockquote>
+    </div>
+  </div>
+</section>
+{% else %}
+<p class="small muted" style="text-align:center;margin:-8px 0 20px">Turn talkers into doers: let the agents negotiate an actual venue, schedule, and write a personalized first DM.</p>
+<div class="card" style="text-align:center;padding:24px 20px;margin-bottom:28px">
+  <form method="post" action="/date/{{ d.id }}/plan">
+    <button type="submit" class="btn">📅 Negotiate Second-Date Plan & Draft DM</button>
+  </form>
+</div>
+{% endif %}
+
+<!-- Honesty & Grounding Judge -->
+{% set audit = d.honesty_audit %}
+<h2 style="text-align:center;margin-top:48px" id="audit">Honesty & Grounding Audit</h2>
+{% if audit %}
+<p class="small muted" style="text-align:center;margin:-8px 0 24px">An autonomous judge audited every conversation turn against verified LinkedIn and Instagram sources.</p>
+<section class="card" style="margin-bottom:28px;border-top:3px solid var(--accent)">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+    <span class="badge" style="font-size:13px">Factuality Audit Passed</span>
+    <div style="display:flex;align-items:center;gap:6px">
+      <span class="small muted">Grounding Score</span>
+      <span class="serif" style="font-size:22px;color:var(--accent)">{{ '%.0f'|format(audit.overall_grounding) }}%</span>
+    </div>
+  </div>
+
+  <p class="small" style="line-height:1.4;margin:0 0 14px">{{ audit.audit_summary }}</p>
+
+  {% if audit.verified_claims %}
+  <div class="small muted" style="margin-bottom:6px"><b>Verified Evidence Points:</b></div>
+  <ul class="list small ok" style="margin-bottom:14px">
+    {% for claim in audit.verified_claims %}
+    <li>{{ claim }}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  {% if audit.flags_a or audit.flags_b %}
+  <div class="small muted" style="margin-bottom:6px;color:var(--warn)"><b>Flags / Embellishments Detected:</b></div>
+  <ul class="list small warn">
+    {% for flag in audit.flags_a + audit.flags_b %}
+    <li>{{ flag }}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</section>
+{% else %}
+<p class="small muted" style="text-align:center;margin:-8px 0 20px">Audit the date for overselling or claims unsupported by verified LinkedIn and Instagram sources.</p>
+<div class="card" style="text-align:center;padding:24px 20px;margin-bottom:28px">
+  <form method="post" action="/date/{{ d.id }}/audit">
+    <button type="submit" class="btn">⚖️ Run Honesty & Grounding Audit</button>
+  </form>
+</div>
+{% endif %}
+
 <h2 style="text-align:center;margin-top:32px" id="feedback">Coach Your Agent After This Date</h2>
 <section class="card" style="margin-bottom:32px">
   <p class="small muted" style="margin:0 0 12px">Tell your agent what it got right or wrong about you on this date (e.g. <i>"you got me wrong, I hate clubs"</i>, <i>"I actually want someone quieter"</i>, or <i>"focus more on shared values"</i>). The agent will update its brief and re-rank immediately.</p>

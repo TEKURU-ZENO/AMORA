@@ -1,0 +1,78 @@
+{% extends "base.html" %}{% import "_ui.html" as ui %}
+{% block title %}{{ gd.activity }} · Group Hangout · AMORA{% endblock %}
+{% block body %}
+<div class="narrow">
+<header class="dhead" style="margin-bottom:28px">
+  <div class="kicker">Stage 3 Group Hangout</div>
+  <h1 style="margin:4px 0 10px">{{ gd.activity }}</h1>
+  <div class="postcard">
+    <div class="v">{{ gd.venue }}</div>
+    <div class="small muted" style="margin-top:6px">
+      Group Chemistry: <span class="serif" style="font-size:18px;color:var(--accent)">{{ '%.1f'|format(gd.group_chemistry) }}</span> /10
+    </div>
+  </div>
+</header>
+
+<div class="chips" style="justify-content:center;margin-bottom:24px">
+  {% for pid in gd.participants %}
+  {% set pers = by_id.get(pid) %}
+  <a class="chip" href="/person/{{ pid }}" style="text-decoration:none;font-weight:500">
+    {{ pers.analysis.display_name if pers and pers.analysis else pid }}
+  </a>
+  {% endfor %}
+</div>
+
+<div class="chat" style="margin-bottom:32px">
+  {% for t in gd.turns %}
+  {% set pers = by_id.get(t.speaker) %}
+  {% set s_name = pers.analysis.display_name.split()[0] if pers and pers.analysis else t.speaker %}
+  <div class="msg a" style="margin-bottom:16px">
+    <div class="who" style="display:flex;align-items:center;gap:8px">
+      <span>{{ s_name }}</span>
+      {% if t.target %}
+      {% set target_pers = by_id.get(t.target) %}
+      <span class="small muted" style="font-size:11px">→ to {{ target_pers.analysis.display_name.split()[0] if target_pers and target_pers.analysis else t.target }}</span>
+      {% endif %}
+    </div>
+    <div class="bubble">{{ t.text }}</div>
+    {% if t.thought and authorized %}
+    <div class="thought" style="margin-top:4px;border-left:2px solid var(--accent);background:rgba(255,255,255,0.04);font-size:13px">
+      <b style="color:var(--accent)">Social strategy:</b> {{ t.thought }}
+    </div>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+
+<h2 style="text-align:center;margin-top:40px">Social Dynamics & Inclusivity Audit</h2>
+<div class="quad" style="margin-bottom:28px">
+  {% for pid, obs in gd.social_observations.items() %}
+  {% set pers = by_id.get(pid) %}
+  <div class="card" style="padding:16px">
+    <h4 style="margin:0 0 8px">{{ pers.analysis.display_name if pers and pers.analysis else pid }}</h4>
+    <ul class="list small ok">
+      {% for o in obs %}
+      <li>{{ o }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endfor %}
+</div>
+
+{% if gd.takeaways %}
+<section class="card" style="margin-bottom:32px">
+  <h4 style="margin:0 0 10px">Observer Takeaways</h4>
+  <ul class="list small">
+    {% for tw in gd.takeaways %}
+    <li>{{ tw }}</li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+<div class="next" style="justify-content:space-between">
+  <a class="btn ghost" href="/group-dates">All Group Hangouts</a>
+  <a class="btn" href="/matches">See Stable Matches <span class="arrow">→</span></a>
+</div>
+</div>
+{% endblock %}

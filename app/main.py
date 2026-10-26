@@ -212,9 +212,39 @@ def rankings(request: Request):
     rankings = store.get_meta("rankings", {}) or {}
     people = [p for p in store.list_persons() if p.analysis and p.id in rankings]
     matrix = {pid: {r["id"]: r for r in rows} for pid, rows in rankings.items()}
+    stable_matches = store.get_meta("stable_matches", {}) or {}
     return tpl.TemplateResponse(request, "rankings.html", _ctx(
         request, rankings=rankings, ranked=people, matrix=matrix,
+        stable_matches=stable_matches,
         hl=_highlights(people, store.list_dates(), store.get_meta("asks", {}))))
+
+
+@app.get("/matches", response_class=HTMLResponse)
+def matches_page(request: Request):
+    stable_matches = store.get_meta("stable_matches", {}) or {}
+    if not stable_matches:
+        try:
+            from .matching import gale_shapley
+            stable_matches = gale_shapley.compute_stable_matching().model_dump()
+        except Exception:
+            stable_matches = {}
+    return tpl.TemplateResponse(request, "matches.html", _ctx(request, sm=stable_matches))
+
+
+@app.get("/group-dates", response_class=HTMLResponse)
+def group_dates_page(request: Request):
+    gds = store.list_group_dates()
+    return tpl.TemplateResponse(request, "group_dates.html", _ctx(request, group_dates=gds))
+
+
+@app.get("/group-date/{gdid}", response_class=HTMLResponse)
+def group_date_detail(request: Request, gdid: str):
+    gd = store.get_group_date(gdid)
+    if not gd:
+        raise HTTPException(404, "Group date not found")
+    authorized = privacy.is_authorized(request) or config.demo_mode()
+    sanitized_gd = privacy.sanitize_group_date(gd, authorized=authorized)
+    return tpl.TemplateResponse(request, "group_date.html", _ctx(request, gd=sanitized_gd, authorized=authorized))
 
 
 @app.get("/how", response_class=HTMLResponse)
@@ -419,6 +449,55 @@ def trigger_first_fight(did: str):
     stress.simulate_first_fight(d, pa, pb)
     store.save_date(d)
     return RedirectResponse(f"/date/{did}#first-fight", status_code=303)
+
+
+@app.post("/date/{did}/plan")
+def trigger_second_date_plan(did: str):
+    d = store.get_date(did)
+    if not d:
+        raise HTTPException(404, "No such date")
+    pa = store.get_person(d.a)
+    pb = store.get_person(d.b)
+    if not pa or not pb or not pa.analysis or not pb.analysis:
+        raise HTTPException(400, "Participants not ready")
+    from .agents import planner
+    planner.plan_second_date(d, pa, pb)
+    store.save_date(d)
+    return RedirectResponse(f"/date/{did}#plan", status_code=303)
+
+
+@app.post("/date/{did}/audit")
+def trigger_honesty_audit(did: str):
+    d = store.get_date(did)
+    if not d:
+        raise HTTPException(404, "No such date")
+    pa = store.get_person(d.a)
+    pb = store.get_person(d.b)
+    if not pa or not pb or not pa.analysis or not pb.analysis:
+        raise HTTPException(400, "Participants not ready")
+    from .agents import judge
+    judge.audit_date(d, pa, pb)
+    store.save_date(d)
+    return RedirectResponse(f"/date/{did}#audit", status_code=303)
+
+
+@app.post("/api/group-dates")
+def create_group_date():
+    people = [p for p in store.list_persons() if p.analysis]
+    if len(people) < 3:
+        return JSONResponse({"error": "Need at least 3 analyzed participants for a group date"}, 400)
+    from .agents import group_dater
+    top_candidates = sorted(people, key=lambda p: -len(store.list_dates(p.id)))[:4]
+    gd = group_dater.run_group_hangout(top_candidates)
+    store.save_group_date(gd)
+    return RedirectResponse(f"/group-date/{gd.id}", status_code=303)
+
+
+@app.post("/api/matching/stable")
+def recompute_stable_matching():
+    from .matching import gale_shapley
+    result = gale_shapley.compute_stable_matching()
+    return result.model_dump()
 
 
 @app.post("/person/{pid}/revoke-consent")

@@ -7,7 +7,7 @@ import threading
 from contextlib import contextmanager
 
 from .config import DB_PATH, DATA_DIR
-from .models import DateRecord, Person
+from .models import DateRecord, GroupDateRecord, Person
 
 _lock = threading.RLock()
 
@@ -33,6 +33,7 @@ def init() -> None:
         c.execute("CREATE TABLE IF NOT EXISTS persons (id TEXT PRIMARY KEY, body TEXT NOT NULL)")
         c.execute("CREATE TABLE IF NOT EXISTS dates (id TEXT PRIMARY KEY, a TEXT, b TEXT, body TEXT NOT NULL)")
         c.execute("CREATE TABLE IF NOT EXISTS meta (k TEXT PRIMARY KEY, v TEXT)")
+        c.execute("CREATE TABLE IF NOT EXISTS group_dates (id TEXT PRIMARY KEY, body TEXT NOT NULL)")
         c.execute("""
             CREATE TABLE IF NOT EXISTS jobs (
                 id TEXT PRIMARY KEY,
@@ -177,6 +178,7 @@ def clear_all() -> None:
         c.execute("DELETE FROM persons")
         c.execute("DELETE FROM dates")
         c.execute("DELETE FROM meta")
+        c.execute("DELETE FROM group_dates")
         c.execute("DELETE FROM jobs")
         c.execute("DELETE FROM job_logs")
         # the discovery registry lives in the same file but is created lazily by its own module
@@ -275,3 +277,27 @@ def recover_interrupted_jobs() -> list[str]:
             recovered.append(jid)
     return recovered
 
+
+
+# ---- group dates ----
+def save_group_date(gd: GroupDateRecord) -> None:
+    with _conn() as c:
+        c.execute("INSERT OR REPLACE INTO group_dates VALUES (?, ?)", (gd.id, gd.model_dump_json()))
+
+
+def get_group_date(gdid: str) -> GroupDateRecord | None:
+    with _conn() as c:
+        row = c.execute("SELECT body FROM group_dates WHERE id=?", (gdid,)).fetchone()
+    return GroupDateRecord.model_validate_json(row[0]) if row else None
+
+
+def list_group_dates() -> list[GroupDateRecord]:
+    with _conn() as c:
+        rows = c.execute("SELECT body FROM group_dates").fetchall()
+    gds = [GroupDateRecord.model_validate_json(r[0]) for r in rows]
+    return sorted(gds, key=lambda gd: -gd.group_chemistry)
+
+
+def clear_group_dates() -> None:
+    with _conn() as c:
+        c.execute("DELETE FROM group_dates")

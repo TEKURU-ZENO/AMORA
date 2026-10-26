@@ -1,0 +1,63 @@
+{% extends "base.html" %}{% import "_ui.html" as ui %}
+{% block title %}Group Hangouts · Multi-Stage Dating · AMORA{% endblock %}
+{% block body %}
+<div class="narrow">
+<header style="margin-bottom:28px">
+  <div class="kicker">Multi-Stage Dating · Stage 3</div>
+  <h1 style="margin:4px 0 10px">Group Hangouts</h1>
+  <p class="muted" style="font-size:16px;line-height:1.5;margin:0">
+    One-on-one dates only test romantic rapport. Group hangouts put 3–4 agents into social activities
+    (Trivia night, Escape Room, Gallery crawl) to observe group banter, conversational generosity, and social dynamics.
+  </p>
+</header>
+
+<div style="display:flex;justify-content:flex-end;margin-bottom:20px">
+  <form method="post" action="/api/group-dates">
+    <button type="submit" class="btn">⚡ Start a Group Hangout</button>
+  </form>
+</div>
+
+{% if group_dates %}
+<div class="fits">
+{% for gd in group_dates %}
+  <div class="card" style="margin-bottom:20px;padding:20px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <div class="badge" style="font-size:12px">Group Outing</div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <span class="small muted">Group Chemistry</span>
+        <span class="serif" style="font-size:22px;color:var(--accent)">{{ '%.1f'|format(gd.group_chemistry) }}</span>
+      </div>
+    </div>
+
+    <h3 style="margin:0 0 6px">{{ gd.activity }}</h3>
+    <div class="small muted" style="margin-bottom:12px">📍 {{ gd.venue }}</div>
+
+    <div class="chips" style="margin-bottom:14px">
+      {% for pid in gd.participants %}
+      {% set pers = by_id.get(pid) %}
+      <a class="chip" href="/person/{{ pid }}" style="text-decoration:none">{{ pers.analysis.display_name if pers and pers.analysis else pid }}</a>
+      {% endfor %}
+    </div>
+
+    {% if gd.takeaways %}
+    <p class="small muted" style="margin:0 0 14px">{{ gd.takeaways[0] }}</p>
+    {% endif %}
+
+    <div style="display:flex;justify-content:flex-end">
+      <a class="btn sm" href="/group-date/{{ gd.id }}">Watch Hangout Replay</a>
+    </div>
+  </div>
+{% endfor %}
+</div>
+{% else %}
+<div class="card" style="text-align:center;padding:36px 20px">
+  <div style="font-size:32px;margin-bottom:12px">🥂</div>
+  <h3 style="margin:0 0 8px">No Group Hangouts Yet</h3>
+  <p class="small muted" style="max-width:440px;margin:0 auto 16px">Simulate an outing where top matches hang out in a social group to test conversational chemistry beyond 1-on-1 talk.</p>
+  <form method="post" action="/api/group-dates">
+    <button type="submit" class="btn">Simulate First Group Hangout</button>
+  </form>
+</div>
+{% endif %}
+</div>
+{% endblock %}

@@ -229,11 +229,23 @@ def run_round(progress: Progress = _print, only: str | None = None) -> list[Date
     with cf.ThreadPoolExecutor(max_workers=workers) as ex:
         for d in ex.map(one, sorted(pairs)):
             if d.verdict_a.second_date and d.verdict_b.second_date:
-                try:
-                    from .agents import stress
-                    stress.simulate_first_fight(d, by_id[d.a], by_id[d.b])
-                except Exception:
-                    pass
+                pa, pb = by_id.get(d.a), by_id.get(d.b)
+                if pa and pb:
+                    try:
+                        from .agents import stress
+                        stress.simulate_first_fight(d, pa, pb)
+                    except Exception:
+                        pass
+                    try:
+                        from .agents import planner
+                        planner.plan_second_date(d, pa, pb)
+                    except Exception:
+                        pass
+                    try:
+                        from .agents import judge
+                        judge.audit_date(d, pa, pb)
+                    except Exception:
+                        pass
             store.save_date(d)
             out.append(d)
             na, nb = by_id[d.a].analysis.display_name, by_id[d.b].analysis.display_name
@@ -249,7 +261,20 @@ def run_round(progress: Progress = _print, only: str | None = None) -> list[Date
             coaching.reflect_on_dates(p, store.list_dates(p.id), people)
             store.save_person(p)
     store.set_meta("rankings", compute_rankings())
-    progress("rankings computed")
+    try:
+        from .matching import gale_shapley
+        gale_shapley.compute_stable_matching()
+    except Exception:
+        pass
+    try:
+        from .agents import group_dater
+        top_candidates = sorted(people, key=lambda p: -len(store.list_dates(p.id)))[:4]
+        if len(top_candidates) >= 3:
+            gd = group_dater.run_group_hangout(top_candidates)
+            store.save_group_date(gd)
+    except Exception:
+        pass
+    progress("rankings and stable matches computed")
     progress({"type": "phase", "phase": "rankings"})
     return out
 

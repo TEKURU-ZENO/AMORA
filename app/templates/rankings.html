@@ -13,6 +13,13 @@
 {% else %}
 
 <div class="highlights">
+  {% if stable_matches and stable_matches.pairs %}
+  <a class="card hl lift" href="/matches" style="border-left:3px solid var(--accent)">
+    <div class="k">Gale-Shapley Matching</div>
+    <div class="v">{{ stable_matches.pairs|length }} Stable Couples</div>
+    <div class="d">{{ stable_matches.stability_percentage }}% pool stability · 0 blocking coalitions</div>
+  </a>
+  {% endif %}
   {% if hl.strongest %}{% set d = hl.strongest %}
   <a class="card hl lift" href="/date/{{ d.id }}"><div class="k">Strongest match</div>
     <div class="v">{{ first(by_id[d.a]) }} × {{ first(by_id[d.b]) }}</div>

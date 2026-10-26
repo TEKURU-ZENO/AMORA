@@ -1,0 +1,85 @@
+{% extends "base.html" %}{% import "_ui.html" as ui %}
+{% block title %}Stable Matches · Gale-Shapley · AMORA{% endblock %}
+{% block body %}
+<div class="narrow">
+<header style="margin-bottom:28px">
+  <div class="kicker">Game Theory & Deferred Acceptance</div>
+  <h1 style="margin:4px 0 10px">Gale-Shapley Stable Matching</h1>
+  <p class="muted" style="font-size:16px;line-height:1.5;margin:0">
+    Rather than greedy 1-to-1 swipes, AMORA runs the Gale-Shapley deferred-acceptance algorithm over everyone's mutual preferences.
+    Every pairing below is mathematically Pareto stable: <b>no two people would both rather leave their match for each other</b>.
+  </p>
+</header>
+
+{% if sm and sm.pairs %}
+<div class="quad" style="margin-bottom:32px">
+  <div class="card" style="text-align:center;padding:16px">
+    <div class="small muted">Stable Couples</div>
+    <div class="serif" style="font-size:32px;color:var(--accent);margin:4px 0">{{ sm.pairs|length }}</div>
+    <div class="small muted">Paired from {{ sm.total_people }} pool</div>
+  </div>
+  <div class="card" style="text-align:center;padding:16px">
+    <div class="small muted">Pool Stability</div>
+    <div class="serif" style="font-size:32px;color:var(--ok);margin:4px 0">{{ sm.stability_percentage }}%</div>
+    <div class="small muted">Zero blocking coalitions</div>
+  </div>
+  <div class="card" style="text-align:center;padding:16px">
+    <div class="small muted">Blocking Pairs</div>
+    <div class="serif" style="font-size:32px;color:var(--fg);margin:4px 0">{{ sm.blocking_pairs }}</div>
+    <div class="small muted">Strictly eliminated</div>
+  </div>
+</div>
+
+<div class="fits">
+{% for pair in sm.pairs %}
+  <div class="card" style="margin-bottom:20px;padding:20px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <span class="badge" style="font-size:13px">Stable Pair #{{ loop.index }}</span>
+        {% if pair.dated %}<span class="badge" style="background:rgba(46,204,113,0.15);color:var(--ok);font-size:12px">Dated</span>{% endif %}
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="small muted">Mutual Score</span>
+        <span class="serif" style="font-size:24px;color:var(--accent)">{{ '%.1f'|format(pair.mutual_score) }}</span>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+      <a class="nm" href="/person/{{ pair.person_a }}" style="font-size:20px;font-weight:600">{{ pair.name_a }}</a>
+      <span class="muted" style="font-size:18px">×</span>
+      <a class="nm" href="/person/{{ pair.person_b }}" style="font-size:20px;font-weight:600">{{ pair.name_b }}</a>
+    </div>
+
+    <div class="chips" style="margin-bottom:12px">
+      <span class="chip g">{{ pair.name_a.split()[0] }}'s #{{ pair.rank_a_for_b }} choice</span>
+      <span class="chip g">{{ pair.name_b.split()[0] }}'s #{{ pair.rank_b_for_a }} choice</span>
+      {% for highlight in pair.shared_highlights %}
+      <span class="chip">{{ highlight }}</span>
+      {% endfor %}
+    </div>
+
+    <div style="background:var(--bg);border-left:3px solid var(--accent);padding:10px 14px;border-radius:4px;margin-bottom:14px">
+      <div class="small" style="line-height:1.4"><b>Why this match is stable:</b> {{ pair.stability_rationale }}</div>
+    </div>
+
+    <div style="display:flex;justify-content:flex-end;gap:10px">
+      {% if pair.date_id %}
+      <a class="btn sm" href="/date/{{ pair.date_id }}">Watch Date Replay</a>
+      {% else %}
+      <a class="btn ghost sm" href="/person/{{ pair.person_a }}">View Profiles</a>
+      {% endif %}
+    </div>
+  </div>
+{% endfor %}
+</div>
+
+{% else %}
+<div class="card" style="text-align:center;padding:36px 20px">
+  <div style="font-size:32px;margin-bottom:12px">🤝</div>
+  <h3 style="margin:0 0 8px">No Stable Matches Computed Yet</h3>
+  <p class="small muted" style="max-width:440px;margin:0 auto 16px">Run a dating round on the dating floor to let agents explore mutual preferences, then return here to view the Gale-Shapley matching.</p>
+  <a class="btn" href="/round">Go to Dating Floor</a>
+</div>
+{% endif %}
+</div>
+{% endblock %}

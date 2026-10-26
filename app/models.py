@@ -136,6 +136,61 @@ class FirstFightRecord(BaseModel):
     engine: str = "offline"
 
 
+class SecondDatePlan(BaseModel):
+    id: str
+    date_id: str
+    activity: str
+    venue_name: str
+    location_idea: str
+    day_and_time: str
+    budget_tier: str  # $, $$, $$$
+    vibe: str
+    plan_notes: str
+    drafted_intro_for_a: str  # Personalized first DM for Human A to send
+    drafted_intro_for_b: str  # Personalized first DM for Human B to send
+    agreed: bool = True
+
+
+class HonestyAuditItem(BaseModel):
+    speaker: str
+    claim_made: str
+    status: Literal["grounded", "embellished", "ungrounded"]
+    source_evidence: str
+    explanation: str
+
+
+class HonestyAudit(BaseModel):
+    id: str
+    date_id: str
+    grounding_score_a: float  # 0 to 100
+    grounding_score_b: float  # 0 to 100
+    overall_grounding: float  # 0 to 100
+    flags_a: list[str] = Field(default_factory=list)
+    flags_b: list[str] = Field(default_factory=list)
+    verified_claims: list[str] = Field(default_factory=list)
+    audit_summary: str = ""
+    items: list[HonestyAuditItem] = Field(default_factory=list)
+
+
+class GroupTurn(BaseModel):
+    speaker: str
+    text: str
+    thought: str = ""
+    target: Optional[str] = None  # who the remark is addressed to or None for group
+
+
+class GroupDateRecord(BaseModel):
+    id: str
+    participants: list[str]  # 3-4 participant IDs
+    activity: str
+    venue: str
+    turns: list[GroupTurn] = Field(default_factory=list)
+    group_chemistry: float = 0.0  # 0 to 10
+    social_observations: dict[str, list[str]] = Field(default_factory=dict)
+    takeaways: list[str] = Field(default_factory=list)
+    engine: str = "offline"
+
+
 class DateRecord(BaseModel):
     id: str
     a: str
@@ -147,9 +202,12 @@ class DateRecord(BaseModel):
     verdict_b: Verdict
     mutual: float
     engine: str
+    stage: Literal["speed", "dinner", "standard"] = "standard"
     observations_a: list[str] = Field(default_factory=list, description="What agent A deduced about B")
     observations_b: list[str] = Field(default_factory=list, description="What agent B deduced about A")
     first_fight: Optional[FirstFightRecord] = None
+    second_date_plan: Optional[SecondDatePlan] = None
+    honesty_audit: Optional[HonestyAudit] = None
 
 
 class Person(BaseModel):

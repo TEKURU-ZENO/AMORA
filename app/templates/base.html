@@ -6,8 +6,8 @@
 <link rel="stylesheet" href="/static/style.css?v=4"></head><body>
 {% set path = request.url.path %}
 <nav><div class="wrap"><a class="brand" href="/">AM<span>O</span>RA</a>
-{% for href, label in [("/", "Pool"), ("/discovery", "Discovery"), ("/round", "Dating floor"), ("/dates", "Dates"), ("/rankings", "Rankings"), ("/how", "How it works")] %}
-<a class="l{% if href in ['/dates', '/discovery'] %} hide-sm{% endif %}" href="{{ href }}"{% if path == href %} aria-current="page"{% endif %}>{{ label }}</a>{% endfor %}
+{% for href, label in [("/", "Pool"), ("/discovery", "Discovery"), ("/round", "Dating floor"), ("/dates", "Dates"), ("/rankings", "Rankings"), ("/matches", "Matches"), ("/group-dates", "Group dates"), ("/how", "How it works")] %}
+<a class="l{% if href in ['/dates', '/discovery', '/group-dates'] %} hide-sm{% endif %}" href="{{ href }}"{% if path == href %} aria-current="page"{% endif %}>{{ label }}</a>{% endfor %}
 
 <a class="btn sm" href="/join">Join</a></div></nav>
 <main class="wrap">{% block body %}{% endblock %}</main>
