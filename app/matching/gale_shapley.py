@@ -206,7 +206,7 @@ def compute_stable_matching(
         elif rank_b_in_a <= 2 and rank_a_in_b <= 2:
             rationale = (
                 f"High-priority mutual match ({name_a.split()[0]}'s #{rank_b_in_a}, {name_b.split()[0]}'s #{rank_a_in_b}). "
-                f"Neither candidate has a mutual higher-ranked alternative available in the pool."
+                f"Stable pair: neither candidate has a mutual higher-ranked alternative available in the pool."
             )
         else:
             rationale = (
