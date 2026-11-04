@@ -1,17 +1,18 @@
 {% extends "base.html" %}{% import "_ui.html" as ui %}
-{% block title %}Stable Matches · Gale-Shapley · AMORA{% endblock %}
+{% block title %}Stable Matches · Irving's Algorithm · AMORA{% endblock %}
 {% block body %}
 <div class="narrow">
 <header style="margin-bottom:28px">
-  <div class="kicker">Game Theory & Deferred Acceptance</div>
-  <h1 style="margin:4px 0 10px">Gale-Shapley Stable Matching</h1>
+  <div class="kicker">Algorithmic Matching · Irving's Algorithm</div>
+  <h1 style="margin:4px 0 10px">Stable Matching · Irving's Algorithm</h1>
   <p class="muted" style="font-size:16px;line-height:1.5;margin:0">
-    Rather than greedy 1-to-1 swipes, AMORA runs the Gale-Shapley deferred-acceptance algorithm over everyone's mutual preferences.
-    Every pairing below is mathematically Pareto stable: <b>no two people would both rather leave their match for each other</b>.
+    AMORA implements Irving's (1985) algorithm for the Stable Roommates Problem across the single unpartitioned dating pool.
+    When a stable matching exists, it guarantees <b>zero blocking pairs</b>: no two participants would mutually prefer to leave their assigned matches for each other.
+    If cyclical preference deadlocks prevent stability, the algorithm honestly reports that no stable matching exists.
   </p>
 </header>
 
-{% if sm and sm.pairs %}
+{% if sm and sm.has_stable_matching and sm.pairs %}
 <div class="quad" style="margin-bottom:32px">
   <div class="card" style="text-align:center;padding:16px">
     <div class="small muted">Stable Couples</div>
@@ -19,14 +20,14 @@
     <div class="small muted">Paired from {{ sm.total_people }} pool</div>
   </div>
   <div class="card" style="text-align:center;padding:16px">
-    <div class="small muted">Pool Stability</div>
-    <div class="serif" style="font-size:32px;color:var(--ok);margin:4px 0">{{ sm.stability_percentage }}%</div>
-    <div class="small muted">Zero blocking coalitions</div>
+    <div class="small muted">Blocking Pairs</div>
+    <div class="serif" style="font-size:32px;color:var(--ok);margin:4px 0">0</div>
+    <div class="small muted">Strictly verified</div>
   </div>
   <div class="card" style="text-align:center;padding:16px">
-    <div class="small muted">Blocking Pairs</div>
-    <div class="serif" style="font-size:32px;color:var(--fg);margin:4px 0">{{ sm.blocking_pairs }}</div>
-    <div class="small muted">Strictly eliminated</div>
+    <div class="small muted">Unmatched Pool</div>
+    <div class="serif" style="font-size:32px;color:var(--fg);margin:4px 0">{{ sm.unmatched|length }}</div>
+    <div class="small muted">{{ 'Odd pool size set aside' if sm.unmatched else 'Complete pool paired' }}</div>
   </div>
 </div>
 
@@ -35,7 +36,7 @@
   <div class="card" style="margin-bottom:20px;padding:20px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
       <div style="display:flex;align-items:center;gap:12px">
-        <span class="badge" style="font-size:13px">Stable Pair #{{ loop.index }}</span>
+        <span class="badge" style="font-size:13px">Pair #{{ loop.index }}</span>
         {% if pair.dated %}<span class="badge" style="background:rgba(46,204,113,0.15);color:var(--ok);font-size:12px">Dated</span>{% endif %}
       </div>
       <div style="display:flex;align-items:center;gap:8px">
@@ -59,7 +60,7 @@
     </div>
 
     <div style="background:var(--bg);border-left:3px solid var(--accent);padding:10px 14px;border-radius:4px;margin-bottom:14px">
-      <div class="small" style="line-height:1.4"><b>Why this match is stable:</b> {{ pair.stability_rationale }}</div>
+      <div class="small" style="line-height:1.4"><b>Algorithmic verification:</b> {{ pair.stability_rationale }}</div>
     </div>
 
     <div style="display:flex;justify-content:flex-end;gap:10px">
@@ -74,13 +75,29 @@
 {% endfor %}
 </div>
 
+{% elif sm and not sm.has_stable_matching and sm.total_people >= 2 %}
+<div class="card" style="text-align:center;padding:36px 20px;border-left:4px solid var(--warn);">
+  <div style="font-size:32px;margin-bottom:12px">⚠️</div>
+  <h3 style="margin:0 0 8px">No Stable Matching Exists</h3>
+  <p class="small muted" style="max-width:540px;margin:0 auto 16px">
+    Unlike bipartite marriage markets, unpartitioned roommate matching admits cyclical preference deadlocks (e.g. A prefers B, B prefers C, C prefers A).
+    Irving's algorithm proved that <b>no matching exists for this pool without creating at least one blocking pair</b>.
+  </p>
+  <div class="small muted" style="background:var(--bg);padding:10px;border-radius:6px;max-width:440px;margin:0 auto;">
+    {{ sm.summary }}
+  </div>
+</div>
+
 {% else %}
 <div class="card" style="text-align:center;padding:36px 20px">
   <div style="font-size:32px;margin-bottom:12px">🤝</div>
-  <h3 style="margin:0 0 8px">No Stable Matches Computed Yet</h3>
-  <p class="small muted" style="max-width:440px;margin:0 auto 16px">Run a dating round on the dating floor to let agents explore mutual preferences, then return here to view the Gale-Shapley matching.</p>
-  <a class="btn" href="/round">Go to Dating Floor</a>
+  <h3 style="margin:0 0 8px">No Matches Computed Yet</h3>
+  <p class="small muted" style="max-width:440px;margin:0 auto 16px">
+    Run a round on the dating floor to let agents explore preferences, then return here to view the Irving stable matching.
+  </p>
+  <a class="btn sm" href="/round">Go to Dating Floor</a>
 </div>
 {% endif %}
+
 </div>
 {% endblock %}

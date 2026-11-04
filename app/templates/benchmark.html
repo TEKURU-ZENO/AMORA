@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 {% block title %}Evaluation Harness & IR Benchmarks · AMORA{% endblock %}
 {% block body %}
-<div class="narrow" style="max-width:960px;margin:0 auto;padding-bottom:80px;">
+<div class="narrow" style="max-width:980px;margin:0 auto;padding-bottom:80px;">
   <!-- Header -->
   <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;margin-bottom:28px;">
     <div>
-      <div class="kicker">Engineering Credibility · IR Benchmarks</div>
-      <h1 style="margin:6px 0 10px;">Evaluation Harness</h1>
-      <p class="lede" style="margin:0;max-width:620px;">
-        Measuring ranking quality (Precision@K, NDCG, MRR), dealbreaker detection, ranking stability across runs, and prompt caching economics on controlled synthetic cohorts.
+      <div class="kicker">Publication Research · Conversational Evaluation</div>
+      <h1 style="margin:6px 0 10px;">Empirical Evaluation Harness</h1>
+      <p class="lede" style="margin:0;max-width:640px;">
+        Empirically verifying that autonomous multi-turn agent dates recover latent compatibility dimensions that cannot be inferred from public profile signals alone.
       </p>
     </div>
     <form action="/api/eval/run" method="post" id="run-benchmark-form" style="margin-top:10px;">
@@ -17,6 +17,76 @@
       </button>
     </form>
   </div>
+
+  <!-- Primary Publication Research Chart Card -->
+  {% if res.chart_svg %}
+  <div class="card" style="margin-bottom:36px;padding:24px;border:1px solid rgba(255,255,255,0.15);background:#0e1218;">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+      <div>
+        <span class="chip g" style="font-weight:700;font-size:12px;margin:0 0 8px 0;display:inline-block;">
+          ✓ {{ res.conversational_study.metrics.error_reduction_pct }}% Error Reduction vs Baseline
+        </span>
+        <h2 style="margin:4px 0 4px;font-size:22px;">Simulated Dates Beat Profile-Only Baseline</h2>
+        <p class="small muted" style="margin:0;">
+          Gold-standard comparison across controlled pairs with hidden facts that only emerge in conversation.
+        </p>
+      </div>
+      <a href="/api/eval/chart.svg" download="amora-conversational-study.svg" class="btn ghost sm">
+        ⬇ Download Vector Chart (SVG)
+      </a>
+    </div>
+
+    <!-- Responsive SVG Chart Embed -->
+    <div style="width:100%;overflow-x:auto;margin:16px 0;background:#0d1117;border-radius:12px;padding:8px;box-shadow:inset 0 2px 8px rgba(0,0,0,0.5);">
+      {{ res.chart_svg|safe }}
+    </div>
+
+    <!-- Conversational Study Breakdown Table -->
+    <h4 style="margin:20px 0 10px;">Controlled Cohort: Profile Signals vs. Conversational Discoveries</h4>
+    <div style="overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;font-size:13px;text-align:left;">
+        <thead>
+          <tr style="border-bottom:1px solid var(--line);color:var(--muted);">
+            <th style="padding:8px;">Pair</th>
+            <th style="padding:8px;">Public Profile Clue</th>
+            <th style="padding:8px;">Hidden Conversational Truth</th>
+            <th style="padding:8px;text-align:center;">Prior</th>
+            <th style="padding:8px;text-align:center;">Agent</th>
+            <th style="padding:8px;text-align:center;">True</th>
+            <th style="padding:8px;text-align:right;">Error Reduction</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in res.conversational_study.pairs %}
+          <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+            <td style="padding:10px 8px;font-weight:600;white-space:nowrap;">
+              {{ p.name_a.split()[0] }} × {{ p.name_b.split()[0] }}
+            </td>
+            <td style="padding:10px 8px;color:#8b949e;">
+              {{ p.public_overlap_summary }}
+            </td>
+            <td style="padding:10px 8px;color:#e6edf3;">
+              {{ p.hidden_conversational_facts }}
+            </td>
+            <td style="padding:10px 8px;text-align:center;color:#58a6ff;font-weight:600;">
+              {{ p.baseline_prior_score }}
+            </td>
+            <td style="padding:10px 8px;text-align:center;color:#ff758f;font-weight:700;">
+              {{ p.agent_verdict_score }}
+            </td>
+            <td style="padding:10px 8px;text-align:center;color:#ffb703;font-weight:700;">
+              {{ p.ground_truth_score }}
+            </td>
+            <td style="padding:10px 8px;text-align:right;color:var(--ok);font-weight:700;">
+              -{{ p.error_reduction }} pts
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
 
   <!-- KPI Scorecards Grid -->
   <div class="quad" style="grid-template-columns:repeat(auto-fit, minmax(210px, 1fr));gap:16px;margin-bottom:32px;">
@@ -203,7 +273,7 @@
   </div>
 
   <div class="small muted" style="text-align:center;margin-top:24px;">
-    Last benchmark run: {{ res.timestamp }} · Evaluated with AMORA Autonomous Dating Harness
+    Last benchmark run: {{ res.timestamp }} · Evaluated with AMORA Autonomous Evaluation Framework
   </div>
 </div>
 

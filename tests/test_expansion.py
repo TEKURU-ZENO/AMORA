@@ -36,7 +36,7 @@ def test_gale_shapley_stable_matching():
     # Verify endpoint GET /matches
     res = client.get("/matches")
     assert res.status_code == 200
-    assert "Gale-Shapley Stable Matching" in res.text
+    assert "Stable Matching" in res.text
     assert "Stable Couples" in res.text
 
     # Verify API POST /api/matching/stable

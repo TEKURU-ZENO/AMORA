@@ -54,6 +54,8 @@ class BenchmarkResult(BaseModel):
     summary: BenchmarkSummary
     caching_economics: dict[str, Any]
     audits: list[CoupleAuditRecord]
+    conversational_study: dict[str, Any] = Field(default_factory=dict)
+    chart_svg: str = ""
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
@@ -237,15 +239,22 @@ def run_evaluation_benchmark(run_stability_check: bool = True) -> BenchmarkResul
         duration_seconds=duration,
     )
 
+    from .conversational_eval import render_evaluation_comparison_svg, run_conversational_study
+    study = run_conversational_study()
+    chart_svg = render_evaluation_comparison_svg(study)
+
     result = BenchmarkResult(
         timestamp=timestamp_str,
         summary=summary,
         caching_economics=caching_stats,
         audits=audits,
+        conversational_study=study,
+        chart_svg=chart_svg,
         metadata={
             "personas_count": len(people),
             "total_dates_simulated": total_dates_run,
             "engine": "deterministic_synthetic_ground_truth",
+            "study_headline": study.get("headline", ""),
         },
     )
 

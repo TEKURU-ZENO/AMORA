@@ -602,6 +602,20 @@ def latest_benchmark_api():
     return JSONResponse(benchmark.get_or_run_latest_benchmark().model_dump())
 
 
+@app.get("/api/eval/chart.svg")
+def evaluation_chart_svg():
+    from .evaluation import benchmark
+    res = benchmark.get_or_run_latest_benchmark()
+    return Response(content=res.chart_svg, media_type="image/svg+xml")
+
+
+@app.get("/api/eval/conversational-study")
+def conversational_study_api():
+    from .evaluation import benchmark
+    res = benchmark.get_or_run_latest_benchmark()
+    return JSONResponse(res.conversational_study)
+
+
 # ---------------------------------------------------------------- live date streaming (SSE)
 
 @app.get("/api/dates/{did}/stream")

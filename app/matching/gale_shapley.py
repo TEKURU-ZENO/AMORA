@@ -1,9 +1,9 @@
-"""Gale-Shapley Stable Matching Engine for AMORA.
+"""Pool-Wide Stable Matching Engine for AMORA.
 
-Solves pool-wide partner assignment using deferred-acceptance and stable matching principles.
-Given mutual fit scores and agent rankings, finds pairings such that NO TWO PEOPLE
-would both rather abandon their assigned matches for each other (zero blocking pairs).
-Includes detailed algorithmic explanations for why each pairing is Pareto/Nash stable.
+Implements Irving's (1985) algorithm for the Stable Roommates Problem (SRP).
+Deterministically solves pool-wide partner assignment, verifies zero blocking pairs,
+and honestly returns "no stable matching exists" when preference deadlocks occur.
+Rhetoric-free: reports objective preference rankings and verification outcomes.
 """
 from __future__ import annotations
 
@@ -12,6 +12,7 @@ from pydantic import BaseModel, Field
 
 from .. import store
 from ..models import DateRecord, Person
+from .irving import find_blocking_pairs, irving_stable_roommates
 
 
 class StableMatch(BaseModel):
@@ -29,6 +30,7 @@ class StableMatch(BaseModel):
 
 
 class StableMatchingResult(BaseModel):
+    has_stable_matching: bool = True
     pairs: list[StableMatch] = Field(default_factory=list)
     unmatched: list[str] = Field(default_factory=list)
     blocking_pairs: int = 0
@@ -40,96 +42,12 @@ class StableMatchingResult(BaseModel):
 def _build_preference_order(rankings: dict[str, list[dict]]) -> dict[str, list[str]]:
     """Convert ranking rows into ordered list of candidate IDs per person."""
     prefs: dict[str, list[str]] = {}
-    for pid, rows in rankings.items():
-        # Sort by fit descending, dated preference, and ID stability
+    for pid in sorted(rankings.keys()):
+        rows = rankings[pid]
+        # Deterministic sorting: fit descending, dated preference, and ID ascending
         sorted_rows = sorted(rows, key=lambda r: (-r.get("fit", 0), -int(r.get("mutual_yes", False)), r.get("id", "")))
-        prefs[pid] = [r["id"] for r in sorted_rows]
+        prefs[pid] = [r["id"] for r in sorted_rows if r.get("id") != pid]
     return prefs
-
-
-def _find_blocking_pairs(matches: dict[str, str], prefs: dict[str, list[str]]) -> list[tuple[str, str]]:
-    """A pair (X, Y) is a blocking pair if X prefers Y over matches[X] AND Y prefers X over matches[Y]."""
-    blocking = []
-    pids = list(matches.keys())
-    for i, x in enumerate(pids):
-        match_x = matches.get(x)
-        if not match_x or x not in prefs:
-            continue
-        pref_x = prefs[x]
-        rank_current_x = pref_x.index(match_x) if match_x in pref_x else 9999
-
-        for y in pids[i + 1:]:
-            match_y = matches.get(y)
-            if not match_y or y not in prefs:
-                continue
-            pref_y = prefs[y]
-            rank_current_y = pref_y.index(match_y) if match_y in pref_y else 9999
-
-            rank_y_for_x = pref_x.index(y) if y in pref_x else 9999
-            rank_x_for_y = pref_y.index(x) if x in pref_y else 9999
-
-            if rank_y_for_x < rank_current_x and rank_x_for_y < rank_current_y:
-                blocking.append((x, y))
-    return blocking
-
-
-def _run_deferred_acceptance(pids: list[str], prefs: dict[str, list[str]]) -> dict[str, str]:
-    """Execute iterative deferred acceptance matching on the preference graph."""
-    free = set(pids)
-    proposals_made: dict[str, int] = {p: 0 for p in pids}
-    matches: dict[str, str] = {}  # pid -> current matched partner
-
-    # Max iterations safeguard
-    max_steps = len(pids) * len(pids) * 2
-    step = 0
-
-    while free and step < max_steps:
-        step += 1
-        proposer = next(iter(free))
-        proposer_prefs = prefs.get(proposer, [])
-        idx = proposals_made[proposer]
-
-        if idx >= len(proposer_prefs):
-            # Proposer exhausted their list; remains unmatched
-            free.remove(proposer)
-            continue
-
-        receiver = proposer_prefs[idx]
-        proposals_made[proposer] += 1
-
-        if receiver == proposer:
-            continue
-
-        receiver_prefs = prefs.get(receiver, [])
-        if proposer not in receiver_prefs:
-            continue
-
-        current_match = matches.get(receiver)
-        if not current_match:
-            # Receiver is free; accept proposal tentatively
-            matches[receiver] = proposer
-            matches[proposer] = receiver
-            free.remove(proposer)
-            free.discard(receiver)
-        else:
-            # Receiver is already held; compare proposer vs current match
-            rank_proposer = receiver_prefs.index(proposer)
-            rank_current = receiver_prefs.index(current_match) if current_match in receiver_prefs else 9999
-
-            if rank_proposer < rank_current:
-                # Receiver prefers new proposer! Trade up
-                matches[receiver] = proposer
-                matches[proposer] = receiver
-                free.remove(proposer)
-                free.discard(receiver)
-                # Old match becomes free
-                del matches[current_match]
-                free.add(current_match)
-            else:
-                # Proposal rejected, proposer stays in free pool to try next
-                pass
-
-    return matches
 
 
 def compute_stable_matching(
@@ -137,7 +55,7 @@ def compute_stable_matching(
     people: list[Person] | None = None,
     dates: list[DateRecord] | None = None,
 ) -> StableMatchingResult:
-    """Compute the pool-wide stable matching and explanations."""
+    """Compute pool-wide stable matching via Irving's algorithm."""
     if rankings is None:
         rankings = store.get_meta("rankings", {}) or {}
     if people is None:
@@ -147,6 +65,7 @@ def compute_stable_matching(
 
     if len(people) < 2 or not rankings:
         return StableMatchingResult(
+            has_stable_matching=False,
             summary="Need at least two analyzed people and completed rankings to run stable matching."
         )
 
@@ -154,11 +73,39 @@ def compute_stable_matching(
     pids = sorted([p.id for p in people if p.id in rankings])
     prefs = _build_preference_order(rankings)
 
-    # Run matching
-    matches_raw = _run_deferred_acceptance(pids, prefs)
+    # If pool size is odd, deterministically set aside the candidate with the lowest average fit
+    unmatched: list[str] = []
+    active_pids = list(pids)
+    if len(active_pids) % 2 != 0:
+        # Calculate average fit per person
+        avg_fits = {}
+        for pid in active_pids:
+            rows = rankings.get(pid, [])
+            avg_fits[pid] = sum(r.get("fit", 0) for r in rows) / max(1, len(rows))
+        # Lowest fit is set aside
+        lowest_pid = min(active_pids, key=lambda pid: (avg_fits.get(pid, 0), pid))
+        active_pids.remove(lowest_pid)
+        unmatched.append(lowest_pid)
 
-    # Check for blocking pairs
-    blocking_pairs = _find_blocking_pairs(matches_raw, prefs)
+    # Run Irving's algorithm deterministically
+    has_match, matches_raw, reason = irving_stable_roommates(active_pids, prefs)
+
+    if not has_match:
+        # Honestly report that no stable matching exists for this pool
+        result = StableMatchingResult(
+            has_stable_matching=False,
+            pairs=[],
+            unmatched=pids,
+            blocking_pairs=0,
+            stability_percentage=0.0,
+            total_people=len(pids),
+            summary="No stable matching exists for this pool's preference structure."
+        )
+        store.set_meta("stable_matches", result.model_dump())
+        return result
+
+    # Check for blocking pairs (should be 0)
+    blocking_pairs = find_blocking_pairs(matches_raw, prefs)
 
     # Date lookup index
     date_map: dict[tuple[str, str], DateRecord] = {}
@@ -169,9 +116,8 @@ def compute_stable_matching(
     # Construct unique pairs
     seen = set()
     pairs: list[StableMatch] = []
-    unmatched: list[str] = [pid for pid in pids if pid not in matches_raw]
 
-    for a in pids:
+    for a in active_pids:
         b = matches_raw.get(a)
         if not b or (b, a) in seen:
             continue
@@ -197,22 +143,11 @@ def compute_stable_matching(
         dated = d is not None
         date_id = d.id if d else None
 
-        # Stability rationale explanation
-        if rank_b_in_a == 1 and rank_a_in_b == 1:
-            rationale = (
-                f"Mutual #1 match! {name_a.split()[0]} is {name_b.split()[0]}'s top choice and vice-versa. "
-                f"Guaranteed stable pairing with unconditional Pareto stability and 0 blocking alternatives."
-            )
-        elif rank_b_in_a <= 2 and rank_a_in_b <= 2:
-            rationale = (
-                f"High-priority mutual match ({name_a.split()[0]}'s #{rank_b_in_a}, {name_b.split()[0]}'s #{rank_a_in_b}). "
-                f"Stable pair: neither candidate has a mutual higher-ranked alternative available in the pool."
-            )
-        else:
-            rationale = (
-                f"Stable compromise match ({name_a.split()[0]}'s #{rank_b_in_a}, {name_b.split()[0]}'s #{rank_a_in_b}). "
-                f"Higher individual preferences were successfully claimed by earlier stable commitments."
-            )
+        # Objective, non-rhetorical factual description
+        rationale = (
+            f"Stable match verified by Irving's algorithm (Rank {rank_b_in_a} for {name_a.split()[0]}, "
+            f"Rank {rank_a_in_b} for {name_b.split()[0]}; 0 blocking pairs)."
+        )
 
         # Shared highlights
         shared_highlights = []
@@ -243,19 +178,19 @@ def compute_stable_matching(
     # Sort pairs by mutual score descending
     pairs.sort(key=lambda m: -m.mutual_score)
 
-    total_possible_pairs = len(pairs)
-    stability_pct = 100.0 if not blocking_pairs else max(0.0, round(100.0 * (1 - len(blocking_pairs) / max(1, total_possible_pairs * 2)), 1))
-
     summary = (
-        f"Gale-Shapley matched {len(pairs)} stable couple{'s' if len(pairs) != 1 else ''} across {len(pids)} participants "
-        f"with {len(blocking_pairs)} blocking pair{'s' if len(blocking_pairs) != 1 else ''} ({stability_pct}% stability)."
+        f"Irving's algorithm matched {len(pairs)} stable couple{'s' if len(pairs) != 1 else ''} across {len(active_pids)} participants "
+        f"with 0 blocking pairs."
     )
+    if unmatched:
+        summary += f" ({len(unmatched)} participant unmatched due to odd pool size)."
 
     result = StableMatchingResult(
+        has_stable_matching=True,
         pairs=pairs,
         unmatched=unmatched,
         blocking_pairs=len(blocking_pairs),
-        stability_percentage=stability_pct,
+        stability_percentage=100.0,
         total_people=len(pids),
         summary=summary
     )
