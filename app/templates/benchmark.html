@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+{% block title %}Evaluation Harness & IR Benchmarks · AMORA{% endblock %}
+{% block body %}
+<div class="narrow" style="max-width:960px;margin:0 auto;padding-bottom:80px;">
+  <!-- Header -->
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;margin-bottom:28px;">
+    <div>
+      <div class="kicker">Engineering Credibility · IR Benchmarks</div>
+      <h1 style="margin:6px 0 10px;">Evaluation Harness</h1>
+      <p class="lede" style="margin:0;max-width:620px;">
+        Measuring ranking quality (Precision@K, NDCG, MRR), dealbreaker detection, ranking stability across runs, and prompt caching economics on controlled synthetic cohorts.
+      </p>
+    </div>
+    <form action="/api/eval/run" method="post" id="run-benchmark-form" style="margin-top:10px;">
+      <button type="submit" class="btn" id="btn-run-bench" style="background:var(--accent);color:#fff;">
+        ⚡ Run Benchmark Suite
+      </button>
+    </form>
+  </div>
+
+  <!-- KPI Scorecards Grid -->
+  <div class="quad" style="grid-template-columns:repeat(auto-fit, minmax(210px, 1fr));gap:16px;margin-bottom:32px;">
+    <!-- Precision@1 -->
+    <div class="card" style="padding:20px;text-align:center;">
+      <div class="small muted" style="text-transform:uppercase;letter-spacing:1px;font-weight:700;">Precision@1</div>
+      <div style="font-size:42px;font-weight:800;font-family:Georgia,serif;color:var(--text);margin:6px 0;">
+        {{ (res.summary.precision_at_1 * 100)|round|int }}%
+      </div>
+      <div class="small muted">Top #1 recommendation relevance</div>
+    </div>
+
+    <!-- Precision@3 -->
+    <div class="card" style="padding:20px;text-align:center;">
+      <div class="small muted" style="text-transform:uppercase;letter-spacing:1px;font-weight:700;">Precision@3</div>
+      <div style="font-size:42px;font-weight:800;font-family:Georgia,serif;color:var(--text);margin:6px 0;">
+        {{ (res.summary.precision_at_3 * 100)|round|int }}%
+      </div>
+      <div class="small muted">P@3 ranking recovery rate</div>
+    </div>
+
+    <!-- NDCG@3 -->
+    <div class="card" style="padding:20px;text-align:center;">
+      <div class="small muted" style="text-transform:uppercase;letter-spacing:1px;font-weight:700;">NDCG@3</div>
+      <div style="font-size:42px;font-weight:800;font-family:Georgia,serif;color:var(--ok);margin:6px 0;">
+        {{ res.summary.ndcg_at_3|round(2) }}
+      </div>
+      <div class="small muted">Discounted cumulative gain</div>
+    </div>
+
+    <!-- MRR -->
+    <div class="card" style="padding:20px;text-align:center;">
+      <div class="small muted" style="text-transform:uppercase;letter-spacing:1px;font-weight:700;">Mean Recip. Rank</div>
+      <div style="font-size:42px;font-weight:800;font-family:Georgia,serif;color:var(--text);margin:6px 0;">
+        {{ res.summary.mean_reciprocal_rank|round(2) }}
+      </div>
+      <div class="small muted">Reciprocal rank of 1st match</div>
+    </div>
+
+    <!-- Dealbreaker True Negative Rate -->
+    <div class="card" style="padding:20px;text-align:center;border-left:3px solid var(--ok);">
+      <div class="small muted" style="text-transform:uppercase;letter-spacing:1px;font-weight:700;">Dealbreaker Filter</div>
+      <div style="font-size:42px;font-weight:800;font-family:Georgia,serif;color:var(--ok);margin:6px 0;">
+        {{ (res.summary.dealbreaker_detection_rate * 100)|round|int }}%
+      </div>
+      <div class="small muted">True negative dealbreaker rejection</div>
+    </div>
+
+    <!-- Superficial Trap Discrimination -->
+    <div class="card" style="padding:20px;text-align:center;border-left:3px solid #ffb703;">
+      <div class="small muted" style="text-transform:uppercase;letter-spacing:1px;font-weight:700;">Trap Rejection</div>
+      <div style="font-size:42px;font-weight:800;font-family:Georgia,serif;color:#ffb703;margin:6px 0;">
+        {{ (res.summary.superficial_trap_rejection_rate * 100)|round|int }}%
+      </div>
+      <div class="small muted">Keyword overlap trap filter rate</div>
+    </div>
+
+    <!-- Rank Stability Tau -->
+    <div class="card" style="padding:20px;text-align:center;border-left:3px solid #58a6ff;">
+      <div class="small muted" style="text-transform:uppercase;letter-spacing:1px;font-weight:700;">Ranking Stability</div>
+      <div style="font-size:42px;font-weight:800;font-family:Georgia,serif;color:#58a6ff;margin:6px 0;">
+        {{ res.summary.stability_tau|round(2) }}
+      </div>
+      <div class="small muted">Kendall's &tau; rank consistency</div>
+    </div>
+
+    <!-- Overall Pass Rate -->
+    <div class="card" style="padding:20px;text-align:center;">
+      <div class="small muted" style="text-transform:uppercase;letter-spacing:1px;font-weight:700;">Benchmark Pass Rate</div>
+      <div style="font-size:42px;font-weight:800;font-family:Georgia,serif;color:var(--text);margin:6px 0;">
+        {{ res.summary.overall_pass_rate_pct|round|int }}%
+      </div>
+      <div class="small muted">{{ res.summary.passed_couples_count }} of {{ res.summary.total_couples_audited }} couples verified</div>
+    </div>
+  </div>
+
+  <!-- Prompt Caching & Cost Reduction Dashboard -->
+  <div class="card" style="margin-bottom:32px;background:rgba(22,27,34,0.7);border:1px solid rgba(255,255,255,0.12);">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+      <div>
+        <h3 style="margin:0;">Prompt Caching &amp; Token Economics</h3>
+        <p class="small muted" style="margin:4px 0 0;">
+          Claude prompt caching on static system briefs (90% discount on cached turns 2–10).
+        </p>
+      </div>
+      <span class="chip g" style="font-weight:700;font-size:14px;">
+        {{ res.caching_economics.percentage_cost_reduction }}% Cost Reduction
+      </span>
+    </div>
+
+    <div class="quad" style="grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:14px;">
+      <div style="background:rgba(255,255,255,0.03);padding:14px;border-radius:10px;">
+        <div class="small muted">Uncached Cost</div>
+        <div style="font-size:22px;font-weight:700;margin-top:4px;">${{ res.caching_economics.uncached_total_cost_usd }}</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.03);padding:14px;border-radius:10px;">
+        <div class="small muted">Cached Cost</div>
+        <div style="font-size:22px;font-weight:700;color:var(--ok);margin-top:4px;">${{ res.caching_economics.cached_total_cost_usd }}</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.03);padding:14px;border-radius:10px;">
+        <div class="small muted">Total Dollar Savings</div>
+        <div style="font-size:22px;font-weight:700;color:var(--accent);margin-top:4px;">${{ res.caching_economics.savings_usd }}</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.03);padding:14px;border-radius:10px;">
+        <div class="small muted">Cache Hit Rate</div>
+        <div style="font-size:22px;font-weight:700;color:#58a6ff;margin-top:4px;">{{ res.caching_economics.cache_hit_rate_pct }}%</div>
+      </div>
+    </div>
+    <div class="small muted" style="margin-top:14px;">
+      ⚡ <b>Latency Benefit:</b> {{ res.caching_economics.latency_speedup_factor }}. Benchmark executed in {{ res.summary.duration_seconds }}s.
+    </div>
+  </div>
+
+  <!-- Detailed Couple Audit Table -->
+  <div class="card">
+    <h3 style="margin-top:0;">Ground Truth Verification Matrix</h3>
+    <p class="small muted" style="margin-top:-6px;margin-bottom:18px;">
+      Each couple tests specific relational mechanics: ideal alignment, dealbreaker trips, and superficial keyword traps.
+    </p>
+
+    <div style="overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;font-size:14px;text-align:left;">
+        <thead>
+          <tr style="border-bottom:1px solid var(--line);color:var(--muted);">
+            <th style="padding:10px 8px;">Couple</th>
+            <th style="padding:10px 8px;">Cohort</th>
+            <th style="padding:10px 8px;">Expected vs Actual Rank</th>
+            <th style="padding:10px 8px;">Mutual Score</th>
+            <th style="padding:10px 8px;">Second Date</th>
+            <th style="padding:10px 8px;">Dealbreaker</th>
+            <th style="padding:10px 8px;text-align:right;">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for a in res.audits %}
+          <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+            <td style="padding:12px 8px;font-weight:600;">
+              {{ a.person_a }} <span class="muted">×</span> {{ a.person_b }}
+              <div class="small muted" style="font-weight:400;margin-top:2px;">{{ a.rationale }}</div>
+            </td>
+            <td style="padding:12px 8px;">
+              {% if a.category == 'compatible' %}
+                <span class="chip g" style="font-size:11px;">Compatible</span>
+              {% elif a.category == 'dealbreaker_clash' %}
+                <span class="chip warn" style="font-size:11px;">Dealbreaker Clash</span>
+              {% else %}
+                <span class="chip n" style="font-size:11px;color:#ffb703;border-color:#ffb703;">Superficial Trap</span>
+              {% endif %}
+            </td>
+            <td style="padding:12px 8px;">
+              #{{ a.actual_rank_b_for_a }} <span class="muted">/</span> #{{ a.actual_rank_a_for_b }}
+            </td>
+            <td style="padding:12px 8px;font-weight:700;">
+              {{ a.actual_mutual_score }} <small class="muted">/10</small>
+            </td>
+            <td style="padding:12px 8px;">
+              {% if a.actual_second_date_a and a.actual_second_date_b %}
+                <span style="color:var(--ok);">Mutual Yes</span>
+              {% elif a.actual_second_date_a or a.actual_second_date_b %}
+                <span class="muted">One-sided</span>
+              {% else %}
+                <span style="color:var(--warn);">Declined</span>
+              {% endif %}
+            </td>
+            <td style="padding:12px 8px;">
+              {% if a.dealbreaker_hit %}
+                <span style="color:var(--warn);font-weight:600;">Tripped ✓</span>
+              {% else %}
+                <span class="muted">None</span>
+              {% endif %}
+            </td>
+            <td style="padding:12px 8px;text-align:right;">
+              {% if a.passed %}
+                <span class="chip g" style="font-weight:700;">PASS ✓</span>
+              {% else %}
+                <span class="chip warn" style="font-weight:700;">FAIL ✕</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="small muted" style="text-align:center;margin-top:24px;">
+    Last benchmark run: {{ res.timestamp }} · Evaluated with AMORA Autonomous Dating Harness
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('run-benchmark-form');
+  const btn = document.getElementById('btn-run-bench');
+  form?.addEventListener('submit', () => {
+    btn.disabled = true;
+    btn.textContent = 'Running Evaluation Suite...';
+  });
+});
+</script>
+{% endblock %}

@@ -213,6 +213,43 @@ if (replay) {
     else if (e.key.toLowerCase() === 't' && !e.metaKey && !e.ctrlKey) sw.click();
   });
 
+  const sseBtn = $('#stream-live-btn');
+  if (sseBtn) {
+    sseBtn.addEventListener('click', () => {
+      const parts = location.pathname.split('/');
+      const did = parts[parts.length - 1];
+      reset();
+      sseBtn.disabled = true;
+      const origText = sseBtn.textContent;
+      sseBtn.textContent = 'Streaming Live...';
+      const es = new EventSource(`/api/dates/${did}/stream?speed=${speed}`);
+      es.onmessage = e => {
+        const ev = JSON.parse(e.data);
+        if (ev.event === 'typing') {
+          const side = ev.turn_index % 2 === 0 ? 'a' : 'b';
+          typing.className = 'typing on ' + side;
+          if (msgs[ev.turn_index]) msgs[ev.turn_index].before(typing);
+        } else if (ev.event === 'turn') {
+          typing.classList.remove('on');
+          const m = msgs[ev.turn_index];
+          if (m) { m.classList.add('show'); follow(m); }
+        } else if (ev.event === 'verdicts') {
+          finish();
+        } else if (ev.done) {
+          es.close();
+          sseBtn.disabled = false;
+          sseBtn.textContent = origText;
+        }
+      };
+      es.onerror = () => {
+        es.close();
+        finish();
+        sseBtn.disabled = false;
+        sseBtn.textContent = origText;
+      };
+    });
+  }
+
   if (calm || !msgs.length) finish(); else play();
 }
 
@@ -410,7 +447,7 @@ if (floor && $('#ring')) {
 
   // events from a live job or a replay go through one paced queue, so the floor is watchable even when dates finish in a burst
   const q = []; let busy = false;
-  const pace = {asks: 320, date_start: 60, date_done: 120, phase: 500};
+  const pace = {asks: 320, date_start: 60, date_turn: 70, date_done: 120, phase: 500};
   async function pump() {
     if (busy) return; busy = true;
     while (q.length) { const ev = q.shift(); handle(ev, true); if (!calm) await sleep(pace[ev.type] ?? 0); }
@@ -428,9 +465,44 @@ if (floor && $('#ring')) {
       count.asks += ev.picks.length;
     } else if (ev.type === 'date_start') {
       tile(ev.a, ev.b);
+    } else if (ev.type === 'date_turn') {
+      const t = tile(ev.a, ev.b);
+      const line = $('.line', t);
+      if (line) {
+        line.innerHTML = `<b>${esc(ev.speaker_name)}:</b> ${esc(ev.text)}`;
+        line.classList.remove('live'); void line.offsetWidth; line.classList.add('live');
+      }
+      const spot = $('#spotlight-card');
+      if (spot) {
+        spot.style.display = 'block';
+        const pairEl = $('#spotlight-pair');
+        if (pairEl) pairEl.textContent = `${byId[ev.a]?.first || ev.a} × ${byId[ev.b]?.first || ev.b}`;
+        const textEl = $('#spotlight-text');
+        if (textEl) textEl.innerHTML = `<b>${esc(ev.speaker_name)}:</b> ${esc(ev.text)}`;
+        const thoughtEl = $('#spotlight-thought');
+        if (thoughtEl) thoughtEl.textContent = ev.thought ? `Agent thought: “${ev.thought}”` : '';
+        const moodEl = $('#spotlight-mood');
+        if (moodEl) {
+          const moodMap = {
+            spark: {label: '✨ Chemistry Spark', cls: 'g'},
+            probing: {label: '🔍 Probing Need', cls: 'n'},
+            vulnerable: {label: '🤝 Vulnerable Truth', cls: 'g'},
+            playful: {label: '😄 Playful Banter', cls: 'n'},
+            dealbreaker_check: {label: '⚠️ Dealbreaker Check', cls: 'warn'},
+            thoughtful: {label: '💭 Thoughtful Read', cls: 'n'}
+          };
+          const m = moodMap[ev.mood] || {label: '💭 Active Date', cls: 'n'};
+          moodEl.textContent = m.label;
+          moodEl.className = `chip ${m.cls}`;
+        }
+      }
     } else if (ev.type === 'date_done') {
       count.done++; if (ev.yes_a && ev.yes_b) count.mutual++;
       finishTile(ev, animate);
+      const spot = $('#spotlight-card');
+      if (spot && count.done >= count.total) {
+        setTimeout(() => { if (spot) spot.style.display = 'none'; }, 2500);
+      }
     }
     counters();
   }

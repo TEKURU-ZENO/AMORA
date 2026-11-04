@@ -13,6 +13,7 @@
 <div class="controls" role="toolbar" aria-label="Replay controls">
   <button class="btn sm" id="play" aria-label="Pause">❚❚ Pause</button>
   <button class="btn ghost sm" id="skip">Skip to end ⇥</button>
+  <button class="btn ghost sm" id="stream-live-btn" title="Stream this date turn-by-turn via Server-Sent Events (SSE)">📡 Stream Live (SSE)</button>
   <div class="speed" role="group" aria-label="Speed">
     {% for s in ['1', '1.5', '2'] %}<button type="button" data-speed="{{ s }}" aria-pressed="{{ 'true' if s == '1' else 'false' }}">{{ s }}×</button>{% endfor %}
   </div>

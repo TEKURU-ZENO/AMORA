@@ -7,7 +7,7 @@ import threading
 import uuid
 
 from fastapi import FastAPI, Form, HTTPException, Request
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, StreamingResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -542,6 +542,104 @@ def admin_export(request: Request):
         "rankings": store.get_meta("rankings", {})
     }
 
+
+
+# ---------------------------------------------------------------- story card (viral 9:16)
+
+@app.get("/person/{pid}/story-card", response_class=HTMLResponse)
+def story_card_page(request: Request, pid: str):
+    p = store.get_person(pid)
+    if not p:
+        raise HTTPException(404, "No such person")
+    from . import story_card
+    data = story_card.build_story_card_data(pid)
+    svg = story_card.render_story_card_svg(data)
+    return tpl.TemplateResponse(request, "story_card.html", _ctx(request, p=p, data=data, svg_content=svg))
+
+
+@app.get("/api/people/{pid}/story-card.svg")
+def story_card_svg(pid: str):
+    p = store.get_person(pid)
+    if not p:
+        raise HTTPException(404, "No such person")
+    from . import story_card
+    data = story_card.build_story_card_data(pid)
+    svg = story_card.render_story_card_svg(data)
+    return Response(content=svg, media_type="image/svg+xml")
+
+
+@app.get("/api/people/{pid}/story-data")
+def story_card_data_api(pid: str):
+    p = store.get_person(pid)
+    if not p:
+        raise HTTPException(404, "No such person")
+    from . import story_card
+    return JSONResponse(story_card.build_story_card_data(pid))
+
+
+# ---------------------------------------------------------------- evaluation & benchmark
+
+@app.get("/benchmark", response_class=HTMLResponse)
+def benchmark_page(request: Request):
+    from .evaluation import benchmark
+    res = benchmark.get_or_run_latest_benchmark()
+    return tpl.TemplateResponse(request, "benchmark.html", _ctx(request, res=res))
+
+
+@app.post("/api/eval/run")
+def run_benchmark_api(request: Request):
+    from .evaluation import benchmark
+    res = benchmark.run_evaluation_benchmark()
+    accept = request.headers.get("accept", "")
+    if "application/json" in accept:
+        return JSONResponse(res.model_dump())
+    return RedirectResponse("/benchmark", status_code=303)
+
+
+@app.get("/api/eval/latest")
+def latest_benchmark_api():
+    from .evaluation import benchmark
+    return JSONResponse(benchmark.get_or_run_latest_benchmark().model_dump())
+
+
+# ---------------------------------------------------------------- live date streaming (SSE)
+
+@app.get("/api/dates/{did}/stream")
+async def stream_date_live(request: Request, did: str, speed: float = 1.0):
+    d = store.get_date(did)
+    if not d:
+        raise HTTPException(404, "Date not found")
+    pa = store.get_person(d.a)
+    pb = store.get_person(d.b)
+    demo_only = config.demo_mode() and bool(pa and pb and pa.synthetic and pb.synthetic)
+    authorized = privacy.is_authorized(request) or demo_only
+    name_a = pa.analysis.display_name.split()[0] if pa and pa.analysis else d.a
+    name_b = pb.analysis.display_name.split()[0] if pb and pb.analysis else d.b
+
+    async def gen():
+        yield f"data: {json.dumps({'event': 'start', 'id': d.id, 'a': d.a, 'b': d.b, 'name_a': name_a, 'name_b': name_b, 'venue': d.venue, 'venue_reason': d.venue_reason})}\n\n"
+        delay = max(0.04, 0.28 / max(0.1, speed))
+        for idx, t in enumerate(d.turns):
+            spk_name = name_a if t.speaker == d.a else name_b
+            yield f"data: {json.dumps({'event': 'typing', 'speaker': t.speaker, 'speaker_name': spk_name, 'turn_index': idx, 'mood': t.mood})}\n\n"
+            await asyncio.sleep(delay)
+            payload = {
+                'event': 'turn',
+                'turn_index': idx,
+                'total_turns': len(d.turns),
+                'speaker': t.speaker,
+                'speaker_name': spk_name,
+                'text': t.text,
+                'thought': t.thought if authorized else '',
+                'observation': t.observation if authorized else '',
+                'mood': t.mood,
+            }
+            yield f"data: {json.dumps(payload)}\n\n"
+            await asyncio.sleep(delay * 0.8)
+        yield f"data: {json.dumps({'event': 'verdicts', 'mutual': d.mutual, 'score_a': d.verdict_a.score, 'score_b': d.verdict_b.score, 'yes_a': d.verdict_a.second_date, 'yes_b': d.verdict_b.second_date})}\n\n"
+        yield f"data: {json.dumps({'done': True})}\n\n"
+
+    return StreamingResponse(gen(), media_type="text/event-stream")
 
 
 @app.get("/healthz")

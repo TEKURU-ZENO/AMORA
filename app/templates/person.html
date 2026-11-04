@@ -20,6 +20,7 @@
       <a href="{{ p.linkedin_url }}" target="_blank" rel="noopener" class="src linkedin" style="text-decoration:none">LinkedIn ↗</a>
       <a href="{{ p.instagram_url }}" target="_blank" rel="noopener" class="src instagram" style="text-decoration:none">Instagram ↗</a>
       {% if p.synthetic %}<span class="chip n" style="margin:0">fictional demo persona</span>{% endif %}
+      <a href="/person/{{ p.id }}/story-card" class="chip" style="margin:0;background:var(--accent);color:#fff;border-color:var(--accent);text-decoration:none;font-weight:600">✨ Story Card (9:16)</a>
       <span class="conf" title="How sure the analyst is, given how much both sources said">confidence <span class="bar"><i style="width:{{ a.confidence * 100 }}%"></i></span>{{ (a.confidence * 100)|round|int }}%</span></div></div>
 </header>
 

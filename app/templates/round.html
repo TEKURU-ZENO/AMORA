@@ -38,6 +38,20 @@
   <div>
     <h4>The dates <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:400">· click any to watch it</span></h4>
     <div class="wall" id="wall"><div class="empty" id="wall-empty" style="grid-column:1/-1">Date tiles appear here as the agents go out.</div></div>
+    
+    <!-- Live Date Spotlight (streams turns line-by-line via SSE) -->
+    <div id="spotlight-card" class="card" style="margin-top:20px;border:1px solid var(--accent);background:rgba(21,27,35,0.95);display:none;padding:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="dots live" style="display:inline-flex;"><i></i><i></i><i></i></span>
+          <b style="color:var(--accent);font-size:13px;letter-spacing:1px;">LIVE DATE STREAM</b>
+          <span id="spotlight-pair" style="font-weight:700;color:#fff;font-size:14px;"></span>
+        </div>
+        <span id="spotlight-mood" class="chip g" style="font-size:11px;margin:0;">✨ Active</span>
+      </div>
+      <div id="spotlight-text" style="font-size:15px;line-height:1.5;color:#f0f6fc;margin-bottom:6px;"></div>
+      <div id="spotlight-thought" class="small muted" style="font-style:italic;color:#8b949e;border-left:2px solid var(--accent);padding-left:10px;"></div>
+    </div>
   </div>
 </div>
 {% endif %}

@@ -21,6 +21,22 @@ from .compat import Compat, compute
 from .taxonomy import DEFAULT_VENUE, VENUES
 
 
+
+def infer_turn_mood(t: Turn) -> str:
+    """Infer emotional sentiment/mood indicator from turn text and thought."""
+    text = (t.text + " " + t.thought).lower()
+    if any(k in text for k in ["chemistry", "click", "spark", "fun", "love", "laugh", "excited", "yes to", "into this"]):
+        return "spark"
+    if any(k in text for k in ["dealbreaker", "red flag", "friction", "hesitant", "concern", "boundary alert"]):
+        return "dealbreaker_check"
+    if any(k in text for k in ["need", "probe", "what do you actually", "bigger question", "curious", "checking"]):
+        return "probing"
+    if any(k in text for k in ["vulnerability", "learned the hard way", "honest", "honestly", "reset button", "truth"]):
+        return "vulnerable"
+    if any(k in text for k in ["blame me", "disaster", "homework", "fair warning", "teasing", "haha", "ha,"]):
+        return "playful"
+    return "thoughtful"
+
 def first(a: Analysis) -> str:
     return a.display_name.split()[0]
 
@@ -76,7 +92,8 @@ PHASES = ["arriving, opening line", "small talk about the venue", "ask about som
 
 
 def _date_llm(a: Analysis, b: Analysis, ida: str, idb: str, venue: str,
-              coaching_a: list[str] | None = None, coaching_b: list[str] | None = None) -> list[Turn]:
+              coaching_a: list[str] | None = None, coaching_b: list[str] | None = None,
+              on_turn: Callable[[Turn, int, int], None] | None = None) -> list[Turn]:
     turns: list[Turn] = []
     agents = [(ida, a, b, coaching_a), (idb, b, a, coaching_b)]
     for i in range(config.DATE_TURNS):
@@ -85,8 +102,12 @@ def _date_llm(a: Analysis, b: Analysis, ida: str, idb: str, venue: str,
         phase = PHASES[min(i, len(PHASES) - 1)]
         out = llm.structured(_agent_system(me, other, venue, coach),
                              f"Conversation so far:\n{transcript}\n\nYour turn ({phase}).", AgentTurn, max_tokens=500)
-        turns.append(Turn(speaker=pid, text=out.say.strip(), thought=out.thought.strip(),
-                          observation=getattr(out, "observation", "").strip()))
+        t = Turn(speaker=pid, text=out.say.strip(), thought=out.thought.strip(),
+                 observation=getattr(out, "observation", "").strip())
+        t.mood = infer_turn_mood(t)
+        turns.append(t)
+        if on_turn:
+            on_turn(t, i, config.DATE_TURNS)
     return turns
 
 
@@ -118,14 +139,19 @@ def _ev(a: Analysis, claim_pool: list[str]) -> tuple[str, str] | None:
 
 
 def _date_offline(a: Analysis, b: Analysis, ida: str, idb: str, venue: str, c: Compat,
-                  coaching_a: list[str] | None = None, coaching_b: list[str] | None = None) -> list[Turn]:
+                  coaching_a: list[str] | None = None, coaching_b: list[str] | None = None,
+                  on_turn: Callable[[Turn, int, int], None] | None = None) -> list[Turn]:
     r = _rng(ida, idb)
     A, B = first(a), first(b)
     shared = c.shared_hobbies + c.shared_interests
     T: list[Turn] = []
 
     def say(pid, text, thought, observation=""):
-        T.append(Turn(speaker=pid, text=text, thought=thought, observation=observation))
+        t = Turn(speaker=pid, text=text, thought=thought, observation=observation)
+        t.mood = infer_turn_mood(t)
+        T.append(t)
+        if on_turn:
+            on_turn(t, len(T) - 1, 10)
 
     opener = r.choice(["Hey, you must be {B}! I hope {v} sounded okay to you.",
                        "{B}? Hi! Glad you said yes to {v}.",
@@ -290,20 +316,21 @@ def _verdict_offline(me: Analysis, other: Analysis, pid: str, c: Compat,
 
 def go_on_date(ida: str, a: Analysis, idb: str, b: Analysis,
                coaching_a: list[str] | None = None, coaching_b: list[str] | None = None,
-               stage: str = "standard") -> DateRecord:
+               stage: str = "standard",
+               on_turn: Callable[[Turn, int, int], None] | None = None) -> DateRecord:
     c = compute(a, b)
     venue, why = pick_venue(a, b, c)
     engine = "offline"
     if config.llm_enabled():
         try:
-            turns = _date_llm(a, b, ida, idb, venue, coaching_a, coaching_b)
+            turns = _date_llm(a, b, ida, idb, venue, coaching_a, coaching_b, on_turn=on_turn)
             va = _verdict_llm(a, b, ida, turns, ida, venue, coaching_a)
             vb = _verdict_llm(b, a, idb, turns, ida, venue, coaching_b)
             engine = "claude"
         except Exception:
             turns = None
     if engine == "offline":
-        turns = _date_offline(a, b, ida, idb, venue, c, coaching_a, coaching_b)
+        turns = _date_offline(a, b, ida, idb, venue, c, coaching_a, coaching_b, on_turn=on_turn)
         va = _verdict_offline(a, b, ida, c, c.dealbreakers_a, c.dealbreakers_b, coaching_a)
         vb = _verdict_offline(b, a, idb, c, c.dealbreakers_b, c.dealbreakers_a, coaching_b)
     # mutual = harmonic-ish mean so one-sided interest is punished

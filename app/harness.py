@@ -223,7 +223,24 @@ def run_round(progress: Progress = _print, only: str | None = None) -> list[Date
         progress({"type": "date_start", "a": ida, "b": idb})
         ca = by_id[ida].coaching_notes if ida in by_id else []
         cb = by_id[idb].coaching_notes if idb in by_id else []
-        return go_on_date(ida, by_id[ida].analysis, idb, by_id[idb].analysis, coaching_a=ca, coaching_b=cb)
+
+        def on_date_turn(t, turn_i, total_turns):
+            spk_name = by_id[t.speaker].analysis.display_name.split()[0] if t.speaker in by_id and by_id[t.speaker].analysis else t.speaker
+            progress({
+                "type": "date_turn",
+                "a": ida,
+                "b": idb,
+                "index": turn_i,
+                "total": total_turns,
+                "speaker": t.speaker,
+                "speaker_name": spk_name,
+                "text": t.text,
+                "thought": t.thought,
+                "observation": t.observation,
+                "mood": t.mood,
+            })
+
+        return go_on_date(ida, by_id[ida].analysis, idb, by_id[idb].analysis, coaching_a=ca, coaching_b=cb, on_turn=on_date_turn)
 
     workers = config.MAX_PARALLEL_DATES if config.llm_enabled() else 1
     with cf.ThreadPoolExecutor(max_workers=workers) as ex:

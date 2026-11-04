@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block title %}Shareable Story Card · {{ data.first_name }} · AMORA{% endblock %}
+{% block body %}
+<div class="narrow" style="max-width:760px;margin:0 auto;padding-bottom:60px;">
+  <div style="text-align:center;margin-bottom:28px;">
+    <a href="/person/{{ data.person_id }}" class="small muted" style="display:inline-block;margin-bottom:12px;">← Back to {{ data.name }}'s profile</a>
+    <div class="kicker">Viral Instagram Story (9:16)</div>
+    <h1 style="margin:6px 0 10px;">My Agent's Dating Dispatch</h1>
+    <p class="lede" style="margin:0 auto;max-width:560px;">
+      Sized perfectly for Instagram Stories and social sharing (1080×1920). Download as a high-resolution PNG or vector SVG.
+    </p>
+  </div>
+
+  <!-- Share Toolbar Buttons -->
+  <div class="controls" style="justify-content:center;margin-bottom:32px;flex-wrap:wrap;gap:12px;">
+    <button class="btn" id="btn-download-png" style="background:var(--accent);color:#fff;">
+      ⬇ Download Story PNG (1080×1920)
+    </button>
+    <a href="/api/people/{{ data.person_id }}/story-card.svg" download="amora-story-{{ data.person_id }}.svg" class="btn ghost">
+      ⬇ Download Vector SVG
+    </a>
+    <button class="btn ghost" id="btn-copy-link">
+      📋 Copy Share Link
+    </button>
+  </div>
+
+  <!-- Preview Container: Mockup Phone Frame -->
+  <div class="story-preview-container" style="display:flex;justify-content:center;align-items:center;">
+    <div class="phone-frame" style="width:360px;height:640px;border-radius:40px;background:#000;box-shadow:0 24px 60px rgba(0,0,0,0.7), 0 0 0 2px rgba(255,255,255,0.15);overflow:hidden;position:relative;border:8px solid #1a1e26;">
+      <!-- Dynamic SVG inside Frame -->
+      <div id="svg-wrap" style="width:100%;height:100%;display:flex;">
+        {{ svg_content|safe }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden off-screen canvas for high-res PNG rasterization -->
+  <canvas id="export-canvas" width="1080" height="1920" style="display:none;"></canvas>
+
+  <!-- Explanatory Details Box -->
+  <div class="card" style="margin-top:40px;">
+    <h3 style="margin-top:0;">What's featured on this card</h3>
+    <ul class="list ok" style="margin-bottom:0;">
+      <li><b>Top Algorithmic Match:</b> Selected via Gale-Shapley Deferred Acceptance stability algorithm.</li>
+      <li><b>Private Agent Extract:</b> Real verdict quote filed by {{ data.first_name }}'s agent.</li>
+      <li><b>Grounded Metrics:</b> Number of dates attended ({{ data.dates_count }}), dealbreakers safely averted, and estimated awkward hours saved (~{{ data.hours_saved }}h).</li>
+      <li><b>Cross-Platform Verification:</b> Confirms verified bi-directional LinkedIn and Instagram cross-links.</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const btnPng = document.getElementById('btn-download-png');
+  const btnCopy = document.getElementById('btn-copy-link');
+  const personId = {{ data.person_id|tojson }};
+  const firstName = {{ data.first_name|tojson }};
+
+  btnCopy?.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      const original = btnCopy.textContent;
+      btnCopy.textContent = '✓ Link Copied!';
+      btnCopy.style.borderColor = 'var(--ok)';
+      setTimeout(() => {
+        btnCopy.textContent = original;
+        btnCopy.style.borderColor = '';
+      }, 2500);
+    } catch (e) {
+      alert('Link: ' + window.location.href);
+    }
+  });
+
+  btnPng?.addEventListener('click', async () => {
+    btnPng.disabled = true;
+    const origText = btnPng.textContent;
+    btnPng.textContent = 'Generating 1080×1920 PNG...';
+
+    try {
+      const svgEl = document.querySelector('#svg-wrap svg');
+      if (!svgEl) throw new Error('SVG not found');
+      
+      const svgData = new XMLSerializer().serializeToString(svgEl);
+      const svgBlob = new Blob([svgData], {type: 'image/svg+xml;charset=utf-8'});
+      const url = URL.createObjectURL(svgBlob);
+      
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.getElementById('export-canvas');
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, 1080, 1920);
+        ctx.drawImage(img, 0, 0, 1080, 1920);
+        URL.revokeObjectURL(url);
+        
+        canvas.toBlob((blob) => {
+          if (!blob) return;
+          const a = document.createElement('a');
+          a.download = `amora-story-${personId}.png`;
+          a.href = URL.createObjectURL(blob);
+          a.click();
+          btnPng.disabled = false;
+          btnPng.textContent = origText;
+        }, 'image/png');
+      };
+      img.src = url;
+    } catch (err) {
+      console.error(err);
+      alert('Could not render PNG client-side. Downloading SVG instead.');
+      window.location.href = `/api/people/${personId}/story-card.svg`;
+      btnPng.disabled = false;
+      btnPng.textContent = origText;
+    }
+  });
+});
+</script>
+{% endblock %}

@@ -90,6 +90,7 @@ class Turn(BaseModel):
     text: str
     thought: str = ""  # private inner monologue of the agent (shown in replay)
     observation: str = ""  # running read / deduction about the other person this turn
+    mood: str = "open"  # spark, probing, vulnerable, playful, thoughtful, open
 
 
 class Verdict(BaseModel):
