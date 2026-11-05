@@ -4,6 +4,7 @@ import asyncio
 import functools
 import json
 import threading
+import time
 import uuid
 
 from fastapi import FastAPI, Form, HTTPException, Request
@@ -173,9 +174,12 @@ def person(request: Request, pid: str):
                 return i
         return None
 
+    has_access = privacy.verify_person_access(request, p)
+    access_token = getattr(p, "edit_token", "") if has_access else ""
     return tpl.TemplateResponse(request, "person.html", _ctx(
         request, p=p, dates=store.list_dates(pid), ranking=rankings[:5], receipt=receipt,
-        assemble=request.query_params.get("assemble") == "1"))
+        assemble=request.query_params.get("assemble") == "1",
+        has_access=has_access, access_token=access_token))
 
 
 @app.get("/round", response_class=HTMLResponse)
@@ -206,7 +210,25 @@ def date(request: Request, did: str):
     demo_only = config.demo_mode() and bool(pa and pb and pa.synthetic and pb.synthetic)
     authorized = privacy.is_authorized(request) or demo_only
     sanitized_d = privacy.sanitize_date(d, authorized=authorized)
-    return tpl.TemplateResponse(request, "date.html", _ctx(request, d=sanitized_d, authorized=authorized, pa=pa, pb=pb))
+
+    # Check caller authority for whisper & post-date coaching
+    req_token = request.query_params.get("token") or ""
+    can_access_a = privacy.verify_person_access(request, pa, token=req_token) if pa else False
+    can_access_b = privacy.verify_person_access(request, pb, token=req_token) if pb else False
+    token_a = pa.edit_token if (can_access_a and pa) else ""
+    token_b = pb.edit_token if (can_access_b and pb) else ""
+
+    return tpl.TemplateResponse(request, "date.html", _ctx(
+        request,
+        d=sanitized_d,
+        authorized=authorized,
+        pa=pa,
+        pb=pb,
+        can_access_a=can_access_a,
+        can_access_b=can_access_b,
+        token_a=token_a,
+        token_b=token_b,
+    ))
 
 
 
@@ -378,7 +400,11 @@ async def stream(jid: str):
 
 
 @app.post("/person/{pid}/delete")
-def delete(pid: str):
+def delete(request: Request, pid: str, token: str = Form("")):
+    p = store.get_person(pid)
+    if not p:
+        raise HTTPException(404, "No such person")
+    privacy.require_person_access(request, p, token=token)
     if pid in PERSON_JOBS:
         jid = PERSON_JOBS[pid]
         if jid in JOBS:
@@ -393,10 +419,11 @@ def delete(pid: str):
 
 
 @app.post("/person/{pid}/coach")
-def coach_person(pid: str, action: str = Form("add"), note: str = Form(""), index: int = Form(-1)):
+def coach_person(request: Request, pid: str, action: str = Form("add"), note: str = Form(""), index: int = Form(-1), token: str = Form("")):
     p = store.get_person(pid)
     if not p:
         raise HTTPException(404, "No such person")
+    privacy.require_person_access(request, p, token=token)
     from .agents import coaching
     if action == "add" and note:
         coaching.add_coaching_note(p, note)
@@ -407,10 +434,11 @@ def coach_person(pid: str, action: str = Form("add"), note: str = Form(""), inde
 
 
 @app.post("/person/{pid}/feedback")
-def person_feedback(pid: str, feedback: str = Form(...), date_id: str = Form("")):
+def person_feedback(request: Request, pid: str, feedback: str = Form(...), date_id: str = Form(""), token: str = Form("")):
     p = store.get_person(pid)
     if not p:
         raise HTTPException(404, "No such person")
+    privacy.require_person_access(request, p, token=token)
     from .agents import coaching
     coaching.apply_feedback(p, feedback, date_id=date_id or None)
     store.save_person(p)
@@ -422,13 +450,14 @@ def person_feedback(pid: str, feedback: str = Form(...), date_id: str = Form("")
 
 
 @app.post("/date/{did}/feedback")
-def date_feedback(did: str, pid: str = Form(...), feedback: str = Form(...)):
+def date_feedback(request: Request, did: str, pid: str = Form(...), feedback: str = Form(...), token: str = Form("")):
     d = store.get_date(did)
     if not d:
         raise HTTPException(404, "No such date")
     p = store.get_person(pid)
     if not p:
         raise HTTPException(404, "No such person")
+    privacy.require_person_access(request, p, token=token)
     from .agents import coaching
     coaching.apply_feedback(p, feedback, date_id=did)
     store.save_person(p)
@@ -504,10 +533,11 @@ def recompute_stable_matching():
 
 
 @app.post("/person/{pid}/revoke-consent")
-def revoke_consent(pid: str):
+def revoke_consent(request: Request, pid: str, token: str = Form("")):
     p = store.get_person(pid)
     if not p:
         raise HTTPException(404, "No such person")
+    privacy.require_person_access(request, p, token=token)
     if pid in PERSON_JOBS:
         jid = PERSON_JOBS[pid]
         if jid in JOBS:
@@ -640,6 +670,7 @@ async def stream_date_live(request: Request, did: str, speed: float = 1.0):
             spk_name = name_a if t.speaker == d.a else name_b
             yield f"data: {json.dumps({'event': 'typing', 'speaker': t.speaker, 'speaker_name': spk_name, 'turn_index': idx, 'mood': t.mood})}\n\n"
             await asyncio.sleep(delay)
+            whisper_txt = getattr(t, 'whisper', None) or ''
             payload = {
                 'event': 'turn',
                 'turn_index': idx,
@@ -649,14 +680,96 @@ async def stream_date_live(request: Request, did: str, speed: float = 1.0):
                 'text': t.text,
                 'thought': t.thought if authorized else '',
                 'observation': t.observation if authorized else '',
+                'whisper': whisper_txt if authorized else '',
                 'mood': t.mood,
             }
             yield f"data: {json.dumps(payload)}\n\n"
+            if whisper_txt and authorized:
+                yield f"data: {json.dumps({'event': 'whisper', 'turn_index': idx, 'speaker': t.speaker, 'speaker_name': spk_name, 'whisper': whisper_txt})}\n\n"
             await asyncio.sleep(delay * 0.8)
         yield f"data: {json.dumps({'event': 'verdicts', 'mutual': d.mutual, 'score_a': d.verdict_a.score, 'score_b': d.verdict_b.score, 'yes_a': d.verdict_a.second_date, 'yes_b': d.verdict_b.second_date})}\n\n"
         yield f"data: {json.dumps({'done': True})}\n\n"
 
     return StreamingResponse(gen(), media_type="text/event-stream")
+
+
+@app.get("/api/dates/{did}/audio-cues")
+def date_audio_cues(request: Request, did: str):
+    d = store.get_date(did)
+    if not d:
+        raise HTTPException(404, "Date not found")
+    pa = store.get_person(d.a)
+    pb = store.get_person(d.b)
+    demo_only = config.demo_mode() and bool(pa and pb and pa.synthetic and pb.synthetic)
+    authorized = privacy.is_authorized(request) or demo_only
+    from .audio import podcast
+    cues = podcast.build_audio_cues(d, pa, pb, authorized=authorized)
+    return JSONResponse(cues)
+
+
+@app.get("/api/dates/{did}/audio.mp3")
+def date_audio_mp3(did: str):
+    d = store.get_date(did)
+    if not d:
+        raise HTTPException(404, "Date not found")
+    pa = store.get_person(d.a)
+    pb = store.get_person(d.b)
+    from .audio import podcast
+    audio_data = podcast.synthesize_date_mp3(d, pa, pb)
+    if not audio_data:
+        raise HTTPException(404, "Audio synthesis not available offline; use client-side voice player.")
+    return Response(content=audio_data, media_type="audio/mpeg")
+
+
+@app.post("/api/dates/{did}/whisper")
+def mid_date_whisper(
+    request: Request,
+    did: str,
+    pid: str = Form(...),
+    whisper: str = Form(...),
+    token: str = Form(""),
+):
+    d = store.get_date(did)
+    if not d:
+        raise HTTPException(404, "Date not found")
+    if pid not in (d.a, d.b):
+        raise HTTPException(400, "Person not in this date")
+    p = store.get_person(pid)
+    if not p:
+        raise HTTPException(404, "Person not found")
+
+    # Authorize person access (edit token or authenticated SaaS session)
+    privacy.require_person_access(request, p, token=token)
+
+    cleaned_whisper = whisper.strip()
+    if not cleaned_whisper:
+        raise HTTPException(400, "Whisper cannot be empty")
+
+    whisper_entry = {
+        "speaker": pid,
+        "whisper": cleaned_whisper,
+        "timestamp": time.time(),
+    }
+    d.whispers.append(whisper_entry)
+
+    # Attach whisper to the matching speaker turn
+    injected = False
+    for t in reversed(d.turns):
+        if t.speaker == pid:
+            t.whisper = cleaned_whisper
+            t.thought = f"[Whisper from human: '{cleaned_whisper}'] {t.thought}".strip()
+            injected = True
+            break
+    if not injected and d.turns:
+        d.turns[-1].whisper = cleaned_whisper
+
+    store.save_date(d)
+    return JSONResponse({
+        "status": "delivered",
+        "date_id": did,
+        "speaker": pid,
+        "whisper": cleaned_whisper,
+    })
 
 
 @app.get("/healthz")

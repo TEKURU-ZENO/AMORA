@@ -33,9 +33,7 @@ class ConversationalBenchmarkPair:
     person_b: Person
     public_overlap_summary: str
     hidden_conversational_facts: str
-    ground_truth_score: float  # y* (0 to 10)
-    baseline_prior_score: float  # y_prior (0 to 10)
-    agent_conversational_score: float  # y_agent (0 to 10)
+    ground_truth_score: float  # Gold-standard relational ground truth y* (0 to 10)
     discovery_narrative: str
 
 
@@ -127,8 +125,6 @@ def generate_research_cohort() -> list[ConversationalBenchmarkPair]:
         public_overlap_summary="Both list 'Travel' and 'Urban Exploration' on public profile",
         hidden_conversational_facts="Aarav cannot leave city (elderly parent care); Meera moving to Tokyo in 8 months",
         ground_truth_score=2.2,
-        baseline_prior_score=7.8,
-        agent_conversational_score=2.4,
         discovery_narrative="Aarav probed long-term relocation. Meera revealed Tokyo move; mutual hard boundary hit.",
     ))
 
@@ -167,8 +163,6 @@ def generate_research_cohort() -> list[ConversationalBenchmarkPair]:
         public_overlap_summary="Corporate finance vs wildlife artist (zero profile keyword overlap)",
         hidden_conversational_facts="Rohan quitting finance to start nature lodge; Ishita seeking sanctuary co-builder",
         ground_truth_score=9.2,
-        baseline_prior_score=3.6,
-        agent_conversational_score=9.0,
         discovery_narrative="Rohan revealed secret eco-lodge plan. Ishita lit up; profound latent synergy unlocked.",
     ))
 
@@ -207,8 +201,6 @@ def generate_research_cohort() -> list[ConversationalBenchmarkPair]:
         public_overlap_summary="Both list 'Yoga' and 'Specialty Coffee' with mindful tags",
         hidden_conversational_facts="Kiran requires radical vulnerability; Farhan shuts down and avoids all emotions",
         ground_truth_score=2.8,
-        baseline_prior_score=8.1,
-        agent_conversational_score=2.9,
         discovery_narrative="Kiran probed emotional depth. Farhan deflected with defensive sarcasm; dealbreaker triggered.",
     ))
 
@@ -247,8 +239,6 @@ def generate_research_cohort() -> list[ConversationalBenchmarkPair]:
         public_overlap_summary="Both list 'Bouldering' and 'Literature'",
         hidden_conversational_facts="Both desire quiet family life with 2 kids and shared emotional security",
         ground_truth_score=9.0,
-        baseline_prior_score=7.1,
-        agent_conversational_score=8.8,
         discovery_narrative="Agents discussed Sunday routines and family vision; immediate deep resonance confirmed.",
     ))
 
@@ -287,8 +277,6 @@ def generate_research_cohort() -> list[ConversationalBenchmarkPair]:
         public_overlap_summary="Both startup software builders ('Startups, Coding')",
         hidden_conversational_facts="Vikram demands 85hr startup focus on dates; Tara strictly bans work talk on dates",
         ground_truth_score=3.0,
-        baseline_prior_score=7.9,
-        agent_conversational_score=2.7,
         discovery_narrative="Tara enacted strict no-work boundary rule; Vikram could not disengage. Verdict declined.",
     ))
 
@@ -327,102 +315,10 @@ def generate_research_cohort() -> list[ConversationalBenchmarkPair]:
         public_overlap_summary="Niche arts: animation & modular audio (moderate prior)",
         hidden_conversational_facts="Both require quiet parallel play and zero social performance pressure",
         ground_truth_score=8.8,
-        baseline_prior_score=5.6,
-        agent_conversational_score=8.6,
         discovery_narrative="Shared love of comfortable silence and parallel creative focus emerged in dialogue.",
     ))
 
     return pairs
-
-
-def _simulate_conversational_date_record(pair: ConversationalBenchmarkPair) -> DateRecord:
-    """Generate a realistic date transcript that reveals the hidden conversational facts."""
-    pa, pb = pair.person_a, pair.person_b
-    fa, fb = pa.analysis.display_name.split()[0], pb.analysis.display_name.split()[0]
-    did = hashlib.sha1(f"study|{pa.id}|{pb.id}".encode()).hexdigest()[:10]
-
-    # Generate grounded turns
-    t1 = Turn(
-        speaker=pa.id,
-        text=f"Hi {fb}, glad we could meet up! What's something exciting going on in your life right now?",
-        thought=f"Opening warmly. Guided by coaching: {pa.coaching_notes[0] if pa.coaching_notes else 'probe authentic life'}.",
-        mood="spark",
-    )
-    t2 = Turn(
-        speaker=pb.id,
-        text=f"Hey {fa}! Honestly, I'm at an interesting crossroads. Outside of work, my focus is really on where I want to be long-term.",
-        thought=f"Setting the stage to share what's really happening. Coaching: {pb.coaching_notes[0] if pb.coaching_notes else 'be authentic'}.",
-        mood="thoughtful",
-    )
-    t3 = Turn(
-        speaker=pa.id,
-        text=f"Can I ask a real question? My human wanted me to ask: {pa.coaching_notes[0] if pa.coaching_notes else 'what do you actually need?'}",
-        thought="Testing the core private coaching directive directly.",
-        mood="probing",
-    )
-    t4 = Turn(
-        speaker=pb.id,
-        text=f"I appreciate you being direct! The truth is: {pair.hidden_conversational_facts.split(';')[1].strip() if ';' in pair.hidden_conversational_facts else pair.hidden_conversational_facts}.",
-        thought="Revealing the hidden truth openly.",
-        mood="vulnerable" if pair.ground_truth_score >= 6.0 else "dealbreaker_check",
-    )
-    t5 = Turn(
-        speaker=pa.id,
-        text=f"{'That aligns with everything my human values! This is rare.' if pair.ground_truth_score >= 6.0 else 'I really appreciate your honesty. That sounds like a clear boundary collision for us, but it is good to know early.'}",
-        thought="Synthesizing date verdict based on revealed truth.",
-        mood="spark" if pair.ground_truth_score >= 6.0 else "thoughtful",
-    )
-    t6 = Turn(
-        speaker=pb.id,
-        text=f"{'I completely agree. I would love to meet again.' if pair.ground_truth_score >= 6.0 else 'Completely understand. Wishing you the absolute best!'}",
-        thought="Closing date perception.",
-        mood="spark" if pair.ground_truth_score >= 6.0 else "open",
-    )
-
-    turns = [t1, t2, t3, t4, t5, t6]
-    is_positive = pair.ground_truth_score >= 6.0
-
-    va = Verdict(
-        agent_for=pa.id,
-        score=pair.agent_conversational_score,
-        chemistry=pair.agent_conversational_score,
-        needs_met=pair.agent_conversational_score,
-        values_alignment=pair.agent_conversational_score,
-        dealbreaker_hit=not is_positive,
-        second_date=is_positive,
-        reasons=[pair.discovery_narrative],
-        report_to_human=f"{fb} and I had a revealing date. {pair.discovery_narrative}",
-        learned_about_other=[pair.hidden_conversational_facts],
-    )
-    vb = Verdict(
-        agent_for=pb.id,
-        score=pair.agent_conversational_score,
-        chemistry=pair.agent_conversational_score,
-        needs_met=pair.agent_conversational_score,
-        values_alignment=pair.agent_conversational_score,
-        dealbreaker_hit=not is_positive,
-        second_date=is_positive,
-        reasons=[pair.discovery_narrative],
-        report_to_human=f"{fa} and I discussed what really matters. {pair.discovery_narrative}",
-        learned_about_other=[pair.hidden_conversational_facts],
-    )
-
-    d_rec = DateRecord(
-        id=did,
-        a=pa.id,
-        b=pb.id,
-        venue="Little Owl Café",
-        venue_reason="Research study conversational evaluation venue",
-        turns=turns,
-        verdict_a=va,
-        verdict_b=vb,
-        mutual=pair.agent_conversational_score,
-        engine="conversational_eval",
-        stage="standard",
-    )
-    # Persist so user can inspect the date
-    store.save_date(d_rec)
-    return d_rec
 
 
 def run_conversational_study() -> dict[str, Any]:
@@ -439,14 +335,25 @@ def run_conversational_study() -> dict[str, Any]:
 
     for pair in cohort:
         pa, pb = pair.person_a, pair.person_b
+        store.save_person(pa)
+        store.save_person(pb)
         
         # 1. Baseline: Profile-Only Prior Score (y_prior)
-        y_prior = pair.baseline_prior_score
+        c = compat.compute(pa.analysis, pb.analysis)
+        y_prior = round(float(c.prior), 2)
         
-        # 2. Treatment: Conversational Date Agent Verdict Score (y_agent)
-        # Execute date revealing hidden conversational facts
-        d_rec = _simulate_conversational_date_record(pair)
-        y_agent = pair.agent_conversational_score
+        # 2. Treatment: Conversational Date Real Agent Verdict Score (y_agent)
+        # Execute date with autonomous agents revealing conversational facts
+        d_rec = dater.go_on_date(
+            pa.id,
+            pa.analysis,
+            pb.id,
+            pb.analysis,
+            coaching_a=pa.coaching_notes,
+            coaching_b=pb.coaching_notes,
+        )
+        store.save_date(d_rec)
+        y_agent = round(float(d_rec.mutual), 2)
         y_gt = pair.ground_truth_score
 
         err_prior = abs(y_prior - y_gt)

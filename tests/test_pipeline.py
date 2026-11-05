@@ -80,7 +80,7 @@ def test_pages_and_guards(monkeypatch):
     monkeypatch.setenv("APIFY_TOKEN", "")
     r = c.post("/api/people", data={"linkedin": "https://www.linkedin.com/in/a-b", "instagram": "https://instagram.com/ab", "consent": "yes"})
     assert r.status_code == 503  # Apify-only: without a token nobody can join
-    assert c.post(f"/person/{p.id}/delete", follow_redirects=False).status_code == 303
+    assert c.post(f"/person/{p.id}/delete", data={"token": p.edit_token}, follow_redirects=False).status_code == 303
     assert store.get_person(p.id) is None and not store.list_dates(p.id)
 
 

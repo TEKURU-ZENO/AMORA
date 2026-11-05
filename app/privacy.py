@@ -64,7 +64,7 @@ def sanitize_turn(t: Turn, authorized: bool = False) -> Turn:
     """Mask private agent thoughts and running observations unless authorized."""
     if authorized:
         return t
-    return Turn(speaker=t.speaker, text=t.text, thought="", observation="")
+    return Turn(speaker=t.speaker, text=t.text, thought="", observation="", mood=t.mood, whisper=None)
 
 
 def sanitize_verdict(v: Verdict, authorized: bool = False) -> Verdict:
@@ -156,3 +156,50 @@ def sanitize_date_dict(d: DateRecord, authorized: bool = False) -> dict:
 def sanitize_person_dict(p: Person, authorized: bool = False) -> dict:
     """Serialize person, hiding raw scraped source data and private coaching instructions from unauthorized public view."""
     return p.model_dump(exclude={"sources", "coaching_notes", "feedback_history"} if not authorized else None)
+
+
+def verify_person_access(request: Request, p: Person, token: Optional[str] = None) -> bool:
+    """Verify if the caller has authority to edit, coach, feedback, or delete this person.
+
+    Authorized if:
+    1. Caller provides administrative / demo credentials (is_authorized(request)).
+    2. Per-person secret edit token matches p.edit_token (from parameter, query ?token=, header X-Person-Token, or cookie).
+    3. Authenticated SaaS user owns this persona (current_user.person_id == p.id).
+    """
+    if not p:
+        return False
+
+    # 1. Admin / demo authorization
+    if is_authorized(request):
+        return True
+
+    # 2. Check per-person secret edit token
+    cand_token = (
+        token
+        or request.query_params.get("token")
+        or request.headers.get("X-Person-Token")
+        or request.cookies.get(f"amora_token_{p.id}")
+    )
+    if cand_token and getattr(p, "edit_token", None):
+        if hmac.compare_digest(cand_token.strip(), p.edit_token.strip()):
+            return True
+
+    # 3. Check SaaS authenticated user ownership
+    try:
+        from . import saas
+        user = saas.get_current_user(request)
+        if user and user.person_id == p.id:
+            return True
+    except Exception:
+        pass
+
+    return False
+
+
+def require_person_access(request: Request, p: Person, token: Optional[str] = None) -> None:
+    """Raise 403 Forbidden if the caller lacks authorization to modify or delete this person."""
+    if not verify_person_access(request, p, token=token):
+        raise HTTPException(
+            status_code=403,
+            detail="Forbidden: You do not have permission to modify or delete this profile. A valid per-person token, owner session, or admin key is required."
+        )

@@ -94,8 +94,12 @@ def test_consent_revocation_lifecycle():
     assert len(initial_dates) > 0
 
 
-    # Revoke consent
-    res = client.post(f"/person/{target.id}/revoke-consent")
+    # 1. Verify unauthorized attempt is rejected with 403
+    res_unauth = client.post(f"/person/{target.id}/revoke-consent")
+    assert res_unauth.status_code == 403
+
+    # 2. Revoke consent with valid person token
+    res = client.post(f"/person/{target.id}/revoke-consent", data={"token": target.edit_token})
     assert res.status_code == 200
     body = res.json()
     assert body["status"] == "revoked"
@@ -120,8 +124,12 @@ def test_cascading_deletion():
     target = [p for p in people if store.list_dates(p.id)][0]
     pid = target.id
 
-    # Delete person
-    res = client.post(f"/person/{pid}/delete", follow_redirects=False)
+    # 1. Verify unauthorized deletion is rejected with 403
+    res_unauth = client.post(f"/person/{pid}/delete", follow_redirects=False)
+    assert res_unauth.status_code == 403
+
+    # 2. Delete person with valid token
+    res = client.post(f"/person/{pid}/delete", data={"token": target.edit_token}, follow_redirects=False)
     assert res.status_code == 303
 
     # Assert completely purged

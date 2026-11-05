@@ -22,20 +22,29 @@ def test_predate_coaching_directives():
     assert len(people) >= 2
     p1 = people[0]
 
-    # 1. Endpoint: Add coaching directive
+    # 0. Unauthorized attempt without token or session must be rejected with 403
+    res_unauth = client.post(f"/person/{p1.id}/coach", data={
+        "action": "add",
+        "note": "Malicious unauthenticated injection"
+    })
+    assert res_unauth.status_code == 403
+
+    # 1. Endpoint: Add coaching directive with valid edit_token
     res = client.post(f"/person/{p1.id}/coach", data={
         "action": "add",
-        "note": "Ask if they would ever move abroad in the future"
+        "note": "Ask if they would ever move abroad in the future",
+        "token": p1.edit_token,
     }, follow_redirects=False)
     assert res.status_code == 303
 
     p1_updated = store.get_person(p1.id)
     assert "Ask if they would ever move abroad in the future" in p1_updated.coaching_notes
 
-    # 2. Add second directive
+    # 2. Add second directive with valid edit_token
     client.post(f"/person/{p1.id}/coach", data={
         "action": "add",
-        "note": "Strictly do not bring up work or career talk"
+        "note": "Strictly do not bring up work or career talk",
+        "token": p1.edit_token,
     }, follow_redirects=False)
 
     p1_updated = store.get_person(p1.id)
@@ -57,7 +66,8 @@ def test_predate_coaching_directives():
     # 4. Endpoint: Remove coaching directive
     res_rem = client.post(f"/person/{p1.id}/coach", data={
         "action": "remove",
-        "index": 0
+        "index": 0,
+        "token": p1.edit_token,
     }, follow_redirects=False)
     assert res_rem.status_code == 303
     p1_after_rem = store.get_person(p1.id)
@@ -96,7 +106,8 @@ def test_postdate_feedback_loop_and_reranking():
 
     # Post feedback: "you got me wrong, I hate clubs and need someone who loves outdoors"
     res = client.post(f"/person/{p.id}/feedback", data={
-        "feedback": "You got me wrong, I hate clubs and wild nightlife. Need someone who loves quiet hiking."
+        "feedback": "You got me wrong, I hate clubs and wild nightlife. Need someone who loves quiet hiking.",
+        "token": p.edit_token,
     }, follow_redirects=False)
     assert res.status_code == 303
 
@@ -125,9 +136,18 @@ def test_date_feedback_endpoint():
     d = dates[0]
     p_a = store.get_person(d.a)
 
-    res = client.post(f"/date/{d.id}/feedback", data={
+    # 1. Unauthenticated request must return 403 Forbidden
+    res_unauth = client.post(f"/date/{d.id}/feedback", data={
         "pid": p_a.id,
         "feedback": "Dealbreaker: smokers. I can never date someone who smokes."
+    }, follow_redirects=False)
+    assert res_unauth.status_code == 403
+
+    # 2. Authenticated with per-person token succeeds with 303
+    res = client.post(f"/date/{d.id}/feedback", data={
+        "pid": p_a.id,
+        "feedback": "Dealbreaker: smokers. I can never date someone who smokes.",
+        "token": p_a.edit_token,
     }, follow_redirects=False)
     assert res.status_code == 303
 

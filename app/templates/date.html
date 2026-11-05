@@ -14,6 +14,7 @@
   <button class="btn sm" id="play" aria-label="Pause">❚❚ Pause</button>
   <button class="btn ghost sm" id="skip">Skip to end ⇥</button>
   <button class="btn ghost sm" id="stream-live-btn" title="Stream this date turn-by-turn via Server-Sent Events (SSE)">📡 Stream Live (SSE)</button>
+  <button class="btn sm" id="podcast-audio-btn" style="background:#8a2be2;color:#fff;" title="Listen to this date as a dual-voice audio podcast">🎙️ Voice Date</button>
   <div class="speed" role="group" aria-label="Speed">
     {% for s in ['1', '1.5', '2'] %}<button type="button" data-speed="{{ s }}" aria-pressed="{{ 'true' if s == '1' else 'false' }}">{{ s }}×</button>{% endfor %}
   </div>
@@ -26,6 +27,22 @@
     <span class="track"></span>🔒 Private thoughts hidden</button>
   {% endif %}
 </div>
+
+<!-- Podcast Voice Player Bar -->
+<div id="podcast-player-bar" style="display:none;margin-top:14px;padding:12px 18px;background:rgba(138,43,226,0.12);border:1px solid rgba(138,43,226,0.3);border-radius:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+  <div style="display:flex;align-items:center;gap:12px;">
+    <button class="btn sm" id="podcast-toggle-play" style="background:#8a2be2;color:#fff;">▶ Play</button>
+    <div>
+      <b style="color:#c77dff;font-size:13px;">🎙️ AI Dual-Voice Podcast</b>
+      <div id="podcast-status-text" class="small muted">Ready to play conversational replay</div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <span id="podcast-time" class="small mono muted">0:00 / 0:00</span>
+    <button class="btn ghost sm" id="podcast-stop-btn">■ Stop</button>
+  </div>
+</div>
+
 <p class="small muted" style="margin:10px 0 0">Each agent speaks for its own human. The thoughts are private: the other agent never saw them.
   {% if authorized %}
   <span class="hide-sm"><span class="kbd">space</span> play/pause · <span class="kbd">→</span> next line · <span class="kbd">T</span> thoughts</span>
@@ -34,10 +51,44 @@
   {% endif %}
 </p>
 
+<!-- Live Mid-Date Whisper to Agent -->
+{% if can_access_a or can_access_b or authorized %}
+<div class="card" style="margin:20px 0;padding:16px 20px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.12);border-radius:12px;">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span class="chip" style="background:rgba(255,183,3,0.15);color:#ffb703;border-color:#ffb703;font-size:11px;font-weight:700;">LIVE INTERACTION</span>
+      <b>Mid-Date Whisper to Your Agent</b>
+    </div>
+    <span class="small muted">Inject real-time guidance directly into your agent's ongoing conversation</span>
+  </div>
+  <form id="whisper-form" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+    <select name="pid" id="whisper-pid" style="padding:8px 12px;border-radius:6px;background:var(--bg);color:var(--fg);border:1px solid var(--border);">
+      {% if can_access_a or authorized %}
+      <option value="{{ d.a }}" data-token="{{ token_a }}">Whisper to {{ fa }}'s Agent</option>
+      {% endif %}
+      {% if can_access_b or authorized %}
+      <option value="{{ d.b }}" data-token="{{ token_b }}">Whisper to {{ fb }}'s Agent</option>
+      {% endif %}
+    </select>
+    <input type="text" name="whisper" id="whisper-input" placeholder="e.g. 'Ask if they are open to moving abroad' or 'Mention our rescue dog!'" required style="flex:1;min-width:240px;padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);">
+    <input type="hidden" name="token" id="whisper-token" value="{{ token_a if can_access_a else (token_b if can_access_b else '') }}">
+    <button type="submit" class="btn sm" id="whisper-submit-btn" style="background:#ffb703;color:#000;font-weight:700;">
+      💬 Send Whisper
+    </button>
+  </form>
+  <div id="whisper-status" class="small" style="margin-top:8px;display:none;color:#ffb703;"></div>
+</div>
+{% endif %}
 
 <div class="chat" id="chat" aria-live="polite">{% for t in d.turns %}{% set side = 'a' if t.speaker == d.a else 'b' %}
-  <div class="msg {{ side }}"><div class="who">{{ fa if side == 'a' else fb }}'s agent</div>
-    <div class="bubble">{{ t.text }}</div>
+  <div class="msg {{ side }}" id="turn-{{ loop.index0 }}"><div class="who">{{ fa if side == 'a' else fb }}'s agent</div>
+    <div class="bubble">{{ t.text }}
+      {% if t.whisper and authorized %}
+      <div style="margin-top:6px;font-size:12px;color:#ffb703;background:rgba(255,183,3,0.12);padding:4px 8px;border-radius:6px;border-left:2px solid #ffb703;">
+        💬 <b>Human Whisper Injected:</b> {{ t.whisper }}
+      </div>
+      {% endif %}
+    </div>
     {% if t.thought %}<div class="thought">{{ t.thought }}</div>{% endif %}
     {% if t.observation and authorized %}<div class="thought" style="margin-top:4px;border-left:2px solid var(--accent);background:rgba(255,255,255,0.05);font-size:13px"><b style="color:var(--accent)">Running read:</b> {{ t.observation }}</div>{% endif %}</div>{% endfor %}
   <div class="typing" id="typing" aria-hidden="true"><span class="dots"><i></i><i></i><i></i></span></div>
@@ -253,12 +304,13 @@
 <section class="card" style="margin-bottom:32px">
   <p class="small muted" style="margin:0 0 12px">Tell your agent what it got right or wrong about you on this date (e.g. <i>"you got me wrong, I hate clubs"</i>, <i>"I actually want someone quieter"</i>, or <i>"focus more on shared values"</i>). The agent will update its brief and re-rank immediately.</p>
   <form method="post" action="/date/{{ d.id }}/feedback">
+    <input type="hidden" name="token" id="feedback-token" value="{{ token_a if can_access_a else (token_b if can_access_b else '') }}">
     <div style="display:flex;gap:16px;margin-bottom:12px">
       <label class="small" style="display:flex;align-items:center;gap:6px;cursor:pointer">
-        <input type="radio" name="pid" value="{{ d.a }}" checked> Coach {{ fa }}'s Agent
+        <input type="radio" name="pid" value="{{ d.a }}" checked onchange="document.getElementById('feedback-token').value='{{ token_a }}';"> Coach {{ fa }}'s Agent
       </label>
       <label class="small" style="display:flex;align-items:center;gap:6px;cursor:pointer">
-        <input type="radio" name="pid" value="{{ d.b }}"> Coach {{ fb }}'s Agent
+        <input type="radio" name="pid" value="{{ d.b }}" onchange="document.getElementById('feedback-token').value='{{ token_b }}';"> Coach {{ fb }}'s Agent
       </label>
     </div>
     <div style="display:flex;gap:8px">

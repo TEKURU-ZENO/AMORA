@@ -250,6 +250,185 @@ if (replay) {
     });
   }
 
+  // Mid-Date Live Whisper Handler
+  const whisperForm = $('#whisper-form');
+  if (whisperForm) {
+    whisperForm.addEventListener('submit', async e => {
+      e.preventDefault();
+      const did = location.pathname.split('/').pop().split('?')[0];
+      const pidSelect = $('#whisper-pid');
+      const pid = pidSelect ? pidSelect.value : '';
+      const whisperInput = $('#whisper-input');
+      const whisper = whisperInput ? whisperInput.value.trim() : '';
+      const tokenInput = $('#whisper-token');
+      const token = tokenInput ? tokenInput.value : '';
+      const statusDiv = $('#whisper-status');
+      const submitBtn = $('#whisper-submit-btn');
+
+      if (!whisper) return;
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Delivering...';
+      }
+
+      try {
+        const formData = new FormData();
+        formData.append('pid', pid);
+        formData.append('whisper', whisper);
+        formData.append('token', token);
+
+        const res = await fetch(`/api/dates/${did}/whisper`, {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (res.ok) {
+          if (whisperInput) whisperInput.value = '';
+          if (statusDiv) {
+            statusDiv.style.display = 'block';
+            statusDiv.style.color = '#3fb950';
+            statusDiv.innerHTML = '✓ Whisper delivered to agent\'s inner ear 🧠';
+            setTimeout(() => { statusDiv.style.display = 'none'; }, 4000);
+          }
+        } else {
+          const err = await res.json().catch(() => ({}));
+          if (statusDiv) {
+            statusDiv.style.display = 'block';
+            statusDiv.style.color = '#ff4d6d';
+            statusDiv.innerHTML = '✕ ' + (err.detail || 'Could not deliver whisper');
+          }
+        }
+      } catch (err) {
+        if (statusDiv) {
+          statusDiv.style.display = 'block';
+          statusDiv.style.color = '#ff4d6d';
+          statusDiv.innerHTML = '✕ Delivery error';
+        }
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = '💬 Send Whisper';
+        }
+      }
+    });
+  }
+
+  // Dual-Voice Podcast Engine
+  const podcastBtn = $('#podcast-audio-btn');
+  const podcastBar = $('#podcast-player-bar');
+  const podcastPlayBtn = $('#podcast-toggle-play');
+  const podcastStopBtn = $('#podcast-stop-btn');
+  const podcastStatus = $('#podcast-status-text');
+  const podcastTime = $('#podcast-time');
+
+  if (podcastBtn && podcastBar) {
+    let cues = [];
+    let cueIndex = 0;
+    let isSpeaking = false;
+    const synth = window.speechSynthesis;
+
+    const highlightTurn = (idx) => {
+      $$('.msg').forEach(m => m.classList.remove('speaking-turn'));
+      const el = $(`#turn-${idx}`);
+      if (el) {
+        el.classList.add('show', 'speaking-turn');
+        follow(el);
+      }
+    };
+
+    const stopPodcast = () => {
+      if (synth) synth.cancel();
+      isSpeaking = false;
+      cueIndex = 0;
+      if (podcastPlayBtn) podcastPlayBtn.textContent = '▶ Play';
+      if (podcastStatus) podcastStatus.textContent = 'Podcast stopped';
+      $$('.msg').forEach(m => m.classList.remove('speaking-turn'));
+    };
+
+    const speakNextCue = () => {
+      if (!isSpeaking || cueIndex >= cues.length) {
+        stopPodcast();
+        if (podcastStatus) podcastStatus.textContent = 'Podcast complete ✓';
+        return;
+      }
+
+      const cue = cues[cueIndex];
+      if (podcastStatus) podcastStatus.textContent = `Speaking: ${cue.speaker_name} (${cue.mood})`;
+      if (podcastTime) podcastTime.textContent = `${cueIndex + 1} / ${cues.length} turns`;
+      if (cue.turn_index >= 0) {
+        highlightTurn(cue.turn_index);
+      }
+
+      if (!synth) {
+        cueIndex++;
+        setTimeout(speakNextCue, 1000);
+        return;
+      }
+
+      const utter = new SpeechSynthesisUtterance(cue.text);
+      utter.pitch = cue.voice_settings ? cue.voice_settings.pitch : 1.0;
+      utter.rate = (cue.voice_settings ? cue.voice_settings.rate : 1.0) * speed;
+
+      utter.onend = () => {
+        cueIndex++;
+        setTimeout(speakNextCue, 300);
+      };
+      utter.onerror = () => {
+        cueIndex++;
+        setTimeout(speakNextCue, 300);
+      };
+
+      synth.speak(utter);
+    };
+
+    podcastBtn.addEventListener('click', async () => {
+      const isVisible = podcastBar.style.display !== 'none';
+      if (isVisible) {
+        podcastBar.style.display = 'none';
+        stopPodcast();
+        return;
+      }
+      podcastBar.style.display = 'flex';
+      const did = location.pathname.split('/').pop().split('?')[0];
+
+      if (!cues.length) {
+        if (podcastStatus) podcastStatus.textContent = 'Loading audio speech cues...';
+        try {
+          const res = await fetch(`/api/dates/${did}/audio-cues`);
+          cues = await res.json();
+          if (podcastStatus) podcastStatus.textContent = `Ready: ${cues.length} turns formatted for dual-voice synthesis`;
+          if (podcastTime) podcastTime.textContent = `0 / ${cues.length} turns`;
+        } catch (e) {
+          if (podcastStatus) podcastStatus.textContent = 'Unable to load speech cues';
+        }
+      }
+    });
+
+    if (podcastPlayBtn) {
+      podcastPlayBtn.addEventListener('click', () => {
+        if (isSpeaking) {
+          if (synth) synth.pause();
+          isSpeaking = false;
+          podcastPlayBtn.textContent = '▶ Resume';
+        } else {
+          if (synth && synth.paused) {
+            synth.resume();
+            isSpeaking = true;
+            podcastPlayBtn.textContent = '❚❚ Pause';
+          } else {
+            isSpeaking = true;
+            podcastPlayBtn.textContent = '❚❚ Pause';
+            speakNextCue();
+          }
+        }
+      });
+    }
+
+    if (podcastStopBtn) {
+      podcastStopBtn.addEventListener('click', stopPodcast);
+    }
+  }
+
   if (calm || !msgs.length) finish(); else play();
 }
 

@@ -77,6 +77,7 @@
     <span class="chip g" style="display:inline-flex;align-items:center;gap:6px">
       <span>{{ note }}</span>
       <form method="post" action="/person/{{ p.id }}/coach" style="display:inline;margin:0">
+        <input type="hidden" name="token" value="{{ access_token }}">
         <input type="hidden" name="action" value="remove">
         <input type="hidden" name="index" value="{{ loop.index0 }}">
         <button type="submit" style="background:none;border:none;cursor:pointer;color:inherit;padding:0;font-size:14px;line-height:1" title="Remove directive">×</button>
@@ -86,6 +87,7 @@
   </div>
   {% endif %}
   <form method="post" action="/person/{{ p.id }}/coach" style="display:flex;gap:8px">
+    <input type="hidden" name="token" value="{{ access_token }}">
     <input type="hidden" name="action" value="add">
     <input type="text" name="note" placeholder="e.g. Ask if they would ever move abroad..." required style="flex:1;padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg)">
     <button type="submit" class="btn sm">Give Directive</button>
@@ -151,6 +153,7 @@
 <div class="remove">
   <button type="button" class="btn quiet start">Remove me from the pool</button>
   <form method="post" action="/person/{{ p.id }}/delete" class="confirm">
+    <input type="hidden" name="token" value="{{ access_token }}">
     <span class="small">This deletes the profile, both sources and every date. Sure?</span>
     <button class="btn sm" type="submit">Yes, remove</button><button type="button" class="btn ghost sm cancel">Cancel</button></form>
 </div>

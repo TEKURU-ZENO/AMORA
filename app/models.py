@@ -1,7 +1,8 @@
 """Core data models. Everything an agent knows about a person flows through these."""
 from __future__ import annotations
 
-from typing import Literal, Optional
+import secrets
+from typing import Any, Literal, Optional
 from pydantic import BaseModel, Field
 
 
@@ -91,6 +92,7 @@ class Turn(BaseModel):
     thought: str = ""  # private inner monologue of the agent (shown in replay)
     observation: str = ""  # running read / deduction about the other person this turn
     mood: str = "open"  # spark, probing, vulnerable, playful, thoughtful, open
+    whisper: Optional[str] = None  # mid-date coaching whisper injected by human owner
 
 
 class Verdict(BaseModel):
@@ -209,6 +211,8 @@ class DateRecord(BaseModel):
     first_fight: Optional[FirstFightRecord] = None
     second_date_plan: Optional[SecondDatePlan] = None
     honesty_audit: Optional[HonestyAudit] = None
+    whispers: list[dict[str, Any]] = Field(default_factory=list, description="Mid-date coaching whispers injected by humans")
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 class Person(BaseModel):
@@ -223,6 +227,7 @@ class Person(BaseModel):
     reading_log: list[str] = []  # the agent's step-by-step reading trace
     warnings: list[str] = []  # partial failures, e.g. one source could not be read
     synthetic: bool = False  # a fictional demo persona (demo mode only); never a scraped person
+    edit_token: str = Field(default_factory=lambda: secrets.token_hex(16), description="Per-person authorization token to coach, delete, or modify")
     coaching_notes: list[str] = Field(default_factory=list, description="Pre-date instructions from human to agent")
     dating_learnings: list[str] = Field(default_factory=list, description="Cross-date insights learned by agent across rounds")
     feedback_history: list[dict] = Field(default_factory=list, description="History of post-date user corrections and brief updates")

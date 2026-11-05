@@ -5,10 +5,10 @@
   <!-- Header -->
   <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;margin-bottom:28px;">
     <div>
-      <div class="kicker">Publication Research · Conversational Evaluation</div>
-      <h1 style="margin:6px 0 10px;">Empirical Evaluation Harness</h1>
-      <p class="lede" style="margin:0;max-width:640px;">
-        Empirically verifying that autonomous multi-turn agent dates recover latent compatibility dimensions that cannot be inferred from public profile signals alone.
+      <div class="kicker">Primary Empirical Results · Information Retrieval</div>
+      <h1 style="margin:6px 0 10px;">Empirical IR Benchmark Suite</h1>
+      <p class="lede" style="margin:0;max-width:680px;">
+        Standardized offline evaluation measuring ranking relevance, discounted cumulative gain, dealbreaker precision, and stability across gold-standard synthetic couples.
       </p>
     </div>
     <form action="/api/eval/run" method="post" id="run-benchmark-form" style="margin-top:10px;">
@@ -18,77 +18,7 @@
     </form>
   </div>
 
-  <!-- Primary Publication Research Chart Card -->
-  {% if res.chart_svg %}
-  <div class="card" style="margin-bottom:36px;padding:24px;border:1px solid rgba(255,255,255,0.15);background:#0e1218;">
-    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
-      <div>
-        <span class="chip g" style="font-weight:700;font-size:12px;margin:0 0 8px 0;display:inline-block;">
-          ✓ {{ res.conversational_study.metrics.error_reduction_pct }}% Error Reduction vs Baseline
-        </span>
-        <h2 style="margin:4px 0 4px;font-size:22px;">Simulated Dates Beat Profile-Only Baseline</h2>
-        <p class="small muted" style="margin:0;">
-          Gold-standard comparison across controlled pairs with hidden facts that only emerge in conversation.
-        </p>
-      </div>
-      <a href="/api/eval/chart.svg" download="amora-conversational-study.svg" class="btn ghost sm">
-        ⬇ Download Vector Chart (SVG)
-      </a>
-    </div>
-
-    <!-- Responsive SVG Chart Embed -->
-    <div style="width:100%;overflow-x:auto;margin:16px 0;background:#0d1117;border-radius:12px;padding:8px;box-shadow:inset 0 2px 8px rgba(0,0,0,0.5);">
-      {{ res.chart_svg|safe }}
-    </div>
-
-    <!-- Conversational Study Breakdown Table -->
-    <h4 style="margin:20px 0 10px;">Controlled Cohort: Profile Signals vs. Conversational Discoveries</h4>
-    <div style="overflow-x:auto;">
-      <table style="width:100%;border-collapse:collapse;font-size:13px;text-align:left;">
-        <thead>
-          <tr style="border-bottom:1px solid var(--line);color:var(--muted);">
-            <th style="padding:8px;">Pair</th>
-            <th style="padding:8px;">Public Profile Clue</th>
-            <th style="padding:8px;">Hidden Conversational Truth</th>
-            <th style="padding:8px;text-align:center;">Prior</th>
-            <th style="padding:8px;text-align:center;">Agent</th>
-            <th style="padding:8px;text-align:center;">True</th>
-            <th style="padding:8px;text-align:right;">Error Reduction</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for p in res.conversational_study.pairs %}
-          <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
-            <td style="padding:10px 8px;font-weight:600;white-space:nowrap;">
-              {{ p.name_a.split()[0] }} × {{ p.name_b.split()[0] }}
-            </td>
-            <td style="padding:10px 8px;color:#8b949e;">
-              {{ p.public_overlap_summary }}
-            </td>
-            <td style="padding:10px 8px;color:#e6edf3;">
-              {{ p.hidden_conversational_facts }}
-            </td>
-            <td style="padding:10px 8px;text-align:center;color:#58a6ff;font-weight:600;">
-              {{ p.baseline_prior_score }}
-            </td>
-            <td style="padding:10px 8px;text-align:center;color:#ff758f;font-weight:700;">
-              {{ p.agent_verdict_score }}
-            </td>
-            <td style="padding:10px 8px;text-align:center;color:#ffb703;font-weight:700;">
-              {{ p.ground_truth_score }}
-            </td>
-            <td style="padding:10px 8px;text-align:right;color:var(--ok);font-weight:700;">
-              -{{ p.error_reduction }} pts
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </div>
-  {% endif %}
-
-  <!-- KPI Scorecards Grid -->
+  <!-- Primary IR Scorecards Grid -->
   <div class="quad" style="grid-template-columns:repeat(auto-fit, minmax(210px, 1fr));gap:16px;margin-bottom:32px;">
     <!-- Precision@1 -->
     <div class="card" style="padding:20px;text-align:center;">
@@ -163,45 +93,8 @@
     </div>
   </div>
 
-  <!-- Prompt Caching & Cost Reduction Dashboard -->
-  <div class="card" style="margin-bottom:32px;background:rgba(22,27,34,0.7);border:1px solid rgba(255,255,255,0.12);">
-    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
-      <div>
-        <h3 style="margin:0;">Prompt Caching &amp; Token Economics</h3>
-        <p class="small muted" style="margin:4px 0 0;">
-          Claude prompt caching on static system briefs (90% discount on cached turns 2–10).
-        </p>
-      </div>
-      <span class="chip g" style="font-weight:700;font-size:14px;">
-        {{ res.caching_economics.percentage_cost_reduction }}% Cost Reduction
-      </span>
-    </div>
-
-    <div class="quad" style="grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:14px;">
-      <div style="background:rgba(255,255,255,0.03);padding:14px;border-radius:10px;">
-        <div class="small muted">Uncached Cost</div>
-        <div style="font-size:22px;font-weight:700;margin-top:4px;">${{ res.caching_economics.uncached_total_cost_usd }}</div>
-      </div>
-      <div style="background:rgba(255,255,255,0.03);padding:14px;border-radius:10px;">
-        <div class="small muted">Cached Cost</div>
-        <div style="font-size:22px;font-weight:700;color:var(--ok);margin-top:4px;">${{ res.caching_economics.cached_total_cost_usd }}</div>
-      </div>
-      <div style="background:rgba(255,255,255,0.03);padding:14px;border-radius:10px;">
-        <div class="small muted">Total Dollar Savings</div>
-        <div style="font-size:22px;font-weight:700;color:var(--accent);margin-top:4px;">${{ res.caching_economics.savings_usd }}</div>
-      </div>
-      <div style="background:rgba(255,255,255,0.03);padding:14px;border-radius:10px;">
-        <div class="small muted">Cache Hit Rate</div>
-        <div style="font-size:22px;font-weight:700;color:#58a6ff;margin-top:4px;">{{ res.caching_economics.cache_hit_rate_pct }}%</div>
-      </div>
-    </div>
-    <div class="small muted" style="margin-top:14px;">
-      ⚡ <b>Latency Benefit:</b> {{ res.caching_economics.latency_speedup_factor }}. Benchmark executed in {{ res.summary.duration_seconds }}s.
-    </div>
-  </div>
-
   <!-- Detailed Couple Audit Table -->
-  <div class="card">
+  <div class="card" style="margin-bottom:32px;">
     <h3 style="margin-top:0;">Ground Truth Verification Matrix</h3>
     <p class="small muted" style="margin-top:-6px;margin-bottom:18px;">
       Each couple tests specific relational mechanics: ideal alignment, dealbreaker trips, and superficial keyword traps.
@@ -271,6 +164,113 @@
       </table>
     </div>
   </div>
+
+  <!-- Prompt Caching & Cost Reduction Dashboard -->
+  <div class="card" style="margin-bottom:36px;background:rgba(22,27,34,0.7);border:1px solid rgba(255,255,255,0.12);">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+      <div>
+        <h3 style="margin:0;">Prompt Caching &amp; Token Economics</h3>
+        <p class="small muted" style="margin:4px 0 0;">
+          Claude prompt caching on static system briefs (90% discount on cached turns 2–10).
+        </p>
+      </div>
+      <span class="chip g" style="font-weight:700;font-size:14px;">
+        {{ res.caching_economics.percentage_cost_reduction }}% Cost Reduction
+      </span>
+    </div>
+
+    <div class="quad" style="grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:14px;">
+      <div style="background:rgba(255,255,255,0.03);padding:14px;border-radius:10px;">
+        <div class="small muted">Uncached Cost</div>
+        <div style="font-size:22px;font-weight:700;margin-top:4px;">${{ res.caching_economics.uncached_total_cost_usd }}</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.03);padding:14px;border-radius:10px;">
+        <div class="small muted">Cached Cost</div>
+        <div style="font-size:22px;font-weight:700;color:var(--ok);margin-top:4px;">${{ res.caching_economics.cached_total_cost_usd }}</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.03);padding:14px;border-radius:10px;">
+        <div class="small muted">Total Dollar Savings</div>
+        <div style="font-size:22px;font-weight:700;color:var(--accent);margin-top:4px;">${{ res.caching_economics.savings_usd }}</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.03);padding:14px;border-radius:10px;">
+        <div class="small muted">Cache Hit Rate</div>
+        <div style="font-size:22px;font-weight:700;color:#58a6ff;margin-top:4px;">{{ res.caching_economics.cache_hit_rate_pct }}%</div>
+      </div>
+    </div>
+    <div class="small muted" style="margin-top:14px;">
+      ⚡ <b>Latency Benefit:</b> {{ res.caching_economics.latency_speedup_factor }}. Benchmark executed in {{ res.summary.duration_seconds }}s.
+    </div>
+  </div>
+
+  <!-- Conversational Signal Recovery Study Card -->
+  {% if res.chart_svg %}
+  <div class="card" style="margin-bottom:36px;padding:24px;border:1px solid rgba(255,255,255,0.15);background:#0e1218;">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+      <div>
+        <span class="chip n" style="font-weight:700;font-size:12px;margin:0 0 8px 0;display:inline-block;color:#58a6ff;border-color:#58a6ff;">
+          Research Study · Conversational Signal Recovery
+        </span>
+        <h2 style="margin:4px 0 4px;font-size:22px;">Multi-Turn Agent Dates vs. Profile-Only Baseline</h2>
+        <p class="small muted" style="margin:0;max-width:700px;">
+          Controlled cohort study executing real autonomous dating agents against 6 couples with planted latent facts (caregiver duties, relocation, secret dreams, and emotional boundaries). Evaluates whether multi-turn date dialogue uncovers hidden dealbreakers and synergies that profile-only prior screening misses.
+        </p>
+      </div>
+      <a href="/api/eval/chart.svg" download="amora-conversational-study.svg" class="btn ghost sm">
+        ⬇ Download Vector Chart (SVG)
+      </a>
+    </div>
+
+    <!-- Responsive SVG Chart Embed -->
+    <div style="width:100%;overflow-x:auto;margin:16px 0;background:#0d1117;border-radius:12px;padding:8px;box-shadow:inset 0 2px 8px rgba(0,0,0,0.5);">
+      {{ res.chart_svg|safe }}
+    </div>
+
+    <!-- Conversational Study Breakdown Table -->
+    <h4 style="margin:20px 0 10px;">Controlled Cohort: Profile Signals vs. Conversational Discoveries</h4>
+    <div style="overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;font-size:13px;text-align:left;">
+        <thead>
+          <tr style="border-bottom:1px solid var(--line);color:var(--muted);">
+            <th style="padding:8px;">Pair</th>
+            <th style="padding:8px;">Public Profile Clue</th>
+            <th style="padding:8px;">Hidden Conversational Truth</th>
+            <th style="padding:8px;text-align:center;">Prior</th>
+            <th style="padding:8px;text-align:center;">Agent</th>
+            <th style="padding:8px;text-align:center;">True</th>
+            <th style="padding:8px;text-align:right;">Error Reduction</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in res.conversational_study.pairs %}
+          <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+            <td style="padding:10px 8px;font-weight:600;white-space:nowrap;">
+              {{ p.name_a.split()[0] }} × {{ p.name_b.split()[0] }}
+            </td>
+            <td style="padding:10px 8px;color:#8b949e;">
+              {{ p.public_overlap_summary }}
+            </td>
+            <td style="padding:10px 8px;color:#e6edf3;">
+              {{ p.hidden_conversational_facts }}
+            </td>
+            <td style="padding:10px 8px;text-align:center;color:#58a6ff;font-weight:600;">
+              {{ p.baseline_prior_score }}
+            </td>
+            <td style="padding:10px 8px;text-align:center;color:#ff758f;font-weight:700;">
+              {{ p.agent_verdict_score }}
+            </td>
+            <td style="padding:10px 8px;text-align:center;color:#ffb703;font-weight:700;">
+              {{ p.ground_truth_score }}
+            </td>
+            <td style="padding:10px 8px;text-align:right;color:var(--ok);font-weight:700;">
+              -{{ p.error_reduction }} pts
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
 
   <div class="small muted" style="text-align:center;margin-top:24px;">
     Last benchmark run: {{ res.timestamp }} · Evaluated with AMORA Autonomous Evaluation Framework

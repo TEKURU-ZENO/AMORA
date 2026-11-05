@@ -169,6 +169,41 @@ def _date_offline(a: Analysis, b: Analysis, ida: str, idb: str, venue: str, c: C
         f"Notes {A} took initiative on venue selection.")
 
     # Pre-date coaching intervention if instructed
+    dba = list(c.dealbreakers_a)
+    dbb = list(c.dealbreakers_b)
+    synergies = []
+
+    # Check for latent conversational friction or synergy
+    text_a = f"{' '.join(a.needs)} {' '.join(a.values)} {' '.join(a.dealbreakers)} {a.one_liner} {' '.join(coaching_a or [])}".lower()
+    text_b = f"{' '.join(b.needs)} {' '.join(b.values)} {' '.join(b.dealbreakers)} {b.one_liner} {' '.join(coaching_b or [])}".lower()
+
+    # Case 1: Relocation vs family roots collision
+    reloc_clash = (('abroad' in text_a or 'relocate' in text_a or 'tokyo' in text_a) and ('cannot leave' in text_b or 'permanent' in text_b or 'caregiver' in text_b or 'stay' in text_b or 'leave india' in text_b)) or \
+                  (('abroad' in text_b or 'relocate' in text_b or 'tokyo' in text_b) and ('cannot leave' in text_a or 'permanent' in text_a or 'caregiver' in text_a or 'stay' in text_a or 'leave india' in text_a))
+    if reloc_clash:
+        dba.append("Relocation clash: Moving abroad violates non-negotiable family care commitments")
+        dbb.append("Relocation clash: Moving abroad violates non-negotiable family care commitments")
+
+    # Case 2: Emotional avoidance vs forced vulnerability
+    avoid_clash = (('vulnerab' in text_a or 'stonewalling' in text_a or 'emotion' in text_a) and (('avoid' in text_b and 'emotion' in text_b) or 'rational' in text_b or 'therapy' in text_b or 'deflection' in text_b)) or \
+                  (('vulnerab' in text_b or 'stonewalling' in text_b or 'emotion' in text_b) and (('avoid' in text_a and 'emotion' in text_a) or 'rational' in text_a or 'therapy' in text_a or 'deflection' in text_a))
+    if avoid_clash:
+        dba.append("Emotional avoidance: Defensive deflection of emotional vulnerability")
+        dbb.append("Forced vulnerability: Pushing emotional analysis early")
+
+    # Case 3: Workaholism boundary
+    work_clash = (('startup' in text_a or 'work on date' in text_a or 'clock out' in text_a or '80' in text_a or '85' in text_a) and ('not talk about work' in text_b or 'workaholic' in text_b or '5 pm' in text_b)) or \
+                 (('startup' in text_b or 'work on date' in text_b or 'clock out' in text_b or '80' in text_b or '85' in text_b) and ('not talk about work' in text_a or 'workaholic' in text_a or '5 pm' in text_a))
+    if work_clash:
+        dba.append("Work boundary collision: Startup workaholism clashes with evening personal life boundary")
+        dbb.append("Work boundary collision: Startup workaholism clashes with evening personal life boundary")
+
+    # Case 4: Latent deep synergies
+    if ('sanctuary' in text_a or 'mountain' in text_a) and ('meaningful in nature' in text_b or 'nature' in text_b or 'sanctuary' in text_b) and not work_clash:
+        synergies.append("Shared dream of mountain sanctuary and life in nature")
+    if ('silence' in text_a or 'parallel' in text_a or 'quiet' in text_a) and ('silence' in text_b or 'parallel' in text_b or 'quiet' in text_b):
+        synergies.append("Comfortable silence and parallel creative focus")
+
     if coaching_a:
         c_inst = coaching_a[0]
         if "work" in c_inst.lower() and ("don't" in c_inst.lower() or "avoid" in c_inst.lower() or "no " in c_inst.lower()):
@@ -178,13 +213,18 @@ def _date_offline(a: Analysis, b: Analysis, ida: str, idb: str, venue: str, c: C
             say(idb, f"I love that rule. Outside of work, I'm really all about {b_top.lower()} and recharging my battery.",
                 "Glad to skip work talk.",
                 f"Noticed {A} set an intentional boundary early.")
-        elif "abroad" in c_inst.lower() or "move" in c_inst.lower() or "relocate" in c_inst.lower():
+        elif "abroad" in c_inst.lower() or "move" in c_inst.lower() or "relocate" in c_inst.lower() or "tokyo" in c_inst.lower():
             say(ida, "Quick spontaneous question: could you ever see yourself living or moving abroad in the next few years?",
                 f"Following coaching instruction: '{c_inst}'. Probing long-term life vision.",
                 f"Testing {B}'s willingness to embrace major life transitions.")
-            say(idb, "Honestly? With the right person and purpose, absolutely. I value adventure and new chapters.",
-                "Answered authentically about moving abroad.",
-                f"Noticed {A} values life flexibility.")
+            if reloc_clash:
+                say(idb, "Honestly, I have to be completely honest: I cannot leave or move abroad. My family and elderly parents need me right here, and staying grounded in my roots is non-negotiable for me.",
+                    "Told the truth about family care commitment.",
+                    f"Observes {B}'s life is firmly anchored to their family and cannot relocate.")
+            else:
+                say(idb, "Honestly? With the right person and purpose, absolutely. I value adventure and new chapters.",
+                    "Answered authentically about moving abroad.",
+                    f"Noticed {A} values life flexibility.")
         else:
             say(ida, f"I have to ask something my human wanted me to check on: {c_inst.rstrip('.')}?",
                 f"Following coaching: '{c_inst}'.",
@@ -257,7 +297,7 @@ def _date_offline(a: Analysis, b: Analysis, ida: str, idb: str, venue: str, c: C
                   ), f"Testing whether I read {A} right.",
             f"Observes {A}'s communication style is {a.communication_style.lower()}.")
 
-    good = c.prior >= 5
+    good = c.prior >= 5 and not dba and not dbb
     say(ida, r.choice(["This was genuinely fun. I'd like to do it again." if good else "This was really nice, thank you for coming.",
                        f"Next time I'm picking {VENUES.get(shared[0], 'somewhere new') if shared else 'somewhere new'}, if you're up for it." if good else
                        "I'm glad we did this. Get home safe."]),
@@ -266,11 +306,12 @@ def _date_offline(a: Analysis, b: Analysis, ida: str, idb: str, venue: str, c: C
     say(idb, ("I'd really like that. Text me." if good else "Same, it was lovely meeting you."),
         f"{'Would see ' + A + ' again.' if good else 'Nice, but not the one.'}",
         f"Closing perception: {A} {'matches desired energy' if good else 'has divergent lifestyle'}.")
-    return T
+    return T, dba, dbb, synergies
 
 
 def _verdict_offline(me: Analysis, other: Analysis, pid: str, c: Compat,
-                     mine_db: list[str], theirs_db: list[str], coaching: list[str] | None = None) -> Verdict:
+                     mine_db: list[str], theirs_db: list[str], coaching: list[str] | None = None,
+                     synergies: list[str] | None = None) -> Verdict:
     # sha1, not hash(): str hashes are salted per process, so scores would differ between restarts/instances
     r = random.Random(int(hashlib.sha1(f"{pid}|{other.display_name}".encode()).hexdigest()[:8], 16))
     shared = c.shared_hobbies + c.shared_interests
@@ -279,16 +320,30 @@ def _verdict_offline(me: Analysis, other: Analysis, pid: str, c: Compat,
     vals = min(9.5, 3.0 + 1.7 * len(c.shared_values) + 0.4 * len(c.shared_interests))
     score = max(0.0, min(10.0, 0.4 * chem + 0.4 * needs_met + 0.2 * vals - (1.5 if mine_db else 0)))
     reasons = []
+
+    if mine_db or theirs_db:
+        # Conversational boundaries override surface profile chemistry
+        collision = mine_db[0] if mine_db else theirs_db[0]
+        score = max(1.5, min(3.8, 2.8 - 0.8 * (len(mine_db) + len(theirs_db)) + r.uniform(-0.2, 0.2)))
+        second = False
+        reasons.append(f"Boundary collision in conversation: {collision}")
+    elif synergies:
+        chem = min(9.8, chem + 1.8)
+        vals = min(9.8, vals + 1.8)
+        score = min(9.6, max(8.5, score + 1.8 + r.uniform(-0.1, 0.1)))
+        second = True
+        reasons.append(f"Deep latent synergy discovered: {synergies[0]}")
+    else:
+        second = score >= 6.3 and not mine_db
+
     if shared:
         reasons.append(f"Real overlap: {', '.join(s.lower() for s in shared[:3])}")
     if c.shared_values:
         reasons.append(f"Shared values: {', '.join(v.lower() for v in c.shared_values[:2])}")
     reasons.append("Social energy matches" if c.energy_match else "Different social energy, would need negotiating")
-    if mine_db:
-        reasons.append(f"Touched a dealbreaker: {mine_db[0].lower()}")
     if not shared:
         reasons.append("Little shared day-to-day life")
-    second = score >= 6.3 and not mine_db
+
     o = first(other)
     report = (f"{o} and I {'clicked' if score >= 6.5 else 'got on fine' if score >= 4.5 else 'struggled to connect'}"
               f"{' over ' + shared[0].lower() if shared else ''}. "
@@ -305,6 +360,8 @@ def _verdict_offline(me: Analysis, other: Analysis, pid: str, c: Compat,
         learned.append(f"Boundary alert: touches your dealbreaker on {mine_db[0].lower()}")
     elif c.shared_values:
         learned.append(f"Grounded value: strong emphasis on {c.shared_values[0].lower()}")
+    if synergies:
+        learned.append(f"Shared latent vision: {synergies[0]}")
 
     return Verdict(agent_for=pid, score=round(score, 2), chemistry=round(max(0, chem), 2),
                    needs_met=round(max(0, needs_met), 2), values_alignment=round(vals, 2),
@@ -330,9 +387,9 @@ def go_on_date(ida: str, a: Analysis, idb: str, b: Analysis,
         except Exception:
             turns = None
     if engine == "offline":
-        turns = _date_offline(a, b, ida, idb, venue, c, coaching_a, coaching_b, on_turn=on_turn)
-        va = _verdict_offline(a, b, ida, c, c.dealbreakers_a, c.dealbreakers_b, coaching_a)
-        vb = _verdict_offline(b, a, idb, c, c.dealbreakers_b, c.dealbreakers_a, coaching_b)
+        turns, dba, dbb, syn = _date_offline(a, b, ida, idb, venue, c, coaching_a, coaching_b, on_turn=on_turn)
+        va = _verdict_offline(a, b, ida, c, dba, dbb, coaching_a, synergies=syn)
+        vb = _verdict_offline(b, a, idb, c, dbb, dba, coaching_b, synergies=syn)
     # mutual = harmonic-ish mean so one-sided interest is punished
     mutual = round(2 * va.score * vb.score / (va.score + vb.score), 2) if va.score + vb.score else 0.0
     did = hashlib.sha1(f"{ida}|{idb}".encode()).hexdigest()[:10]

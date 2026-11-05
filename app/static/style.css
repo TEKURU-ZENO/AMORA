@@ -434,3 +434,6 @@ footer{color:var(--muted);font-size:13px;padding:56px 0 40px;margin-top:40px;bor
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{animation-duration:.001ms!important;animation-delay:0s!important;transition-duration:.001ms!important;scroll-behavior:auto!important}
 }
+
+/* Podcast speaking highlight */
+.msg.speaking-turn .bubble { box-shadow: 0 0 16px rgba(138,43,226,0.6); border: 1.5px solid #8a2be2; transition: all 0.2s ease; }
