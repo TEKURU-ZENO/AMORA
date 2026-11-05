@@ -105,9 +105,12 @@ def first_name(p) -> str:
 
 def _ctx(request, **kw):
     people = store.list_persons()
+    from . import saas
+    current_user = saas.get_current_user(request)
     return {"request": request, "people": people, "by_id": {p.id: p for p in people},
             "status_of": status_of, "first": first_name, "round_running": _round_running(),
-            "llm": config.llm_enabled(), "scraping": config.scraping_enabled(), "demo": config.demo_mode(), **kw}
+            "llm": config.llm_enabled(), "scraping": config.scraping_enabled(), "demo": config.demo_mode(),
+            "current_user": current_user, **kw}
 
 
 def _highlights(people, dates, asks) -> dict:
@@ -663,3 +666,179 @@ def health():
     return {"ok": True, "llm": config.llm_enabled(), "scraping": config.scraping_enabled(), "demo": config.demo_mode(),
             "demo_var_set": bool(os.getenv("AMORA_DEMO") or os.getenv("AGENTDATE_DEMO")),
             "env": os.getenv("VERCEL_ENV", "local"), "commit": os.getenv("VERCEL_GIT_COMMIT_SHA", "")[:7]}
+
+
+# ---------------------------------------------------------------- SaaS multi-tenant & billing routes
+
+@app.get("/login", response_class=HTMLResponse)
+def login_page(request: Request, next: str = "/my-agent", email: str = ""):
+    from . import saas
+    if saas.get_current_user(request):
+        return RedirectResponse(next, status_code=303)
+    return tpl.TemplateResponse(request, "login.html", _ctx(request, next_url=next, email=email))
+
+
+@app.post("/login")
+def login_submit(
+    request: Request,
+    email: str = Form(...),
+    name: str = Form(""),
+    demo_plan: str = Form("free"),
+    claim_name: str = Form(""),
+    next: str = Form("/my-agent"),
+):
+    from . import saas
+    plan = demo_plan if demo_plan in ("free", "pro", "vip") else "free"
+    matched_pid = None
+    if claim_name:
+        for p in store.list_persons():
+            if p.analysis and claim_name.lower() in p.analysis.display_name.lower():
+                matched_pid = p.id
+                break
+
+    user = saas.create_or_get_user(email=email, name=name, plan=plan, person_id=matched_pid)
+    token = saas.create_session(user.id)
+    resp = RedirectResponse(next or "/my-agent", status_code=303)
+    saas.set_session_cookie(resp, token)
+    return resp
+
+
+@app.get("/logout")
+def logout(request: Request):
+    from . import saas
+    token = request.cookies.get("amora_session")
+    if token:
+        saas.delete_session(token)
+    resp = RedirectResponse("/", status_code=303)
+    saas.clear_session_cookie(resp)
+    return resp
+
+
+@app.get("/pricing", response_class=HTMLResponse)
+def pricing_page(request: Request, upgraded: str = ""):
+    return tpl.TemplateResponse(request, "pricing.html", _ctx(request, upgraded=upgraded))
+
+
+@app.get("/my-agent", response_class=HTMLResponse)
+def my_agent_dashboard(request: Request):
+    from . import saas
+    user = saas.get_current_user(request)
+    if not user:
+        return RedirectResponse("/login?next=/my-agent", status_code=303)
+
+    person = store.get_person(user.person_id) if user.person_id else None
+    pool = [p for p in store.list_persons() if p.status == "analyzed" and p.analysis]
+
+    matches_with_icebreakers = []
+    my_dates = []
+
+    if person:
+        from .matching import gale_shapley
+        stable_result = gale_shapley.compute_stable_matching()
+        stable_partners = {p.id_b: p for p in stable_result.pairs if p.id_a == person.id}
+        stable_partners.update({p.id_a: p for p in stable_result.pairs if p.id_b == person.id})
+
+        all_dates = store.list_dates()
+        dates_by_partner = {}
+        for d in all_dates:
+            if d.a == person.id or d.b == person.id:
+                other_id = d.b if d.a == person.id else d.a
+                other_p = store.get_person(other_id)
+                my_v = d.verdict_a if d.a == person.id else d.verdict_b
+                dates_by_partner[other_id] = d
+                my_dates.append({
+                    "record": d,
+                    "other_person": other_p,
+                    "my_verdict": my_v,
+                })
+
+        rankings = store.get_meta("rankings", {}).get(person.id, [])
+        seen_partners = set()
+
+        for r in rankings:
+            partner_id = r["id"]
+            if partner_id in seen_partners:
+                continue
+            seen_partners.add(partner_id)
+            partner = store.get_person(partner_id)
+            if not partner or not partner.analysis:
+                continue
+
+            date_rec = dates_by_partner.get(partner_id)
+            is_stable = partner_id in stable_partners
+            icebreakers = saas.generate_icebreakers(person, partner, date_rec)
+
+            matches_with_icebreakers.append({
+                "partner": partner,
+                "mutual_score": r.get("fit", 7.5),
+                "is_stable_match": is_stable,
+                "date_id": date_rec.id if date_rec else None,
+                "icebreakers": icebreakers,
+            })
+
+    return tpl.TemplateResponse(request, "my_agent.html", _ctx(
+        request,
+        person=person,
+        pool_people=pool,
+        matches_with_icebreakers=matches_with_icebreakers,
+        my_dates=my_dates,
+    ))
+
+
+@app.post("/api/saas/claim")
+def claim_persona(request: Request, person_id: str = Form(...)):
+    from . import saas
+    user = saas.require_current_user(request)
+    saas.link_person_to_user(user.id, person_id)
+    return RedirectResponse("/my-agent", status_code=303)
+
+
+@app.get("/api/saas/icebreakers/{pid}")
+def get_icebreakers_api(request: Request, pid: str):
+    from . import saas
+    user = saas.require_current_user(request)
+    if not user.person_id:
+        raise HTTPException(400, "User has not claimed an agent persona yet.")
+    user_p = store.get_person(user.person_id)
+    target_p = store.get_person(pid)
+    if not user_p or not target_p:
+        raise HTTPException(404, "Person not found")
+
+    date_rec = None
+    for d in store.list_dates():
+        if (d.a == user_p.id and d.b == target_p.id) or (d.a == target_p.id and d.b == user_p.id):
+            date_rec = d
+            break
+
+    suggestions = saas.generate_icebreakers(user_p, target_p, date_rec)
+    return JSONResponse([s.model_dump() for s in suggestions])
+
+
+@app.post("/api/billing/checkout")
+def checkout_api(request: Request, plan: str = Form("pro")):
+    from . import saas
+    user = saas.require_current_user(request)
+    base_url = str(request.base_url).rstrip("/")
+    success_url = f"{base_url}/pricing?upgraded={plan}"
+    cancel_url = f"{base_url}/pricing"
+    session_data = saas.create_checkout_session(user, plan, success_url, cancel_url)
+    return RedirectResponse(session_data["url"], status_code=303)
+
+
+@app.post("/api/billing/portal")
+def billing_portal_api(request: Request):
+    from . import saas
+    user = saas.require_current_user(request)
+    base_url = str(request.base_url).rstrip("/")
+    return_url = f"{base_url}/pricing"
+    portal_url = saas.create_customer_portal_session(user, return_url)
+    return RedirectResponse(portal_url, status_code=303)
+
+
+@app.post("/api/billing/webhook")
+async def stripe_webhook_api(request: Request):
+    from . import saas
+    payload = await request.body()
+    sig = request.headers.get("stripe-signature")
+    res = saas.handle_stripe_webhook(payload, sig)
+    return JSONResponse(res)

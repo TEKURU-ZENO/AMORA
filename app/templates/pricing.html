@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% block title %}Pricing & Plans · AMORA Matchmaker SaaS{% endblock %}
+{% block body %}
+<div class="narrow" style="max-width:960px;margin:32px auto">
+  <div style="text-align:center;margin-bottom:48px">
+    <div class="kicker">Subscription Plans</div>
+    <h1 style="margin:8px 0 16px;font-size:38px">Hire Your Autonomous Matchmaker</h1>
+    <p class="muted" style="font-size:17px;line-height:1.6;max-width:640px;margin:0 auto">
+      Stop swiping on empty small talk. AMORA agents conduct deep, multi-turn conversational dates,
+      audit honesty, and deliver verified matches with zero blocking pairs.
+    </p>
+  </div>
+
+  {% if upgraded %}
+  <div style="background:rgba(46,204,113,0.15);border:1px solid var(--ok);color:var(--ok);padding:14px 20px;border-radius:10px;font-size:15px;margin-bottom:32px;text-align:center">
+    🎉 <b>Congratulations!</b> You are now subscribed to <b>{{ upgraded|upper }} Matchmaker</b>. All advanced features are unlocked!
+  </div>
+  {% endif %}
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:24px;margin-bottom:48px">
+    <!-- Free Tier -->
+    <div class="card" style="padding:32px;border:1px solid rgba(255,255,255,0.1);display:flex;flex-direction:column;justify-content:space-between">
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <h3 style="margin:0;font-size:22px">Free Explorer</h3>
+          {% if current_user and current_user.plan == 'free' %}
+          <span class="badge" style="background:rgba(255,255,255,0.15);color:var(--fg)">CURRENT PLAN</span>
+          {% endif %}
+        </div>
+        <p class="muted" style="font-size:14px;min-height:42px;margin:0 0 20px">Dip your toes into autonomous matchmaking.</p>
+        <div style="margin-bottom:24px">
+          <span style="font-size:40px;font-weight:700;font-family:Georgia,serif">$0</span>
+          <span class="muted" style="font-size:14px"> / forever</span>
+        </div>
+        <ul style="list-style:none;padding:0;margin:0 0 32px;display:flex;flex-direction:column;gap:12px;font-size:14px">
+          <li style="display:flex;gap:10px;align-items:center">✓ <span>3 simulated dates per week</span></li>
+          <li style="display:flex;gap:10px;align-items:center">✓ <span>Irving's stable roommate matching</span></li>
+          <li style="display:flex;gap:10px;align-items:center">✓ <span>AI Icebreaker drafts for top match</span></li>
+          <li style="display:flex;gap:10px;align-items:center;color:var(--muted)">✕ <span style="text-decoration:line-through">Voice dates & audio playback</span></li>
+          <li style="display:flex;gap:10px;align-items:center;color:var(--muted)">✕ <span style="text-decoration:line-through">Live mid-date whisper</span></li>
+          <li style="display:flex;gap:10px;align-items:center;color:var(--muted)">✕ <span style="text-decoration:line-through">"First Fight" stress testing</span></li>
+        </ul>
+      </div>
+
+      {% if current_user and current_user.plan == 'free' %}
+      <button disabled class="btn secondary" style="width:100%;opacity:0.6;cursor:default">Current Plan</button>
+      {% elif not current_user %}
+      <a href="/login" class="btn secondary" style="width:100%;text-align:center;display:block">Get Started Free</a>
+      {% else %}
+      <form method="post" action="/api/billing/checkout">
+        <input type="hidden" name="plan" value="free">
+        <button type="submit" class="btn secondary" style="width:100%;cursor:pointer">Downgrade to Free</button>
+      </form>
+      {% endif %}
+    </div>
+
+    <!-- Pro Tier (Popular) -->
+    <div class="card" style="padding:32px;border:2px solid var(--accent);background:linear-gradient(180deg, rgba(255,77,109,0.06) 0%, rgba(22,27,34,0.6) 100%);position:relative;display:flex;flex-direction:column;justify-content:space-between">
+      <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;font-size:11px;font-weight:700;letter-spacing:1px;padding:4px 12px;border-radius:12px;text-transform:uppercase">
+        MOST POPULAR
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <h3 style="margin:0;font-size:22px;color:var(--accent)">Pro Matchmaker</h3>
+          {% if current_user and current_user.plan == 'pro' %}
+          <span class="badge" style="background:rgba(255,77,109,0.2);color:var(--accent)">CURRENT PLAN</span>
+          {% endif %}
+        </div>
+        <p class="muted" style="font-size:14px;min-height:42px;margin:0 0 20px">Complete autonomous dating with high emotional intelligence.</p>
+        <div style="margin-bottom:24px">
+          <span style="font-size:40px;font-weight:700;font-family:Georgia,serif">$24</span>
+          <span class="muted" style="font-size:14px"> / month</span>
+        </div>
+        <ul style="list-style:none;padding:0;margin:0 0 32px;display:flex;flex-direction:column;gap:12px;font-size:14px">
+          <li style="display:flex;gap:10px;align-items:center"><b style="color:var(--ok)">✓</b> <span><b>Unlimited</b> simulated dates & rounds</span></li>
+          <li style="display:flex;gap:10px;align-items:center"><b style="color:var(--ok)">✓</b> <span><b>Voice dates:</b> Listen like a podcast</span></li>
+          <li style="display:flex;gap:10px;align-items:center"><b style="color:var(--ok)">✓</b> <span><b>Mid-date live whisper</b> during streaming</span></li>
+          <li style="display:flex;gap:10px;align-items:center"><b style="color:var(--ok)">✓</b> <span><b>"First Fight"</b> conflict resilience audit</span></li>
+          <li style="display:flex;gap:10px;align-items:center"><b style="color:var(--ok)">✓</b> <span><b>Second-date</b> concierge reservation planner</span></li>
+          <li style="display:flex;gap:10px;align-items:center"><b style="color:var(--ok)">✓</b> <span>Priority Irving stable matching queue</span></li>
+        </ul>
+      </div>
+
+      {% if current_user and current_user.plan == 'pro' %}
+      <button disabled class="btn" style="width:100%;opacity:0.8;cursor:default;background:var(--ok);border:none;color:#fff">Active Plan</button>
+      {% elif not current_user %}
+      <a href="/login?next=/pricing" class="btn" style="width:100%;text-align:center;display:block;background:var(--accent);color:#fff">Start Pro Trial &rarr;</a>
+      {% else %}
+      <form method="post" action="/api/billing/checkout">
+        <input type="hidden" name="plan" value="pro">
+        <button type="submit" class="btn" style="width:100%;cursor:pointer;background:var(--accent);color:#fff;border:none;padding:12px;font-weight:700">
+          Upgrade to Pro ($24/mo) &rarr;
+        </button>
+      </form>
+      {% endif %}
+    </div>
+
+    <!-- VIP Tier -->
+    <div class="card" style="padding:32px;border:1px solid rgba(255,183,3,0.3);background:linear-gradient(180deg, rgba(255,183,3,0.05) 0%, rgba(22,27,34,0.6) 100%);display:flex;flex-direction:column;justify-content:space-between">
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <h3 style="margin:0;font-size:22px;color:#ffb703">VIP Matchmaker</h3>
+          {% if current_user and current_user.plan == 'vip' %}
+          <span class="badge" style="background:rgba(255,183,3,0.2);color:#ffb703">CURRENT PLAN</span>
+          {% endif %}
+        </div>
+        <p class="muted" style="font-size:14px;min-height:42px;margin:0 0 20px">Executive agent with external web discovery & custom voice.</p>
+        <div style="margin-bottom:24px">
+          <span style="font-size:40px;font-weight:700;font-family:Georgia,serif">$79</span>
+          <span class="muted" style="font-size:14px"> / month</span>
+        </div>
+        <ul style="list-style:none;padding:0;margin:0 0 32px;display:flex;flex-direction:column;gap:12px;font-size:14px">
+          <li style="display:flex;gap:10px;align-items:center"><b style="color:#ffb703">✓</b> <span>Everything in Pro Matchmaker</span></li>
+          <li style="display:flex;gap:10px;align-items:center"><b style="color:#ffb703">✓</b> <span><b>External Discovery:</b> Scrapes beyond pool</span></li>
+          <li style="display:flex;gap:10px;align-items:center"><b style="color:#ffb703">✓</b> <span><b>Custom Voice Timbre:</b> Clone your vocal tone</span></li>
+          <li style="display:flex;gap:10px;align-items:center"><b style="color:#ffb703">✓</b> <span>Dedicated human matchmaker review</span></li>
+        </ul>
+      </div>
+
+      {% if current_user and current_user.plan == 'vip' %}
+      <button disabled class="btn" style="width:100%;opacity:0.8;cursor:default;background:#ffb703;border:none;color:#000;font-weight:700">Active VIP Plan</button>
+      {% elif not current_user %}
+      <a href="/login?next=/pricing" class="btn secondary" style="width:100%;text-align:center;display:block">Join VIP Waitlist &rarr;</a>
+      {% else %}
+      <form method="post" action="/api/billing/checkout">
+        <input type="hidden" name="plan" value="vip">
+        <button type="submit" class="btn secondary" style="width:100%;cursor:pointer;border-color:#ffb703;color:#ffb703;padding:12px;font-weight:700">
+          Upgrade to VIP ($79/mo) &rarr;
+        </button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card" style="padding:28px">
+    <h3 style="margin:0 0 12px;font-size:18px">Frequently Asked Questions</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;font-size:14px;line-height:1.6">
+      <div>
+        <b style="color:var(--fg);display:block;margin-bottom:4px">Can I cancel anytime?</b>
+        <span class="muted">Yes, you can cancel your subscription with 1 click from your account dashboard or Stripe portal at any time.</span>
+      </div>
+      <div>
+        <b style="color:var(--fg);display:block;margin-bottom:4px">Is my data shared publicly?</b>
+        <span class="muted">Never. Only your public LinkedIn/Instagram headlines are shared for initial screening. All coaching directives and private monologue thoughts stay encrypted to your account.</span>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,256 @@
+{% extends "base.html" %}{% import "_ui.html" as ui %}
+{% block title %}My Agent · AMORA Command Center{% endblock %}
+{% block body %}
+<div class="narrow" style="max-width:960px;margin:24px auto">
+
+  <!-- Header & Tenancy Banner -->
+  <div class="card" style="padding:28px;margin-bottom:28px;background:linear-gradient(135deg, rgba(255,77,109,0.08) 0%, rgba(22,27,34,0.8) 100%);border:1px solid rgba(255,255,255,0.12)">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px">
+      <div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+          <span class="kicker" style="margin:0">Autonomous Dating Dashboard</span>
+          <span class="badge" style="background:{% if current_user.is_vip %}rgba(255,183,3,0.2);color:#ffb703{% elif current_user.is_pro_or_vip %}rgba(255,77,109,0.2);color:var(--accent){% else %}rgba(255,255,255,0.1);color:var(--muted){% endif %};font-size:12px;font-weight:700">
+            {{ current_user.plan_label|upper }}
+          </span>
+        </div>
+        <h1 style="margin:0 0 6px;font-size:32px">
+          {% if person and person.analysis %}{{ person.analysis.display_name }}'s Agent{% else %}My Dating Agent{% endif %}
+        </h1>
+        <p class="muted" style="margin:0;font-size:15px">
+          Signed in as <b>{{ current_user.email }}</b> · 
+          {% if person and person.analysis %}{{ person.analysis.one_liner }}{% else %}No persona linked yet{% endif %}
+        </p>
+      </div>
+
+      <div style="display:flex;gap:10px;align-items:center">
+        {% if not current_user.is_pro_or_vip %}
+        <a href="/pricing" class="btn" style="background:var(--accent);color:#fff;font-weight:600;padding:10px 18px;font-size:14px">
+          Upgrade to Pro ($24/mo) &rarr;
+        </a>
+        {% else %}
+        <a href="/pricing" class="btn secondary" style="font-size:13px;padding:8px 14px">
+          Manage Subscription
+        </a>
+        {% endif %}
+        <a href="/logout" class="btn secondary" style="font-size:13px;padding:8px 14px">
+          Sign Out
+        </a>
+      </div>
+    </div>
+
+    {% if not person %}
+    <!-- Persona Claiming Flow -->
+    <div style="margin-top:24px;padding:20px;background:rgba(255,255,255,0.03);border:1px dashed rgba(255,255,255,0.15);border-radius:10px">
+      <h3 style="margin:0 0 8px;font-size:16px">Claim or Link Your Dating Persona</h3>
+      <p class="muted" style="font-size:14px;margin:0 0 16px">
+        Select which profile your autonomous agent represents in the dating pool:
+      </p>
+      <form method="post" action="/api/saas/claim" style="display:flex;gap:12px;flex-wrap:wrap">
+        <select name="person_id" required style="padding:10px 14px;border-radius:8px;background:#161b22;border:1px solid rgba(255,255,255,0.2);color:var(--fg);font-size:14px;flex-grow:1">
+          <option value="">-- Choose Profile from Pool --</option>
+          {% for p in pool_people %}
+          <option value="{{ p.id }}">{{ p.analysis.display_name if p.analysis else p.id }} ({{ p.analysis.one_liner if p.analysis else 'Profile' }})</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="btn" style="background:var(--accent);color:#fff;padding:10px 20px;font-weight:600;border:none;border-radius:8px;cursor:pointer">
+          Claim My Agent &rarr;
+        </button>
+      </form>
+    </div>
+    {% endif %}
+  </div>
+
+  {% if person and person.analysis %}
+  <!-- Agent Brief & Coaching Directives -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:32px">
+    <!-- Left: Agent Brief & What It Learned -->
+    <div class="card" style="padding:24px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <h3 style="margin:0;font-size:18px">Agent's Latent Brief</h3>
+        <span class="badge" style="background:rgba(46,204,113,0.15);color:var(--ok);font-size:11px">READY TO DATE</span>
+      </div>
+
+      <div style="margin-bottom:16px">
+        <div class="small muted" style="margin-bottom:4px">Core Values</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          {% for v in person.analysis.values %}
+          <span class="badge" style="background:rgba(255,255,255,0.06);color:var(--fg);font-size:12px">{{ v }}</span>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px">
+        <div class="small muted" style="margin-bottom:4px">Non-Negotiable Dealbreakers</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          {% for db in person.analysis.dealbreakers %}
+          <span class="badge" style="background:rgba(235,87,87,0.12);color:var(--accent);font-size:12px">✕ {{ db }}</span>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div>
+        <div class="small muted" style="margin-bottom:4px">What My Agent Learned Across Rounds</div>
+        {% if person.dating_learnings %}
+        <ul style="margin:0;padding-left:18px;font-size:13px;line-height:1.5;color:var(--fg)">
+          {% for learn in person.dating_learnings %}
+          <li>{{ learn }}</li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <p class="muted" style="font-size:13px;margin:0">Agent is observing dating patterns. Insights will appear after multiple rounds.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Right: Coach Your Agent -->
+    <div class="card" style="padding:24px">
+      <h3 style="margin:0 0 8px;font-size:18px">Coach Your Agent</h3>
+      <p class="muted" style="font-size:13px;line-height:1.4;margin:0 0 16px">
+        Instruct your agent before its next date (e.g. <i>"Ask if they want to move abroad"</i> or <i>"Don't bring up tech work"</i>).
+      </p>
+
+      {% if person.coaching_notes %}
+      <div style="margin-bottom:16px">
+        <div class="small muted" style="margin-bottom:6px">Active Instructions:</div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          {% for note in person.coaching_notes %}
+          <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);padding:8px 12px;border-radius:6px;font-size:13px;display:flex;justify-content:space-between;align-items:center">
+            <span>💡 {{ note }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <form method="post" action="/person/{{ person.id }}/coach" style="display:flex;flex-direction:column;gap:10px">
+        <input type="text" name="directive" required placeholder="e.g. Ask about their ideal Sunday..."
+               style="padding:10px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.05);color:var(--fg);font-size:14px">
+        <button type="submit" class="btn secondary" style="align-self:flex-start;font-size:13px;padding:8px 14px;cursor:pointer">
+          + Add Directive
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Verified Irving Matches & AI Icebreaker Drafter -->
+  <div class="card" style="padding:28px;margin-bottom:32px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+      <div>
+        <div class="kicker">Algorithmic Compatibility</div>
+        <h2 style="margin:4px 0 0;font-size:24px">Top Matches & AI Icebreakers</h2>
+      </div>
+      <span class="badge" style="background:rgba(56,139,253,0.15);color:#58a6ff;font-size:12px">
+        Irving SRP Verified (0 Blocking Pairs)
+      </span>
+    </div>
+
+    {% if matches_with_icebreakers %}
+    <div style="display:flex;flex-direction:column;gap:24px">
+      {% for item in matches_with_icebreakers %}
+      {% set partner = item.partner %}
+      {% set icebreakers = item.icebreakers %}
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:20px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:16px">
+          <div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <a href="/person/{{ partner.id }}" style="font-size:18px;font-weight:700;color:var(--fg);text-decoration:none">
+                {{ partner.analysis.display_name }}
+              </a>
+              {% if item.is_stable_match %}
+              <span class="badge" style="background:rgba(46,204,113,0.15);color:var(--ok);font-size:11px">★ Irving Stable Match</span>
+              {% endif %}
+            </div>
+            <div class="muted" style="font-size:13px;margin-top:2px">
+              {{ partner.analysis.one_liner }} · Mutual Score: <b style="color:var(--accent)">{{ item.mutual_score }}/10</b>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:8px">
+            {% if item.date_id %}
+            <a href="/date/{{ item.date_id }}" class="btn secondary" style="font-size:12px;padding:6px 12px">View Date Replay</a>
+            {% endif %}
+            {% if partner.sources and partner.sources.instagram and partner.sources.instagram.username %}
+            <a href="https://instagram.com/{{ partner.sources.instagram.username }}" target="_blank" class="btn secondary" style="font-size:12px;padding:6px 12px">Instagram &nearr;</a>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Icebreaker Options -->
+        <div style="margin-top:16px">
+          <div class="small muted" style="margin-bottom:8px;font-weight:600">Bespoke First Messages (Ready to Send):</div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));gap:12px">
+            {% for ib in icebreakers %}
+            <div style="background:#161b22;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:14px;display:flex;flex-direction:column;justify-content:space-between">
+              <div>
+                <div style="font-size:11px;font-weight:700;color:var(--accent);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px">
+                  {{ ib.headline }}
+                </div>
+                <div style="font-size:13px;line-height:1.5;color:var(--fg);margin-bottom:12px" id="msg-{{ loop.index0 }}-{{ partner.id }}">
+                  {{ ib.message }}
+                </div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding-top:8px;border-top:1px solid rgba(255,255,255,0.06)">
+                <button type="button" class="btn secondary" style="font-size:11px;padding:4px 10px;cursor:pointer"
+                        onclick="navigator.clipboard.writeText(document.getElementById('msg-{{ loop.index0 }}-{{ partner.id }}').innerText); this.innerText='✓ Copied!'; setTimeout(()=>this.innerText='Copy Message', 2000)">
+                  Copy Message
+                </button>
+                {% if ib.instagram_dm_url %}
+                <a href="{{ ib.instagram_dm_url }}" target="_blank" style="font-size:11px;color:var(--accent);text-decoration:none">
+                  Open Instagram DM &rarr;
+                </a>
+                {% endif %}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="muted" style="margin:0;font-size:14px">
+      No dates completed yet. Run a dating round from the <a href="/round" style="color:var(--accent)">Dating floor</a> to generate matches and icebreakers!
+    </p>
+    {% endif %}
+  </div>
+
+  <!-- Recent Dates & Transcripts -->
+  <div class="card" style="padding:28px">
+    <div class="kicker">Dating History</div>
+    <h2 style="margin:4px 0 16px;font-size:24px">My Agent's Dates</h2>
+
+    {% if my_dates %}
+    <div style="display:flex;flex-direction:column;gap:12px">
+      {% for d in my_dates %}
+      {% set other = d.other_person %}
+      {% set my_verdict = d.my_verdict %}
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:8px;flex-wrap:wrap;gap:10px">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <b>{{ other.analysis.display_name if other and other.analysis else 'Match' }}</b>
+            <span class="badge" style="font-size:11px;background:rgba(255,255,255,0.08)">{{ d.record.venue }}</span>
+            {% if my_verdict and my_verdict.second_date %}
+            <span class="badge" style="background:rgba(46,204,113,0.15);color:var(--ok);font-size:11px">Second Date: Yes</span>
+            {% else %}
+            <span class="badge" style="background:rgba(255,255,255,0.08);color:var(--muted);font-size:11px">Second Date: No</span>
+            {% endif %}
+          </div>
+          <div class="muted" style="font-size:13px;margin-top:4px">
+            Mutual Score: <b>{{ d.record.mutual }}/10</b> · {{ my_verdict.report_to_human[:90] if my_verdict and my_verdict.report_to_human else '' }}...
+          </div>
+        </div>
+
+        <a href="/date/{{ d.record.id }}" class="btn secondary" style="font-size:12px;padding:6px 12px">
+          View Date & Audio &rarr;
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="muted" style="margin:0;font-size:14px">Your agent has not been on any dates yet.</p>
+    {% endif %}
+  </div>
+
+  {% endif %}
+</div>
+{% endblock %}

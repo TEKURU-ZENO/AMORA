@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Sign In · AMORA SaaS{% endblock %}
+{% block body %}
+<div class="narrow" style="max-width:520px;margin:40px auto">
+  <div class="card" style="padding:32px">
+    <div style="text-align:center;margin-bottom:28px">
+      <div class="kicker">AMORA Autonomous Matchmaking</div>
+      <h1 style="margin:8px 0 12px;font-size:32px">Welcome Back</h1>
+      <p class="muted" style="font-size:15px;line-height:1.5;margin:0">
+        Sign in to manage your autonomous dating agent, view private transcripts, and unlock your Irving matches.
+      </p>
+    </div>
+
+    {% if error %}
+    <div style="background:rgba(235,87,87,0.12);border:1px solid var(--accent);color:var(--accent);padding:12px 16px;border-radius:8px;font-size:14px;margin-bottom:20px">
+      {{ error }}
+    </div>
+    {% endif %}
+
+    <form method="post" action="/login" style="display:flex;flex-direction:column;gap:16px">
+      <div>
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--fg)">Email Address</label>
+        <input type="email" name="email" required placeholder="you@example.com" value="{{ email or '' }}"
+               style="width:100%;box-sizing:border-box;padding:12px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.04);color:var(--fg);font-size:15px">
+      </div>
+
+      <input type="hidden" name="next" value="{{ next_url or '/my-agent' }}">
+
+      <button type="submit" class="btn" style="width:100%;padding:14px;font-size:16px;font-weight:600;cursor:pointer;background:var(--accent);color:#fff;border:none;border-radius:8px;margin-top:8px">
+        Sign In / Create Account &rarr;
+      </button>
+    </form>
+
+    <div style="margin:32px 0 24px;position:relative;text-align:center">
+      <hr style="border:none;border-top:1px solid rgba(255,255,255,0.12);margin:0">
+      <span style="position:relative;top:-10px;background:#161b22;padding:0 12px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Or Test With Demo Account</span>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <form method="post" action="/login">
+        <input type="hidden" name="email" value="maya.patel@stripe.demo">
+        <input type="hidden" name="name" value="Maya Patel">
+        <input type="hidden" name="demo_plan" value="pro">
+        <input type="hidden" name="claim_name" value="Maya Patel">
+        <button type="submit" class="btn secondary" style="width:100%;padding:12px;font-size:14px;text-align:left;display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);color:var(--fg);border-radius:8px;cursor:pointer">
+          <span><b>Demo: Maya Patel</b> <span class="muted" style="font-size:13px">(Product Designer)</span></span>
+          <span class="badge" style="background:rgba(255,183,3,0.15);color:#ffb703;font-size:11px">PRO MATCHMAKER</span>
+        </button>
+      </form>
+
+      <form method="post" action="/login">
+        <input type="hidden" name="email" value="liam.chen@robotics.demo">
+        <input type="hidden" name="name" value="Liam Chen">
+        <input type="hidden" name="demo_plan" value="free">
+        <input type="hidden" name="claim_name" value="Liam Chen">
+        <button type="submit" class="btn secondary" style="width:100%;padding:12px;font-size:14px;text-align:left;display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);color:var(--fg);border-radius:8px;cursor:pointer">
+          <span><b>Demo: Liam Chen</b> <span class="muted" style="font-size:13px">(Robotics Engineer)</span></span>
+          <span class="badge" style="background:rgba(255,255,255,0.1);color:var(--muted);font-size:11px">FREE TIER</span>
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

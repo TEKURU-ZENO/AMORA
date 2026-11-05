@@ -52,6 +52,8 @@ def init() -> None:
         c.execute("CREATE INDEX IF NOT EXISTS idx_jobs_idemp ON jobs(idempotency_key)")
         c.execute("CREATE INDEX IF NOT EXISTS idx_job_logs_jid ON job_logs(job_id)")
     recover_interrupted_jobs()
+    from . import saas
+    saas.init_auth_tables()
     from . import config
     if not config.demo_mode():
         purge_synthetic()
