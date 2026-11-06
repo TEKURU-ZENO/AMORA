@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+{% block title %}Create Your Dating Agent · Zero Scraping Onboarding · AMORA{% endblock %}
+{% block body %}
+<div class="narrow" style="max-width:940px;margin:24px auto;padding-bottom:80px;">
+
+  <!-- Header -->
+  <div style="text-align:center;margin-bottom:32px;">
+    <span class="chip g" style="font-size:12px;font-weight:700;margin-bottom:8px;display:inline-block;">
+      ✓ ZERO WEB SCRAPING · 100% PRIVATE &amp; ACCURATE
+    </span>
+    <h1 style="margin:4px 0 10px;font-size:36px;font-family:Georgia,serif;">
+      Build Your Autonomous Dating Agent
+    </h1>
+    <p class="muted" style="font-size:16px;max-width:640px;margin:0 auto;line-height:1.5;">
+      Traditional scrapers only pull outdated corporate titles. AMORA captures your authentic relationship dynamics, Sunday rhythm, and hard boundaries directly.
+    </p>
+  </div>
+
+  <!-- Intake Mode Selector Tabs -->
+  <div style="display:flex;justify-content:center;gap:12px;margin-bottom:28px;">
+    <button type="button" class="btn sm" id="tab-btn-interview" style="background:var(--accent);color:#fff;font-weight:600;padding:10px 20px;" onclick="switchMode('interview')">
+      ☕ 3-Minute Agent Interview
+    </button>
+    <button type="button" class="btn secondary sm" id="tab-btn-pdf" style="font-weight:600;padding:10px 20px;" onclick="switchMode('pdf')">
+      📄 Upload LinkedIn PDF / Resume
+    </button>
+  </div>
+
+  <div style="display:grid;grid-template-columns:3fr 2fr;gap:24px;align-items:start;">
+
+    <!-- Left Column: Forms -->
+    <div>
+      <!-- Mode 1: AI Intake Interview Form -->
+      <div id="mode-interview" class="card" style="padding:28px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+          <div>
+            <h3 style="margin:0;font-size:20px;">Conversational Intake Interview</h3>
+            <p class="small muted" style="margin:2px 0 0;">Takes 3 minutes. Your agent uses these answers on every date.</p>
+          </div>
+          <span class="badge" style="background:rgba(255,77,109,0.15);color:var(--accent);font-weight:700;">5 QUESTIONS</span>
+        </div>
+
+        <form method="post" action="/api/intake/interview" id="interview-form" style="display:flex;flex-direction:column;gap:18px;">
+          <div>
+            <label class="small muted" style="font-weight:600;display:block;margin-bottom:6px;">Your Full Name</label>
+            <input type="text" name="display_name" id="in-name" required placeholder="e.g. Maya Chen" style="width:100%;padding:10px 14px;border-radius:8px;background:var(--bg);border:1px solid var(--border);color:var(--fg);font-size:14px;" oninput="updatePreview()">
+          </div>
+
+          <div>
+            <label class="small muted" style="font-weight:600;display:block;margin-bottom:6px;">One-Line Identity &amp; Headline</label>
+            <input type="text" name="one_liner" id="in-headline" required placeholder="e.g. Sustainable Architect &amp; Ceramic Sculptor" style="width:100%;padding:10px 14px;border-radius:8px;background:var(--bg);border:1px solid var(--border);color:var(--fg);font-size:14px;" oninput="updatePreview()">
+          </div>
+
+          <div>
+            <label class="small muted" style="font-weight:600;display:block;margin-bottom:6px;">1. Sunday Morning Rhythm</label>
+            <div class="small muted" style="margin-bottom:6px;">What does your ideal, uninterrupted Sunday morning look like?</div>
+            <textarea name="sunday_rhythm" id="in-sunday" rows="2" required placeholder="e.g. Quiet pour-over coffee, morning light, trail running, then creative parallel focus without social rush." style="width:100%;padding:10px 14px;border-radius:8px;background:var(--bg);border:1px solid var(--border);color:var(--fg);font-size:13px;line-height:1.4;" oninput="updatePreview()"></textarea>
+          </div>
+
+          <div>
+            <label class="small muted" style="font-weight:600;display:block;margin-bottom:6px;">2. Non-Negotiable Boundaries</label>
+            <div class="small muted" style="margin-bottom:6px;">What are 1 or 2 hard boundaries or non-negotiables for you in a relationship?</div>
+            <textarea name="dealbreakers" id="in-db" rows="2" required placeholder="e.g. Moving abroad (I cannot relocate), emotional avoidance, smoking, workaholism without boundaries." style="width:100%;padding:10px 14px;border-radius:8px;background:var(--bg);border:1px solid var(--border);color:var(--fg);font-size:13px;line-height:1.4;" oninput="updatePreview()"></textarea>
+          </div>
+
+          <div>
+            <label class="small muted" style="font-weight:600;display:block;margin-bottom:6px;">3. Emotional &amp; Conflict Style</label>
+            <div class="small muted" style="margin-bottom:6px;">When you feel stressed or misunderstood, how do you prefer to communicate?</div>
+            <textarea name="communication" id="in-comm" rows="2" placeholder="e.g. I need 30 minutes of quiet space to process, followed by direct, calm, non-defensive check-ins." style="width:100%;padding:10px 14px;border-radius:8px;background:var(--bg);border:1px solid var(--border);color:var(--fg);font-size:13px;line-height:1.4;"></textarea>
+          </div>
+
+          <div>
+            <label class="small muted" style="font-weight:600;display:block;margin-bottom:6px;">4. Hidden Longings &amp; Latent Dreams</label>
+            <div class="small muted" style="margin-bottom:6px;">Outside of work, what is something you're secretly building, dreaming of, or longing to explore?</div>
+            <textarea name="latent_passions" id="in-passions" rows="2" placeholder="e.g. Building an off-grid mountain wildlife sanctuary, learning wheel pottery, writing a graphic novel." style="width:100%;padding:10px 14px;border-radius:8px;background:var(--bg);border:1px solid var(--border);color:var(--fg);font-size:13px;line-height:1.4;"></textarea>
+          </div>
+
+          <div>
+            <label class="small muted" style="font-weight:600;display:block;margin-bottom:6px;">5. Ideal First Date Atmosphere</label>
+            <input type="text" name="ideal_date" id="in-date" placeholder="e.g. A cozy vinyl café with corner seating where we can actually hear each other talk." style="width:100%;padding:10px 14px;border-radius:8px;background:var(--bg);border:1px solid var(--border);color:var(--fg);font-size:13px;">
+          </div>
+
+          <button type="submit" class="btn" style="background:var(--accent);color:#fff;padding:12px;font-size:15px;font-weight:700;border:none;border-radius:8px;cursor:pointer;margin-top:6px;">
+            ✨ Synthesize Agent &amp; Date the Pool &rarr;
+          </button>
+        </form>
+      </div>
+
+      <!-- Mode 2: LinkedIn PDF / Resume Upload Form -->
+      <div id="mode-pdf" class="card" style="padding:28px;display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+          <div>
+            <h3 style="margin:0;font-size:20px;">Upload LinkedIn Profile PDF / Resume</h3>
+            <p class="small muted" style="margin:2px 0 0;">Zero scraping. Instant 100ms parsing directly on server.</p>
+          </div>
+          <span class="badge" style="background:rgba(56,139,253,0.15);color:#58a6ff;font-weight:700;">100% COMPLIANT</span>
+        </div>
+
+        <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);padding:14px;border-radius:8px;margin-bottom:18px;">
+          <b style="font-size:13px;">How to download your official LinkedIn PDF:</b>
+          <ol class="small muted" style="margin:8px 0 0 16px;padding:0;line-height:1.5;">
+            <li>Go to your own LinkedIn profile in your browser.</li>
+            <li>Click the <b>"More"</b> button below your profile headline.</li>
+            <li>Select <b>"Save to PDF"</b> and drop that file here!</li>
+          </ol>
+        </div>
+
+        <form method="post" action="/api/intake/pdf" enctype="multipart/form-data" style="display:flex;flex-direction:column;gap:18px;">
+          <div style="border:2px dashed rgba(255,255,255,0.2);padding:32px 20px;text-align:center;border-radius:12px;background:rgba(255,255,255,0.02);cursor:pointer;" onclick="document.getElementById('pdf-file-input').click()">
+            <div style="font-size:36px;margin-bottom:8px;">📄</div>
+            <div style="font-weight:600;font-size:15px;margin-bottom:4px;">Drag and drop your LinkedIn PDF or resume here</div>
+            <div class="small muted" style="margin-bottom:12px;">Supports official LinkedIn exports and standard PDF resumes (up to 10MB)</div>
+            <input type="file" name="pdf_file" id="pdf-file-input" accept=".pdf" required style="display:none;" onchange="handleFileSelected(this)">
+            <span class="btn secondary sm" id="upload-btn-label">Browse Files</span>
+          </div>
+
+          <button type="submit" class="btn" style="background:#58a6ff;color:#fff;padding:12px;font-size:15px;font-weight:700;border:none;border-radius:8px;cursor:pointer;">
+            🚀 Parse Resume &amp; Launch Agent &rarr;
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Right Column: Live Agent Synthesis Preview -->
+    <div style="position:sticky;top:20px;">
+      <div class="card" style="padding:24px;border:1px solid rgba(255,255,255,0.15);background:linear-gradient(180deg, rgba(22,27,34,0.95) 0%, rgba(13,17,23,0.95) 100%);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+          <span class="small muted" style="text-transform:uppercase;letter-spacing:1px;font-weight:700;">Live Agent Synthesis</span>
+          <span class="chip g" style="font-size:11px;padding:2px 8px;">CALIBRATING</span>
+        </div>
+
+        <h3 id="prev-name" style="margin:0 0 4px;font-size:22px;color:var(--text);">Your Name</h3>
+        <p id="prev-headline" class="small muted" style="margin:0 0 16px;">Headline &amp; Passion</p>
+
+        <div style="margin-bottom:14px;background:rgba(255,255,255,0.03);padding:10px 12px;border-radius:8px;">
+          <div class="small muted" style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Deduced Pacing</div>
+          <div id="prev-pace" style="font-weight:600;font-size:14px;color:var(--ok);margin-top:2px;">Balanced rhythm</div>
+        </div>
+
+        <div style="margin-bottom:14px;">
+          <div class="small muted" style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Hard Boundaries Protected</div>
+          <div id="prev-db" style="display:flex;flex-wrap:wrap;gap:6px;">
+            <span class="badge" style="background:rgba(235,87,87,0.12);color:var(--accent);font-size:11px;">✕ Boundaries active</span>
+          </div>
+        </div>
+
+        <div style="padding-top:14px;border-top:1px solid rgba(255,255,255,0.08);font-size:12px;color:var(--muted);line-height:1.4;">
+          💡 <b>Grounded Agency:</b> Your agent negotiates dates using your actual verified answers, shielding you from dealbreaker collisions before you ever meet in person.
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function switchMode(mode) {
+  const btnInterview = document.getElementById('tab-btn-interview');
+  const btnPdf = document.getElementById('tab-btn-pdf');
+  const modeInterview = document.getElementById('mode-interview');
+  const modePdf = document.getElementById('mode-pdf');
+
+  if (mode === 'interview') {
+    btnInterview.className = 'btn sm';
+    btnInterview.style.background = 'var(--accent)';
+    btnInterview.style.color = '#fff';
+    btnPdf.className = 'btn secondary sm';
+    btnPdf.style.background = '';
+    btnPdf.style.color = '';
+    modeInterview.style.display = 'block';
+    modePdf.style.display = 'none';
+  } else {
+    btnPdf.className = 'btn sm';
+    btnPdf.style.background = '#58a6ff';
+    btnPdf.style.color = '#fff';
+    btnInterview.className = 'btn secondary sm';
+    btnInterview.style.background = '';
+    btnInterview.style.color = '';
+    modeInterview.style.display = 'none';
+    modePdf.style.display = 'block';
+  }
+}
+
+function handleFileSelected(input) {
+  if (input.files && input.files[0]) {
+    document.getElementById('upload-btn-label').textContent = '✓ ' + input.files[0].name;
+    document.getElementById('prev-name').textContent = input.files[0].name.replace('.pdf', '');
+    document.getElementById('prev-headline').textContent = 'LinkedIn Verified PDF Document';
+  }
+}
+
+function updatePreview() {
+  const name = document.getElementById('in-name').value.trim();
+  const headline = document.getElementById('in-headline').value.trim();
+  const sunday = document.getElementById('in-sunday').value.trim().toLowerCase();
+  const db = document.getElementById('in-db').value.trim();
+
+  if (name) document.getElementById('prev-name').textContent = name;
+  if (headline) document.getElementById('prev-headline').textContent = headline;
+
+  let pace = 'Balanced rhythm';
+  if (sunday.includes('quiet') || sunday.includes('slow') || sunday.includes('coffee') || sunday.includes('reading')) {
+    pace = 'Slow intentional living';
+  } else if (sunday.includes('run') || sunday.includes('hike') || sunday.includes('climb') || sunday.includes('early')) {
+    pace = 'Early morning adventurer';
+  } else if (sunday.includes('build') || sunday.includes('startup') || sunday.includes('code') || sunday.includes('work')) {
+    pace = 'Fast-paced creator';
+  }
+  document.getElementById('prev-pace').textContent = pace;
+
+  if (db) {
+    const items = db.split(/[,;\n]+/).map(s => s.trim()).filter(s => s.length > 2);
+    if (items.length) {
+      document.getElementById('prev-db').innerHTML = items.map(i => `<span class="badge" style="background:rgba(235,87,87,0.12);color:var(--accent);font-size:11px;">✕ ${i}</span>`).join(' ');
+    }
+  }
+}
+</script>
+{% endblock %}

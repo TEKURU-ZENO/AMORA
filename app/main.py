@@ -8,7 +8,7 @@ import threading
 import time
 import uuid
 
-from fastapi import FastAPI, Form, HTTPException, Request
+from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -1049,3 +1049,91 @@ def create_saas_persona(
         logger.info("Automatic pool dating on onboarding skipped: %s", e)
 
     return RedirectResponse("/my-agent", status_code=303)
+
+
+# ---------------------------------------------------------------- AI Intake & PDF Onboarding (Zero Scraping)
+
+@app.get("/intake", response_class=HTMLResponse)
+@app.get("/onboarding", response_class=HTMLResponse)
+def intake_page(request: Request):
+    return tpl.TemplateResponse(request, "intake.html", _ctx(request))
+
+
+@app.post("/api/intake/interview")
+def intake_interview_api(
+    request: Request,
+    display_name: str = Form(...),
+    one_liner: str = Form(...),
+    sunday_rhythm: str = Form(...),
+    dealbreakers: str = Form(...),
+    communication: str = Form(""),
+    latent_passions: str = Form(""),
+    ideal_date: str = Form(""),
+):
+    from . import harness, saas
+    from .intake import synthesize_interview_persona
+
+    answers = {
+        "sunday_rhythm": sunday_rhythm,
+        "dealbreakers": dealbreakers,
+        "communication": communication,
+        "latent_passions": latent_passions,
+        "ideal_date": ideal_date,
+    }
+
+    person = synthesize_interview_persona(
+        display_name=display_name,
+        one_liner=one_liner,
+        answers=answers,
+    )
+    store.save_person(person)
+
+    # Auto-link to logged-in SaaS user if any
+    user = saas.get_current_user(request)
+    if user:
+        saas.link_person_to_user(user.id, person.id)
+
+    # Date against pool so matches are ready immediately
+    try:
+        harness.run_round(progress=lambda m: None, only=person.id)
+    except Exception as e:
+        logger.info("Automatic pool dating on intake interview skipped: %s", e)
+
+    if user:
+        return RedirectResponse("/my-agent", status_code=303)
+    return RedirectResponse(f"/person/{person.id}", status_code=303)
+
+
+@app.post("/api/intake/pdf")
+async def intake_pdf_api(
+    request: Request,
+    pdf_file: UploadFile = File(...),
+):
+    from . import harness, saas
+    from .intake import parse_linkedin_pdf
+
+    pdf_bytes = await pdf_file.read()
+    if not pdf_bytes:
+        raise HTTPException(400, "Uploaded file is empty.")
+
+    try:
+        person = parse_linkedin_pdf(pdf_bytes)
+    except Exception as e:
+        raise HTTPException(400, f"Could not parse uploaded PDF: {e}")
+
+    store.save_person(person)
+
+    # Auto-link to logged-in SaaS user if any
+    user = saas.get_current_user(request)
+    if user:
+        saas.link_person_to_user(user.id, person.id)
+
+    # Date against pool so matches are ready immediately
+    try:
+        harness.run_round(progress=lambda m: None, only=person.id)
+    except Exception as e:
+        logger.info("Automatic pool dating on PDF intake skipped: %s", e)
+
+    if user:
+        return RedirectResponse("/my-agent", status_code=303)
+    return RedirectResponse(f"/person/{person.id}", status_code=303)
