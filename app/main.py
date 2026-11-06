@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import functools
 import json
+import logging
 import threading
 import time
 import uuid
@@ -14,6 +15,8 @@ from fastapi.templating import Jinja2Templates
 
 from . import config, discovery, harness, privacy, store
 from .config import ROOT
+
+logger = logging.getLogger(__name__)
 
 
 
@@ -955,3 +958,94 @@ async def stripe_webhook_api(request: Request):
     sig = request.headers.get("stripe-signature")
     res = saas.handle_stripe_webhook(payload, sig)
     return JSONResponse(res)
+
+
+# ---------------------------------------------------------------- Match Packet Dossier
+
+@app.get("/date/{did}/match-packet", response_class=HTMLResponse)
+def match_packet_page(request: Request, did: str):
+    from . import match_packet
+    packet_data = match_packet.build_match_packet_data(did)
+    return tpl.TemplateResponse(request, "match_packet.html", _ctx(request, packet=packet_data))
+
+
+@app.get("/api/dates/{did}/match-packet")
+def match_packet_api(did: str):
+    from . import match_packet
+    return JSONResponse(match_packet.build_match_packet_data(did))
+
+
+@app.post("/api/saas/create-persona")
+def create_saas_persona(
+    request: Request,
+    display_name: str = Form(...),
+    one_liner: str = Form(...),
+    linkedin: str = Form(""),
+    instagram: str = Form(""),
+    hobbies: str = Form(""),
+    dealbreakers: str = Form(""),
+    pace: str = Form("Balanced rhythm"),
+    initial_coaching: str = Form(""),
+):
+    from . import saas
+    from .models import Analysis, Evidence, InstagramData, LinkedInData, Person, SourceBundle
+    user = saas.require_current_user(request)
+
+    clean_name = display_name.strip()
+    pid = "usr-" + uuid.uuid4().hex[:8]
+    hobbies_list = [h.strip() for h in hobbies.split(",") if h.strip()] or ["Reading", "Coffee", "Travel"]
+    dealbreakers_list = [db.strip() for db in dealbreakers.split(",") if db.strip()]
+    coaching_list = [c.strip() for c in initial_coaching.splitlines() if c.strip()]
+
+    li_url = linkedin.strip() or f"https://example.com/in/{pid}"
+    ig_url = instagram.strip() or f"https://example.com/ig/{pid}"
+
+    analysis = Analysis(
+        display_name=clean_name,
+        one_liner=one_liner.strip() or "AMORA Participant",
+        summary=f"{clean_name} is a thoughtful individual passionate about {hobbies_list[0]}.",
+        needs=["Authentic connection", "Emotional safety", "Mutual ambition"],
+        hobbies=hobbies_list,
+        interests=hobbies_list[:3],
+        values=["Honesty", "Growth", "Authenticity"],
+        personality=["Thoughtful", "Genuine", "Curious"],
+        lifestyle={"pace": pace, "social_energy": "Balanced"},
+        communication_style="Direct, thoughtful, conversational",
+        green_flags=["Clear boundaries", "Good listener", "Reliability"],
+        dealbreakers=dealbreakers_list,
+        ideal_date="A quiet spot with authentic conversation",
+        conversation_starters=[f"What brought you to explore {hobbies_list[0]}?"],
+        evidence=[
+            Evidence(claim="Active profile member", source="linkedin", snippet=f"Registered on AMORA: {one_liner}"),
+        ],
+        confidence=0.9,
+        engine_used="saas_onboarding",
+    )
+
+    sources = SourceBundle(
+        linkedin=LinkedInData(url=li_url, full_name=clean_name, headline=one_liner),
+        instagram=InstagramData(url=ig_url, username=pid, full_name=clean_name, bio=one_liner),
+    )
+
+    p = Person(
+        id=pid,
+        linkedin_url=li_url,
+        instagram_url=ig_url,
+        consent=True,
+        status="analyzed",
+        analysis=analysis,
+        sources=sources,
+        coaching_notes=coaching_list,
+    )
+
+    store.save_person(p)
+    saas.link_person_to_user(user.id, pid)
+
+    # Automatically date against pool so user has instant matches
+    try:
+        from . import harness
+        harness.run_round(progress=lambda m: None, only=pid)
+    except Exception as e:
+        logger.info("Automatic pool dating on onboarding skipped: %s", e)
+
+    return RedirectResponse("/my-agent", status_code=303)

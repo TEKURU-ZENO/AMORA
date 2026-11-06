@@ -39,23 +39,45 @@
     </div>
 
     {% if not person %}
-    <!-- Persona Claiming Flow -->
-    <div style="margin-top:24px;padding:20px;background:rgba(255,255,255,0.03);border:1px dashed rgba(255,255,255,0.15);border-radius:10px">
-      <h3 style="margin:0 0 8px;font-size:16px">Claim or Link Your Dating Persona</h3>
-      <p class="muted" style="font-size:14px;margin:0 0 16px">
-        Select which profile your autonomous agent represents in the dating pool:
-      </p>
-      <form method="post" action="/api/saas/claim" style="display:flex;gap:12px;flex-wrap:wrap">
-        <select name="person_id" required style="padding:10px 14px;border-radius:8px;background:#161b22;border:1px solid rgba(255,255,255,0.2);color:var(--fg);font-size:14px;flex-grow:1">
-          <option value="">-- Choose Profile from Pool --</option>
-          {% for p in pool_people %}
-          <option value="{{ p.id }}">{{ p.analysis.display_name if p.analysis else p.id }} ({{ p.analysis.one_liner if p.analysis else 'Profile' }})</option>
-          {% endfor %}
-        </select>
-        <button type="submit" class="btn" style="background:var(--accent);color:#fff;padding:10px 20px;font-weight:600;border:none;border-radius:8px;cursor:pointer">
-          Claim My Agent &rarr;
-        </button>
-      </form>
+    <!-- Persona Claiming & Creation Flow -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:24px;">
+      <!-- Option 1: Claim Existing Profile -->
+      <div style="padding:20px;background:rgba(255,255,255,0.03);border:1px dashed rgba(255,255,255,0.15);border-radius:10px;">
+        <h3 style="margin:0 0 8px;font-size:16px;">Claim Profile from Pool</h3>
+        <p class="muted" style="font-size:13px;margin:0 0 16px;">
+          Select which persona in the pool your agent represents:
+        </p>
+        <form method="post" action="/api/saas/claim" style="display:flex;flex-direction:column;gap:12px;">
+          <select name="person_id" required style="padding:10px 14px;border-radius:8px;background:#161b22;border:1px solid rgba(255,255,255,0.2);color:var(--fg);font-size:13px;">
+            <option value="">-- Choose Profile from Pool --</option>
+            {% for p in pool_people %}
+            <option value="{{ p.id }}">{{ p.analysis.display_name if p.analysis else p.id }} ({{ p.analysis.one_liner if p.analysis else 'Profile' }})</option>
+            {% endfor %}
+          </select>
+          <button type="submit" class="btn" style="background:var(--accent);color:#fff;padding:10px;font-weight:600;border:none;border-radius:8px;cursor:pointer;">
+            Claim Agent &rarr;
+          </button>
+        </form>
+      </div>
+
+      <!-- Option 2: Create Brand-New Persona -->
+      <div style="padding:20px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.15);border-radius:10px;">
+        <h3 style="margin:0 0 8px;font-size:16px;">Create Your Dating Agent</h3>
+        <p class="muted" style="font-size:13px;margin:0 0 16px;">
+          Launch a bespoke dating persona into the autonomous dating pool:
+        </p>
+        <form method="post" action="/api/saas/create-persona" style="display:flex;flex-direction:column;gap:10px;">
+          <input type="text" name="display_name" required placeholder="Your Name (e.g. Maya Chen)" style="padding:8px 12px;border-radius:6px;background:#161b22;border:1px solid rgba(255,255,255,0.2);color:var(--fg);font-size:13px;">
+          <input type="text" name="one_liner" required placeholder="Headline (e.g. Senior Architect · Clay sculpting & coffee)" style="padding:8px 12px;border-radius:6px;background:#161b22;border:1px solid rgba(255,255,255,0.2);color:var(--fg);font-size:13px;">
+          <div style="display:flex;gap:8px;">
+            <input type="text" name="hobbies" placeholder="Hobbies (e.g. Running, Bouldering)" style="flex:1;padding:8px 12px;border-radius:6px;background:#161b22;border:1px solid rgba(255,255,255,0.2);color:var(--fg);font-size:13px;">
+            <input type="text" name="dealbreakers" placeholder="Dealbreakers (e.g. Smoking, Moving abroad)" style="flex:1;padding:8px 12px;border-radius:6px;background:#161b22;border:1px solid rgba(255,255,255,0.2);color:var(--fg);font-size:13px;">
+          </div>
+          <button type="submit" class="btn" style="background:#3fb950;color:#fff;padding:10px;font-weight:600;border:none;border-radius:8px;cursor:pointer;">
+            ✨ Create &amp; Date the Pool
+          </button>
+        </form>
+      </div>
     </div>
     {% endif %}
   </div>
@@ -123,6 +145,7 @@
       {% endif %}
 
       <form method="post" action="/person/{{ person.id }}/coach" style="display:flex;flex-direction:column;gap:10px">
+        <input type="hidden" name="token" value="{{ person.edit_token }}">
         <input type="text" name="directive" required placeholder="e.g. Ask about their ideal Sunday..."
                style="padding:10px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.05);color:var(--fg);font-size:14px">
         <button type="submit" class="btn secondary" style="align-self:flex-start;font-size:13px;padding:8px 14px;cursor:pointer">
@@ -167,7 +190,8 @@
 
           <div style="display:flex;gap:8px">
             {% if item.date_id %}
-            <a href="/date/{{ item.date_id }}" class="btn secondary" style="font-size:12px;padding:6px 12px">View Date Replay</a>
+            <a href="/date/{{ item.date_id }}/match-packet" class="btn secondary" style="font-size:12px;padding:6px 12px;background:rgba(255,77,109,0.15);color:var(--accent);border-color:rgba(255,77,109,0.3);">📄 Match Dossier</a>
+            <a href="/date/{{ item.date_id }}" class="btn secondary" style="font-size:12px;padding:6px 12px">Date Replay</a>
             {% endif %}
             {% if partner.sources and partner.sources.instagram and partner.sources.instagram.username %}
             <a href="https://instagram.com/{{ partner.sources.instagram.username }}" target="_blank" class="btn secondary" style="font-size:12px;padding:6px 12px">Instagram &nearr;</a>

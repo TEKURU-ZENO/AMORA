@@ -66,6 +66,7 @@
     <div style="display:flex;justify-content:flex-end;gap:10px">
       <a class="btn ghost sm" href="/person/{{ pair.person_a }}/story-card">✨ Story Card</a>
       {% if pair.date_id %}
+      <a class="btn ghost sm" href="/date/{{ pair.date_id }}/match-packet">📄 Match Dossier</a>
       <a class="btn sm" href="/date/{{ pair.date_id }}">Watch Date Replay</a>
       {% else %}
       <a class="btn ghost sm" href="/person/{{ pair.person_a }}">View Profiles</a>
