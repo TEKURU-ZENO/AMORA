@@ -624,7 +624,10 @@ def benchmark_page(request: Request):
 
 
 @app.post("/api/eval/run")
-def run_benchmark_api(request: Request):
+def run_benchmark_api(request: Request, api_key: str = Form("")):
+    import os
+    if api_key.strip():
+        os.environ["ANTHROPIC_API_KEY"] = api_key.strip()
     from .evaluation import benchmark
     res = benchmark.run_evaluation_benchmark()
     accept = request.headers.get("accept", "")

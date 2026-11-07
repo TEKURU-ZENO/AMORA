@@ -63,6 +63,21 @@ def test_conversational_evaluation_chart_svg():
     assert "Ground Truth" in svg
     assert "Profile Prior" in svg
     assert "Agent Date" in svg
+    assert "ENGINE:" in svg
+    assert "OFFLINE DETERMINISTIC" in svg or "CLAUDE" in svg
+
+
+def test_empty_study_chart_svg_has_no_planted_values():
+    """Assert empty or incomplete study renders an error placeholder and never falls back to old planted numbers."""
+    empty_svg = render_evaluation_comparison_svg({})
+    assert "95.5" not in empty_svg
+    assert "-0.77" not in empty_svg
+    assert "0.94" not in empty_svg
+    assert "No Empirical Evaluation Data Available" in empty_svg
+
+    incomplete_svg = render_evaluation_comparison_svg({"pairs": [{"a": 1}], "metrics": {}})
+    assert "95.5" not in incomplete_svg
+    assert "No Empirical Evaluation Data Available" in incomplete_svg
 
 
 def test_conversational_evaluation_endpoints():

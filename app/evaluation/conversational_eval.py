@@ -21,7 +21,7 @@ import random
 from dataclasses import dataclass
 from typing import Any
 
-from .. import store
+from .. import config, store
 from ..agents import compat, dater
 from ..models import Analysis, DateRecord, Evidence, InstagramData, InstagramPost, LinkedInData, LinkedInExperience, Person, SourceBundle, Turn, Verdict
 
@@ -381,6 +381,7 @@ def run_conversational_study() -> dict[str, Any]:
             "error_reduction": round(err_prior - err_agent, 2),
             "agent_won": err_agent < err_prior,
             "date_id": d_rec.id,
+            "engine": d_rec.engine,
         })
 
     # Statistical aggregations
@@ -423,11 +424,18 @@ def run_conversational_study() -> dict[str, Any]:
     top_agent_idx = agent_scores.index(max(agent_scores))
     agent_recovered_top_match = (top_agent_idx == top_gt_idx)
 
-    headline = f"Simulated dates beat the profile-only baseline by {error_reduction_pct}% error reduction (Spearman rho: {rho_prior:+.2f} -> {rho_agent:+.2f})"
+    is_llm = config.llm_enabled()
+    engine_name = f"Claude ({config.MODEL})" if is_llm else "offline_deterministic"
+
+    headline = f"Simulated dates beat the profile-only baseline by {error_reduction_pct}% error reduction (Spearman rho: {rho_prior:+.2f} -> {rho_agent:+.2f}) [{engine_name}]"
 
     return {
         "headline": headline,
+        "engine": engine_name,
+        "llm_enabled": is_llm,
         "metrics": {
+            "engine": engine_name,
+            "llm_enabled": is_llm,
             "mae_prior": mae_prior,
             "mae_agent": mae_agent,
             "error_reduction_pct": error_reduction_pct,
@@ -452,10 +460,24 @@ def render_evaluation_comparison_svg(study: dict[str, Any]) -> str:
     """Render publication-quality vector SVG chart comparing Baseline vs Agent vs Ground Truth."""
     pairs = study.get("pairs", [])
     metrics = study.get("metrics", {})
-    headline = html.escape(study.get("headline", "Simulated Dates Beat Profile-Only Baseline"))
-    pct_reduction = metrics.get("error_reduction_pct", 95.5)
-    rho_prior = metrics.get("spearman_rho_prior", -0.77)
-    rho_agent = metrics.get("spearman_rho_agent", 0.94)
+    if not pairs or not metrics or "error_reduction_pct" not in metrics or "spearman_rho_prior" not in metrics or "spearman_rho_agent" not in metrics:
+        return """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 200" width="100%" height="200">
+  <rect width="960" height="200" rx="14" fill="#0d1117" stroke="rgba(235,87,87,0.3)" stroke-width="1.5"/>
+  <text x="480" y="85" fill="#eb5757" font-family="-apple-system, sans-serif" font-size="16" font-weight="700" text-anchor="middle">No Empirical Evaluation Data Available</text>
+  <text x="480" y="115" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="13" text-anchor="middle">Execute the evaluation study with real agents to measure empirical signal recovery.</text>
+</svg>"""
+
+    pct_reduction = float(metrics["error_reduction_pct"])
+    rho_prior = float(metrics["spearman_rho_prior"])
+    rho_agent = float(metrics["spearman_rho_agent"])
+
+    engine_name = study.get("engine") or metrics.get("engine") or "offline_deterministic"
+    is_llm = bool(study.get("llm_enabled") or metrics.get("llm_enabled", False))
+    engine_badge_text = f"ENGINE: {engine_name.upper()} (LIVE LLM)" if is_llm else "ENGINE: OFFLINE DETERMINISTIC (HEURISTIC BASELINE)"
+    engine_bg = "rgba(46,160,67,0.18)" if is_llm else "rgba(210,153,34,0.18)"
+    engine_stroke = "#2ea043" if is_llm else "#d29922"
+    engine_color = "#3fb950" if is_llm else "#ffb703"
+    badge_width = max(190, len(engine_badge_text) * 7 + 22)
 
     chart_w, chart_h = 960, 560
     margin_left, margin_top, bar_area_w, bar_area_h = 90, 140, 780, 280
@@ -540,6 +562,11 @@ def render_evaluation_comparison_svg(study: dict[str, Any]) -> str:
     <text x="0" y="78" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="14">
       Conversational agent dialogue recovers latent facts withheld from public profiles (elderly care, moving abroad, secret dreams).
     </text>
+    <!-- Engine Provenance Badge -->
+    <g transform="translate(0, 92)">
+      <rect width="{badge_width}" height="22" rx="6" fill="{engine_bg}" stroke="{engine_stroke}" stroke-width="1"/>
+      <text x="10" y="15" fill="{engine_color}" font-family="-apple-system, sans-serif" font-size="10" font-weight="700">{engine_badge_text}</text>
+    </g>
   </g>
 
   <!-- Highlight Gain Pill (Top Right) -->
