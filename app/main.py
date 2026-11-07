@@ -109,12 +109,13 @@ def first_name(p) -> str:
 
 def _ctx(request, **kw):
     people = store.list_persons()
-    from . import saas
+    from . import saas, notifications
     current_user = saas.get_current_user(request)
+    unread_notifs = notifications.count_unread_notifications(current_user.id) if current_user else 0
     return {"request": request, "people": people, "by_id": {p.id: p for p in people},
             "status_of": status_of, "first": first_name, "round_running": _round_running(),
             "llm": config.llm_enabled(), "scraping": config.scraping_enabled(), "demo": config.demo_mode(),
-            "current_user": current_user, **kw}
+            "current_user": current_user, "unread_notifs": unread_notifs, **kw}
 
 
 def _highlights(people, dates, asks) -> dict:
@@ -705,6 +706,12 @@ def date_audio_cues(request: Request, did: str):
     pb = store.get_person(d.b)
     demo_only = config.demo_mode() and bool(pa and pb and pa.synthetic and pb.synthetic)
     authorized = privacy.is_authorized(request) or demo_only
+
+    from . import saas
+    current_user = saas.get_current_user(request)
+    if current_user and not current_user.is_pro_or_vip and not authorized:
+        raise HTTPException(402, "Voice date podcasts are exclusive to Pro and VIP members. Upgrade at /pricing")
+
     from .audio import podcast
     cues = podcast.build_audio_cues(d, pa, pb, authorized=authorized)
     return JSONResponse(cues)
@@ -744,6 +751,11 @@ def mid_date_whisper(
     # Authorize person access (edit token or authenticated SaaS session)
     privacy.require_person_access(request, p, token=token)
 
+    from . import saas
+    current_user = saas.get_current_user(request)
+    if current_user and not current_user.is_pro_or_vip and not privacy.is_authorized(request):
+        raise HTTPException(402, "Live mid-date whisper is exclusive to Pro and VIP members. Upgrade at /pricing")
+
     cleaned_whisper = whisper.strip()
     if not cleaned_whisper:
         raise HTTPException(400, "Whisper cannot be empty")
@@ -767,6 +779,18 @@ def mid_date_whisper(
         d.turns[-1].whisper = cleaned_whisper
 
     store.save_date(d)
+    if current_user:
+        try:
+            from . import notifications
+            notifications.create_notification(
+                user_id=current_user.id,
+                title="Whisper Delivered to Agent",
+                message=f"Your whisper '{cleaned_whisper[:60]}' was received by your agent in date {did}.",
+                type="whisper_ack",
+                link=f"/date/{did}",
+            )
+        except Exception:
+            pass
     return JSONResponse({
         "status": "delivered",
         "date_id": did,
@@ -960,6 +984,50 @@ async def stripe_webhook_api(request: Request):
     return JSONResponse(res)
 
 
+# ---------------------------------------------------------------- Notifications
+
+@app.get("/notifications", response_class=HTMLResponse)
+def notifications_page(request: Request):
+    from . import saas, notifications
+    user = saas.get_current_user(request)
+    if not user:
+        return RedirectResponse("/login?next=/notifications", status_code=303)
+    user_notifs = notifications.list_notifications(user.id)
+    return tpl.TemplateResponse(request, "notifications.html", _ctx(request, notifications=user_notifs))
+
+
+@app.get("/api/notifications")
+def notifications_api(request: Request):
+    from . import saas, notifications
+    user = saas.require_current_user(request)
+    notifs = notifications.list_notifications(user.id)
+    unread_count = notifications.count_unread_notifications(user.id)
+    return JSONResponse({
+        "unread_count": unread_count,
+        "notifications": [n.model_dump() for n in notifs],
+    })
+
+
+@app.post("/api/notifications/{nid}/read")
+def mark_notification_read_api(request: Request, nid: str):
+    from . import saas, notifications
+    user = saas.require_current_user(request)
+    success = notifications.mark_as_read(nid, user.id)
+    if "application/json" in request.headers.get("accept", ""):
+        return JSONResponse({"status": "success" if success else "not_found"})
+    return RedirectResponse("/notifications", status_code=303)
+
+
+@app.post("/api/notifications/read-all")
+def mark_all_notifications_read_api(request: Request):
+    from . import saas, notifications
+    user = saas.require_current_user(request)
+    count = notifications.mark_all_as_read(user.id)
+    if "application/json" in request.headers.get("accept", ""):
+        return JSONResponse({"status": "success", "count": count})
+    return RedirectResponse("/notifications", status_code=303)
+
+
 # ---------------------------------------------------------------- Match Packet Dossier
 
 @app.get("/date/{did}/match-packet", response_class=HTMLResponse)
@@ -990,6 +1058,11 @@ def create_saas_persona(
     from . import saas
     from .models import Analysis, Evidence, InstagramData, LinkedInData, Person, SourceBundle
     user = saas.require_current_user(request)
+    if not user.is_pro_or_vip:
+        if user.credits_remaining <= 0:
+            raise HTTPException(402, "Free Explorer quota of simulated dates exhausted. Upgrade to Pro at /pricing for unlimited autonomous dates.")
+        user.credits_remaining -= 1
+        saas.save_user(user)
 
     clean_name = display_name.strip()
     pid = "usr-" + uuid.uuid4().hex[:8]

@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}Notifications & Match Alerts · AMORA{% endblock %}
+{% block body %}
+<div class="narrow" style="max-width:840px;margin:32px auto">
+
+  <!-- Header -->
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:28px;flex-wrap:wrap;gap:16px;">
+    <div>
+      <div class="kicker">Live Autonomous Activity</div>
+      <h1 style="margin:4px 0 6px;font-size:32px">Match &amp; Agent Alerts</h1>
+      <p class="muted" style="margin:0;font-size:15px">
+        Real-time dispatches from your agent's dates, dealbreaker screenings, and stable matches.
+      </p>
+    </div>
+
+    {% if notifications and unread_notifs > 0 %}
+    <form method="post" action="/api/notifications/read-all">
+      <button type="submit" class="btn secondary sm" style="font-size:13px;padding:8px 14px;cursor:pointer">
+        ✓ Mark All as Read
+      </button>
+    </form>
+    {% endif %}
+  </div>
+
+  <!-- Notification List -->
+  {% if notifications %}
+  <div style="display:flex;flex-direction:column;gap:14px">
+    {% for n in notifications %}
+    <div class="card" style="padding:18px 22px;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;border-left:4px solid {% if n.type == 'stable_match' %}#ffb703{% elif n.type == 'dealbreaker_alert' %}var(--warn, #e63946){% elif not n.is_read %}var(--accent){% else %}rgba(255,255,255,0.1){% endif %};background:{% if not n.is_read %}rgba(255,77,109,0.04){% else %}rgba(255,255,255,0.02){% endif %};">
+      
+      <div style="display:flex;gap:16px;align-items:flex-start;flex:1">
+        <!-- Icon -->
+        <div style="font-size:22px;line-height:1;margin-top:2px;">
+          {% if n.type == 'stable_match' %}
+            ⭐
+          {% elif n.type == 'dealbreaker_alert' %}
+            🛡️
+          {% elif n.type == 'date_completed' %}
+            💬
+          {% elif n.type == 'whisper_ack' %}
+            🎯
+          {% else %}
+            🔔
+          {% endif %}
+        </div>
+
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;flex-wrap:wrap">
+            <b style="font-size:16px;color:var(--fg)">{{ n.title }}</b>
+            {% if not n.is_read %}
+            <span class="badge" style="background:var(--accent);color:#fff;font-size:10px;font-weight:700">NEW</span>
+            {% endif %}
+            <span class="small muted">{{ n.created_at }}</span>
+          </div>
+
+          <p style="margin:0 0 10px;font-size:14px;line-height:1.5;color:rgba(255,255,255,0.85)">
+            {{ n.message }}
+          </p>
+
+          <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+            {% if n.link %}
+            <a href="{{ n.link }}" class="btn sm" style="font-size:12px;padding:5px 12px;background:var(--accent);color:#fff;text-decoration:none">
+              View Activity &rarr;
+            </a>
+            {% endif %}
+            
+            {% if not n.is_read %}
+            <form method="post" action="/api/notifications/{{ n.id }}/read" style="display:inline">
+              <button type="submit" class="btn ghost sm" style="font-size:12px;padding:4px 8px;cursor:pointer">
+                Mark as read
+              </button>
+            </form>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card" style="padding:48px 24px;text-align:center">
+    <div style="font-size:40px;margin-bottom:12px">📭</div>
+    <h3 style="margin:0 0 8px;font-size:20px">No Notifications Yet</h3>
+    <p class="muted" style="margin:0 0 20px;font-size:14px;max-width:480px;margin-left:auto;margin-right:auto">
+      When your agent dates others in the pool, filters dealbreakers, or secures an Irving stable match, real-time alerts will appear right here.
+    </p>
+    <a href="/round" class="btn" style="background:var(--accent);color:#fff;font-size:14px;padding:10px 18px">
+      Go to Dating Floor &rarr;
+    </a>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

@@ -284,6 +284,11 @@ def run_round(progress: Progress = _print, only: str | None = None) -> list[Date
     except Exception:
         pass
     try:
+        from . import notifications
+        notifications.dispatch_round_notifications(out)
+    except Exception:
+        pass
+    try:
         from .agents import group_dater
         top_candidates = sorted(people, key=lambda p: -len(store.list_dates(p.id)))[:4]
         if len(top_candidates) >= 3:

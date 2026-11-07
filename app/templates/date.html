@@ -62,6 +62,16 @@
     </div>
     <span class="small muted">Inject real-time guidance directly into your agent's ongoing conversation</span>
   </div>
+
+  {% if current_user and not current_user.is_pro_or_vip and not authorized %}
+  <div style="background:rgba(255,183,3,0.08);border:1px dashed #ffb703;border-radius:8px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+    <div>
+      <b style="color:#ffb703;font-size:14px;">⚡ Pro Feature: Live Mid-Date Whisper</b>
+      <div class="small muted">Co-pilot your agent in real-time as the date unfolds. Included in Pro &amp; VIP plans.</div>
+    </div>
+    <a href="/pricing" class="btn sm" style="background:#ffb703;color:#000;font-weight:700;text-decoration:none">Upgrade to Pro ($24/mo) &rarr;</a>
+  </div>
+  {% else %}
   <form id="whisper-form" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
     <select name="pid" id="whisper-pid" style="padding:8px 12px;border-radius:6px;background:var(--bg);color:var(--fg);border:1px solid var(--border);">
       {% if can_access_a or authorized %}
@@ -78,6 +88,7 @@
     </button>
   </form>
   <div id="whisper-status" class="small" style="margin-top:8px;display:none;color:#ffb703;"></div>
+  {% endif %}
 </div>
 {% endif %}
 

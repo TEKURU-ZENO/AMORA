@@ -10,6 +10,12 @@
 <a class="l{% if href in ['/dates', '/discovery', '/rankings', '/how'] %} hide-sm{% endif %}" href="{{ href }}"{% if path == href %} aria-current="page"{% endif %}>{{ label }}</a>{% endfor %}
 
 {% if current_user %}
+<a class="l" href="/notifications" style="position:relative;display:inline-flex;align-items:center;gap:4px;" title="Match & Agent Alerts">
+  🔔<span class="hide-sm"> Alerts</span>
+  {% if unread_notifs and unread_notifs > 0 %}
+  <span style="background:var(--accent);color:#fff;font-size:10px;font-weight:700;padding:1px 5px;border-radius:8px;line-height:1.2;">{{ unread_notifs }}</span>
+  {% endif %}
+</a>
 <a class="btn sm" href="/my-agent" style="background:{% if current_user.is_vip %}#ffb703;color:#000{% elif current_user.is_pro_or_vip %}var(--accent);color:#fff{% else %}rgba(255,255,255,0.15){% endif %};font-size:12px;padding:4px 10px">
   {{ current_user.plan|upper }}
 </a>
