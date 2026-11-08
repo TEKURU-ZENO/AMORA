@@ -137,16 +137,28 @@ class Swipes(BaseModel):
 
 
 def screen(people: list[Person], askers: list[Person] | None = None) -> dict[str, list[tuple[str, str]]]:
-    """Return {person_id: [(other_id, why), ...]} = who each agent asks out (all of `people`, or just `askers`)."""
+    """Return {person_id: [(other_id, why), ...]} using the hierarchical candidate retrieval funnel.
+    
+    L1 Vector Pruning + L2 Prior Scoring bounds LLM context and eliminates dealbreaker collisions.
+    """
+    from .matching.retrieval import hierarchical_candidate_funnel, l1_fast_prune
     asks: dict[str, list[tuple[str, str]]] = {}
+    by_id = {p.id: p for p in people}
+
     for p in askers or people:
         others = [o for o in people if o.id != p.id]
-        priors = sorted(((compute(p.analysis, o.analysis).prior, o) for o in others), key=lambda t: -t[0])
+        if not others or not p.analysis:
+            asks[p.id] = []
+            continue
+
         picks = None
         if config.llm_enabled():
             try:
+                # Hierarchical L1 prune: pass bounded top candidates to LLM rather than full pool
+                l1_candidates = l1_fast_prune(p, others, top_k=min(len(others), config.SHORTLIST_K * 2))
+                scoped_others = [by_id[sc.candidate_id] for sc in l1_candidates if sc.candidate_id in by_id] or others[:config.SHORTLIST_K * 2]
                 cards = "\n".join(f"- id={o.id}: {o.analysis.one_liner}; hobbies {o.analysis.hobbies[:4]}; "
-                                  f"interests {o.analysis.interests[:4]}; values {o.analysis.values[:3]}" for o in others)
+                                  f"interests {o.analysis.interests[:4]}; values {o.analysis.values[:3]}" for o in scoped_others)
                 s = llm.structured(
                     f"You are the dating agent for {p.analysis.display_name}. Brief: needs {p.analysis.needs}; "
                     f"hobbies {p.analysis.hobbies}; values {p.analysis.values}; dealbreakers {p.analysis.dealbreakers}.",
@@ -156,13 +168,9 @@ def screen(people: list[Person], askers: list[Person] | None = None) -> dict[str
                 picks = [(x.id, x.why) for x in s.picks if x.id in valid][: config.SHORTLIST_K]
             except Exception:
                 picks = None
+
         if not picks:
-            picks = []
-            for prior, o in priors[: config.SHORTLIST_K]:
-                c = compute(p.analysis, o.analysis)
-                why = (f"shared {', '.join((c.shared_hobbies + c.shared_interests)[:2]).lower()}"
-                       if c.shared_hobbies or c.shared_interests else "complementary energy")
-                picks.append((o.id, f"{why} (prior {prior:.1f})"))
+            picks = hierarchical_candidate_funnel(p, others, top_m=config.SHORTLIST_K)
         asks[p.id] = picks
     return asks
 

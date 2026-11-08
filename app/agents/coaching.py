@@ -20,8 +20,10 @@ from ..models import DateRecord, Person
 # ------------------------------------------------------------- Pre-date Coaching
 
 def add_coaching_note(person: Person, note: str) -> bool:
-    clean = note.strip()
-    if not clean:
+    from .guardrails import sanitize_coaching_directive
+    check = sanitize_coaching_directive(note)
+    clean = check.sanitized_text
+    if not clean or clean == "[REDACTED_INJECTION]":
         return False
     if clean not in person.coaching_notes:
         person.coaching_notes.append(clean)

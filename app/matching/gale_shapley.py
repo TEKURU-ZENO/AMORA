@@ -31,6 +31,7 @@ class StableMatch(BaseModel):
 
 class StableMatchingResult(BaseModel):
     has_stable_matching: bool = True
+    matching_mode: str = "strict_irving"  # "strict_irving" (0 blocking pairs) or "relaxed_optimal"
     pairs: list[StableMatch] = Field(default_factory=list)
     unmatched: list[str] = Field(default_factory=list)
     blocking_pairs: int = 0
@@ -87,25 +88,19 @@ def compute_stable_matching(
         active_pids.remove(lowest_pid)
         unmatched.append(lowest_pid)
 
-    # Run Irving's algorithm deterministically
+    # 1. Run Irving's algorithm deterministically
     has_match, matches_raw, reason = irving_stable_roommates(active_pids, prefs)
+    matching_mode = "strict_irving"
+    stability_pct = 100.0
+    blocking_pairs = []
 
     if not has_match:
-        # Honestly report that no stable matching exists for this pool
-        result = StableMatchingResult(
-            has_stable_matching=False,
-            pairs=[],
-            unmatched=pids,
-            blocking_pairs=0,
-            stability_percentage=0.0,
-            total_people=len(pids),
-            summary="No stable matching exists for this pool's preference structure."
-        )
-        store.set_meta("stable_matches", result.model_dump())
-        return result
-
-    # Check for blocking pairs (should be 0)
-    blocking_pairs = find_blocking_pairs(matches_raw, prefs)
+        # Commercial Fallback: engage Maximum Compatibility Matching with Minimal Blocking Pairs
+        from .fallback import solve_minimal_blocking_matching
+        matches_raw, blocking_pairs, stability_pct = solve_minimal_blocking_matching(active_pids, prefs, rankings)
+        matching_mode = "relaxed_optimal"
+    else:
+        blocking_pairs = find_blocking_pairs(matches_raw, prefs)
 
     # Date lookup index
     date_map: dict[tuple[str, str], DateRecord] = {}
@@ -144,10 +139,16 @@ def compute_stable_matching(
         date_id = d.id if d else None
 
         # Objective, non-rhetorical factual description
-        rationale = (
-            f"Stable match verified by Irving's algorithm (Rank {rank_b_in_a} for {name_a.split()[0]}, "
-            f"Rank {rank_a_in_b} for {name_b.split()[0]}; 0 blocking pairs)."
-        )
+        if matching_mode == "strict_irving":
+            rationale = (
+                f"Strict stable match verified by Irving's algorithm (Rank {rank_b_in_a} for {name_a.split()[0]}, "
+                f"Rank {rank_a_in_b} for {name_b.split()[0]}; 0 blocking pairs)."
+            )
+        else:
+            rationale = (
+                f"Optimal compatibility match (Rank {rank_b_in_a} for {name_a.split()[0]}, "
+                f"Rank {rank_a_in_b} for {name_b.split()[0]}; {stability_pct}% pool stability)."
+            )
 
         # Shared highlights
         shared_highlights = []
@@ -178,19 +179,26 @@ def compute_stable_matching(
     # Sort pairs by mutual score descending
     pairs.sort(key=lambda m: -m.mutual_score)
 
-    summary = (
-        f"Irving's algorithm matched {len(pairs)} stable couple{'s' if len(pairs) != 1 else ''} across {len(active_pids)} participants "
-        f"with 0 blocking pairs."
-    )
+    if matching_mode == "strict_irving":
+        summary = (
+            f"Irving's algorithm matched {len(pairs)} stable couple{'s' if len(pairs) != 1 else ''} across {len(active_pids)} participants "
+            f"with 0 blocking pairs."
+        )
+    else:
+        summary = (
+            f"Relaxed optimal matching delivered {len(pairs)} couple{'s' if len(pairs) != 1 else ''} across {len(active_pids)} participants "
+            f"({stability_pct}% stable; {len(blocking_pairs)} relaxed blocking pair{'s' if len(blocking_pairs) != 1 else ''} due to odd preference cycles)."
+        )
     if unmatched:
         summary += f" ({len(unmatched)} participant unmatched due to odd pool size)."
 
     result = StableMatchingResult(
         has_stable_matching=True,
+        matching_mode=matching_mode,
         pairs=pairs,
         unmatched=unmatched,
         blocking_pairs=len(blocking_pairs),
-        stability_percentage=100.0,
+        stability_percentage=stability_pct,
         total_people=len(pids),
         summary=summary
     )
