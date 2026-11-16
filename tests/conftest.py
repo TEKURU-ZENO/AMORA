@@ -10,6 +10,7 @@ import tempfile
 os.environ["DATA_DIR"] = tempfile.mkdtemp()
 os.environ["APIFY_TOKEN"] = "test-token"  # never a real token; nothing below reaches Apify
 os.environ["ANTHROPIC_API_KEY"] = ""
+os.environ["USE_OLLAMA"] = "0"
 os.environ["ADMIN_API_KEY"] = "test-secret-key-123"
 os.environ["AMORA_DEMO"] = ""  # tests opt in per test with monkeypatch
 os.environ["AGENTDATE_DEMO"] = ""  # old name, so a local .env using it can't leak in

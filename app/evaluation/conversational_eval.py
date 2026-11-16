@@ -425,7 +425,7 @@ def run_conversational_study() -> dict[str, Any]:
     agent_recovered_top_match = (top_agent_idx == top_gt_idx)
 
     is_llm = config.llm_enabled()
-    engine_name = f"Claude ({config.MODEL})" if is_llm else "offline_deterministic"
+    engine_name = config.active_model_name()
 
     headline = f"Simulated dates beat the profile-only baseline by {error_reduction_pct}% error reduction (Spearman rho: {rho_prior:+.2f} -> {rho_agent:+.2f}) [{engine_name}]"
 

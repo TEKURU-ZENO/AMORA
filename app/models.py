@@ -96,7 +96,7 @@ class Turn(BaseModel):
 
 
 class Verdict(BaseModel):
-    agent_for: str
+    agent_for: str = ""
     score: float = Field(ge=0, le=10)
     chemistry: float = Field(ge=0, le=10)
     needs_met: float = Field(ge=0, le=10)

@@ -1,0 +1,196 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" width="960" height="560">
+  <defs>
+    <linearGradient id="chart-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0d1117"/>
+      <stop offset="100%" stop-color="#161b22"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Deep Canvas Background -->
+  <rect width="960" height="560" rx="16" fill="url(#chart-bg)" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
+
+  <!-- Research Title & Publication Header -->
+  <g transform="translate(36, 36)">
+    <rect width="210" height="28" rx="14" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.15)"/>
+    <text x="105" y="18" fill="#58a6ff" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" letter-spacing="1" text-anchor="middle">EMPIRICAL EVALUATION</text>
+    <text x="0" y="54" fill="#ffffff" font-family="Georgia, serif" font-size="24" font-weight="700">Simulated Dates vs. Profile-Only Baseline</text>
+    <text x="0" y="78" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="14">
+      Conversational agent dialogue recovers latent facts withheld from public profiles (elderly care, moving abroad, secret dreams).
+    </text>
+    <!-- Engine Provenance Badge -->
+    <g transform="translate(0, 92)">
+      <rect width="295" height="22" rx="6" fill="rgba(46,160,67,0.18)" stroke="#2ea043" stroke-width="1"/>
+      <text x="10" y="15" fill="#3fb950" font-family="-apple-system, sans-serif" font-size="10" font-weight="700">ENGINE: OLLAMA (LLAMA3.2:1B) (LIVE LLM)</text>
+    </g>
+  </g>
+
+  <!-- Highlight Gain Pill (Top Right) -->
+  <g transform="translate(600, 36)">
+    <rect width="324" height="60" rx="12" fill="rgba(46,160,67,0.15)" stroke="#2ea043" stroke-width="1.5"/>
+    <text x="162" y="26" fill="#3fb950" font-family="-apple-system, sans-serif" font-size="14" font-weight="800" text-anchor="middle">
+      27.2% ERROR REDUCTION
+    </text>
+    <text x="162" y="46" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="12" text-anchor="middle">
+      Spearman &rho;: -0.03 &rarr; -0.09 (-0.06 gain)
+    </text>
+  </g>
+
+  <!-- Legend -->
+  <g transform="translate(520, 112)">
+    <!-- Legend 1: Baseline -->
+    <rect x="0" y="0" width="14" height="14" rx="3" fill="#388bfd"/>
+    <text x="20" y="12" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="12">Profile Prior (&mu; err: 4.48)</text>
+
+    <!-- Legend 2: Agent Verdict -->
+    <rect x="180" y="0" width="14" height="14" rx="3" fill="#ff4d6d"/>
+    <text x="200" y="12" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="12">Agent Date (&mu; err: 3.26)</text>
+
+    <!-- Legend 3: Ground Truth -->
+    <line x1="330" y1="7" x2="350" y2="7" stroke="#ffb703" stroke-width="3" stroke-dasharray="3,2"/>
+    <polygon points="340,3 344,7 340,11 336,7" fill="#ffb703"/>
+    <text x="358" y="12" fill="#ffb703" font-family="-apple-system, sans-serif" font-size="12">Ground Truth (y*)</text>
+  </g>
+
+  <!-- Axis & Grid -->
+  
+        <line x1="90" y1="420.0" x2="870" y2="420.0" stroke="rgba(255,255,255,0.08)" stroke-dasharray="3,3"/>
+        <text x="78" y="424.0" fill="#8b949e" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="12" text-anchor="end">0</text>
+        
+        <line x1="90" y1="364.0" x2="870" y2="364.0" stroke="rgba(255,255,255,0.08)" stroke-dasharray="3,3"/>
+        <text x="78" y="368.0" fill="#8b949e" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="12" text-anchor="end">2</text>
+        
+        <line x1="90" y1="308.0" x2="870" y2="308.0" stroke="rgba(255,255,255,0.08)" stroke-dasharray="3,3"/>
+        <text x="78" y="312.0" fill="#8b949e" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="12" text-anchor="end">4</text>
+        
+        <line x1="90" y1="252.0" x2="870" y2="252.0" stroke="rgba(255,255,255,0.08)" stroke-dasharray="3,3"/>
+        <text x="78" y="256.0" fill="#8b949e" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="12" text-anchor="end">6</text>
+        
+        <line x1="90" y1="196.0" x2="870" y2="196.0" stroke="rgba(255,255,255,0.08)" stroke-dasharray="3,3"/>
+        <text x="78" y="200.0" fill="#8b949e" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="12" text-anchor="end">8</text>
+        
+        <line x1="90" y1="140.0" x2="870" y2="140.0" stroke="rgba(255,255,255,0.08)" stroke-dasharray="3,3"/>
+        <text x="78" y="144.0" fill="#8b949e" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="12" text-anchor="end">10</text>
+        
+
+  <!-- Plot Bars & Markers -->
+  
+        <!-- Pair 0: Aarav × Meera -->
+        <g>
+          <!-- Baseline Prior Bar -->
+          <rect x="126.0" y="140.0" width="26" height="280.0" rx="4" fill="#388bfd" fill-opacity="0.85"/>
+          <text x="139.0" y="134.0" fill="#58a6ff" font-family="-apple-system, sans-serif" font-size="11" font-weight="600" text-anchor="middle">10.0</text>
+
+          <!-- Agent Date Verdict Bar -->
+          <rect x="158.0" y="252.0" width="26" height="168.0" rx="4" fill="#ff4d6d" fill-opacity="0.9"/>
+          <text x="171.0" y="246.0" fill="#ff758f" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" text-anchor="middle">6.0</text>
+
+          <!-- Ground Truth Gold Target Marker -->
+          <line x1="121.0" y1="358.4" x2="189.0" y2="358.4" stroke="#ffb703" stroke-width="3" stroke-dasharray="4,2"/>
+          <polygon points="155.0,352.4 161.0,358.4 155.0,364.4 149.0,358.4" fill="#ffb703"/>
+
+          <!-- X-Axis Label -->
+          <text x="155.0" y="444" fill="#e6edf3" font-family="-apple-system, sans-serif" font-size="12" font-weight="600" text-anchor="middle">Aarav × Meera</text>
+          <text x="155.0" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="10" text-anchor="middle">True: 2.2</text>
+        </g>
+        
+        <!-- Pair 1: Rohan × Ishita -->
+        <g>
+          <!-- Baseline Prior Bar -->
+          <rect x="256.0" y="238.0" width="26" height="182.0" rx="4" fill="#388bfd" fill-opacity="0.85"/>
+          <text x="269.0" y="232.0" fill="#58a6ff" font-family="-apple-system, sans-serif" font-size="11" font-weight="600" text-anchor="middle">6.5</text>
+
+          <!-- Agent Date Verdict Bar -->
+          <rect x="288.0" y="252.0" width="26" height="168.0" rx="4" fill="#ff4d6d" fill-opacity="0.9"/>
+          <text x="301.0" y="246.0" fill="#ff758f" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" text-anchor="middle">6.0</text>
+
+          <!-- Ground Truth Gold Target Marker -->
+          <line x1="251.0" y1="162.40000000000003" x2="319.0" y2="162.40000000000003" stroke="#ffb703" stroke-width="3" stroke-dasharray="4,2"/>
+          <polygon points="285.0,156.40000000000003 291.0,162.40000000000003 285.0,168.40000000000003 279.0,162.40000000000003" fill="#ffb703"/>
+
+          <!-- X-Axis Label -->
+          <text x="285.0" y="444" fill="#e6edf3" font-family="-apple-system, sans-serif" font-size="12" font-weight="600" text-anchor="middle">Rohan × Ishita</text>
+          <text x="285.0" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="10" text-anchor="middle">True: 9.2</text>
+        </g>
+        
+        <!-- Pair 2: Kiran × Farhan -->
+        <g>
+          <!-- Baseline Prior Bar -->
+          <rect x="386.0" y="140.0" width="26" height="280.0" rx="4" fill="#388bfd" fill-opacity="0.85"/>
+          <text x="399.0" y="134.0" fill="#58a6ff" font-family="-apple-system, sans-serif" font-size="11" font-weight="600" text-anchor="middle">10.0</text>
+
+          <!-- Agent Date Verdict Bar -->
+          <rect x="418.0" y="252.0" width="26" height="168.0" rx="4" fill="#ff4d6d" fill-opacity="0.9"/>
+          <text x="431.0" y="246.0" fill="#ff758f" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" text-anchor="middle">6.0</text>
+
+          <!-- Ground Truth Gold Target Marker -->
+          <line x1="381.0" y1="341.6" x2="449.0" y2="341.6" stroke="#ffb703" stroke-width="3" stroke-dasharray="4,2"/>
+          <polygon points="415.0,335.6 421.0,341.6 415.0,347.6 409.0,341.6" fill="#ffb703"/>
+
+          <!-- X-Axis Label -->
+          <text x="415.0" y="444" fill="#e6edf3" font-family="-apple-system, sans-serif" font-size="12" font-weight="600" text-anchor="middle">Kiran × Farhan</text>
+          <text x="415.0" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="10" text-anchor="middle">True: 2.8</text>
+        </g>
+        
+        <!-- Pair 3: Ananya × Kabir -->
+        <g>
+          <!-- Baseline Prior Bar -->
+          <rect x="516.0" y="140.0" width="26" height="280.0" rx="4" fill="#388bfd" fill-opacity="0.85"/>
+          <text x="529.0" y="134.0" fill="#58a6ff" font-family="-apple-system, sans-serif" font-size="11" font-weight="600" text-anchor="middle">10.0</text>
+
+          <!-- Agent Date Verdict Bar -->
+          <rect x="548.0" y="267.4" width="26" height="152.60000000000002" rx="4" fill="#ff4d6d" fill-opacity="0.9"/>
+          <text x="561.0" y="261.4" fill="#ff758f" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" text-anchor="middle">5.5</text>
+
+          <!-- Ground Truth Gold Target Marker -->
+          <line x1="511.0" y1="168.0" x2="579.0" y2="168.0" stroke="#ffb703" stroke-width="3" stroke-dasharray="4,2"/>
+          <polygon points="545.0,162.0 551.0,168.0 545.0,174.0 539.0,168.0" fill="#ffb703"/>
+
+          <!-- X-Axis Label -->
+          <text x="545.0" y="444" fill="#e6edf3" font-family="-apple-system, sans-serif" font-size="12" font-weight="600" text-anchor="middle">Ananya × Kabir</text>
+          <text x="545.0" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="10" text-anchor="middle">True: 9.0</text>
+        </g>
+        
+        <!-- Pair 4: Vikram × Tara -->
+        <g>
+          <!-- Baseline Prior Bar -->
+          <rect x="646.0" y="140.0" width="26" height="280.0" rx="4" fill="#388bfd" fill-opacity="0.85"/>
+          <text x="659.0" y="134.0" fill="#58a6ff" font-family="-apple-system, sans-serif" font-size="11" font-weight="600" text-anchor="middle">10.0</text>
+
+          <!-- Agent Date Verdict Bar -->
+          <rect x="678.0" y="252.0" width="26" height="168.0" rx="4" fill="#ff4d6d" fill-opacity="0.9"/>
+          <text x="691.0" y="246.0" fill="#ff758f" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" text-anchor="middle">6.0</text>
+
+          <!-- Ground Truth Gold Target Marker -->
+          <line x1="641.0" y1="336.0" x2="709.0" y2="336.0" stroke="#ffb703" stroke-width="3" stroke-dasharray="4,2"/>
+          <polygon points="675.0,330.0 681.0,336.0 675.0,342.0 669.0,336.0" fill="#ffb703"/>
+
+          <!-- X-Axis Label -->
+          <text x="675.0" y="444" fill="#e6edf3" font-family="-apple-system, sans-serif" font-size="12" font-weight="600" text-anchor="middle">Vikram × Tara</text>
+          <text x="675.0" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="10" text-anchor="middle">True: 3.0</text>
+        </g>
+        
+        <!-- Pair 5: Neel × Zain -->
+        <g>
+          <!-- Baseline Prior Bar -->
+          <rect x="776.0" y="140.0" width="26" height="280.0" rx="4" fill="#388bfd" fill-opacity="0.85"/>
+          <text x="789.0" y="134.0" fill="#58a6ff" font-family="-apple-system, sans-serif" font-size="11" font-weight="600" text-anchor="middle">10.0</text>
+
+          <!-- Agent Date Verdict Bar -->
+          <rect x="808.0" y="252.0" width="26" height="168.0" rx="4" fill="#ff4d6d" fill-opacity="0.9"/>
+          <text x="821.0" y="246.0" fill="#ff758f" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" text-anchor="middle">6.0</text>
+
+          <!-- Ground Truth Gold Target Marker -->
+          <line x1="771.0" y1="173.59999999999997" x2="839.0" y2="173.59999999999997" stroke="#ffb703" stroke-width="3" stroke-dasharray="4,2"/>
+          <polygon points="805.0,167.59999999999997 811.0,173.59999999999997 805.0,179.59999999999997 799.0,173.59999999999997" fill="#ffb703"/>
+
+          <!-- X-Axis Label -->
+          <text x="805.0" y="444" fill="#e6edf3" font-family="-apple-system, sans-serif" font-size="12" font-weight="600" text-anchor="middle">Neel × Zain</text>
+          <text x="805.0" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="10" text-anchor="middle">True: 8.8</text>
+        </g>
+        
+
+  <!-- Footer Citation Tag -->
+  <text x="480.0" y="542" fill="#6e7681" font-family="-apple-system, sans-serif" font-size="11" text-anchor="middle">
+    N=6 Controlled Relational Cohorts · Latent facts evaluated in multi-turn date transcripts · AMORA Autonomous Evaluation Framework
+  </text>
+</svg>

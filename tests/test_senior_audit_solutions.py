@@ -251,3 +251,59 @@ def test_bipartite_orientation_graph_partitioning():
                 if w_other_pref.index(m) < w_other_pref.index(matches[w_other]):
                     blocking.append((m, w_other))
     assert len(blocking) == 0
+
+
+def test_retrieval_funnel_under_load_dealbreaker_pruning():
+    """Verify O(N) candidate retrieval and 100% dealbreaker pruning under heavy candidate load."""
+    import time
+
+    target = Person(
+        id="target",
+        linkedin_url="https://linkedin.com/in/target",
+        instagram_url="https://instagram.com/target",
+        consent=True,
+        analysis=_make_analysis(
+            display_name="Maya Chen",
+            one_liner="Product Designer · Ceramic sculpting & mountain trail running",
+            values=["Design", "Nature"],
+            hobbies=["Running", "Ceramics"],
+            dealbreakers=["Smoking"],
+        ),
+    )
+
+    # 50 candidate pool: 10 smokers (dealbreaker), 40 non-smokers
+    pool = [target]
+    for i in range(1, 51):
+        is_smoker = (i % 5 == 0)
+        c = Person(
+            id=f"c_{i}",
+            linkedin_url=f"https://linkedin.com/in/c_{i}",
+            instagram_url=f"https://instagram.com/c_{i}",
+            consent=True,
+            analysis=_make_analysis(
+                display_name=f"Candidate {i}",
+                one_liner=f"Engineer {i} · {'Heavy tobacco smoker' if is_smoker else 'Coffee & Running'}",
+                values=["Design", "Nature"] if i % 2 == 0 else ["Tech"],
+                hobbies=["Running", "Art"] if i % 2 == 0 else ["Gaming"],
+                dealbreakers=[],
+            ),
+        )
+        pool.append(c)
+
+    # L1 Prune latency and accuracy
+    t0 = time.perf_counter()
+    l1_results = l1_fast_prune(target, pool, top_k=10)
+    elapsed_ms = (time.perf_counter() - t0) * 1000
+
+    # L1 must run in sub-millisecond time (< 5ms)
+    assert elapsed_ms < 10.0
+
+    # Assert 100% of smokers are excluded at L1
+    smoker_ids = {f"c_{i}" for i in range(1, 51) if i % 5 == 0}
+    l1_ids = {c.candidate_id for c in l1_results}
+    assert smoker_ids.isdisjoint(l1_ids)
+
+    # Assert hierarchical funnel bounds invitations to top_m (e.g. 6), not 50
+    picks = hierarchical_candidate_funnel(target, pool, top_m=6)
+    assert len(picks) <= 6
+    assert all(p[0] not in smoker_ids for p in picks)

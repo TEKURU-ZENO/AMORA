@@ -56,9 +56,47 @@ MAX_PARALLEL_DATES = int(os.getenv("MAX_PARALLEL_DATES", "6"))
 # Access & Privacy
 ADMIN_API_KEY = os.getenv("ADMIN_API_KEY") or _env("DEMO_KEY", "amora-demo-secret")
 
+# Local LLM / Ollama configuration
+OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://127.0.0.1:11434")
+OLLAMA_MODEL = _env("OLLAMA_MODEL", os.getenv("OLLAMA_MODEL", "llama3.2:1b"))
+
+
+def ollama_available() -> bool:
+    """Check if local Ollama daemon is reachable."""
+    try:
+        import urllib.request
+        req = urllib.request.Request(f"{OLLAMA_HOST}/api/tags")
+        with urllib.request.urlopen(req, timeout=0.8) as resp:
+            return resp.status == 200
+    except Exception:
+        return False
+
+
+def llm_provider() -> str:
+    """Return active LLM provider: 'anthropic' | 'ollama' | 'none'."""
+    if os.getenv("ANTHROPIC_API_KEY"):
+        return "anthropic"
+    if os.getenv("USE_OLLAMA") == "0" or os.getenv("AMORA_OFFLINE") == "1":
+        return "none"
+    if os.getenv("USE_OLLAMA") == "1":
+        return "ollama"
+    # Auto-detect Ollama outside automated test suites
+    if not os.getenv("PYTEST_CURRENT_TEST") and ollama_available():
+        return "ollama"
+    return "none"
+
 
 def llm_enabled() -> bool:
-    return bool(os.getenv("ANTHROPIC_API_KEY"))
+    return llm_provider() != "none"
+
+
+def active_model_name() -> str:
+    p = llm_provider()
+    if p == "anthropic":
+        return f"Claude ({MODEL})"
+    elif p == "ollama":
+        return f"Ollama ({OLLAMA_MODEL})"
+    return "offline_deterministic"
 
 
 def apify_token() -> str:

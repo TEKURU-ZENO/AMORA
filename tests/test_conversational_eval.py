@@ -64,7 +64,7 @@ def test_conversational_evaluation_chart_svg():
     assert "Profile Prior" in svg
     assert "Agent Date" in svg
     assert "ENGINE:" in svg
-    assert "OFFLINE DETERMINISTIC" in svg or "CLAUDE" in svg
+    assert "OFFLINE DETERMINISTIC" in svg or "CLAUDE" in svg or "OLLAMA" in svg
 
 
 def test_empty_study_chart_svg_has_no_planted_values():

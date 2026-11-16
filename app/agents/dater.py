@@ -383,8 +383,10 @@ def go_on_date(ida: str, a: Analysis, idb: str, b: Analysis,
             turns = _date_llm(a, b, ida, idb, venue, coaching_a, coaching_b, on_turn=on_turn)
             va = _verdict_llm(a, b, ida, turns, ida, venue, coaching_a)
             vb = _verdict_llm(b, a, idb, turns, ida, venue, coaching_b)
-            engine = "claude"
-        except Exception:
+            engine = "ollama" if config.llm_provider() == "ollama" else "claude"
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).warning("LLM date failed, falling back to offline: %s", e)
             turns = None
     if engine == "offline":
         turns, dba, dbb, syn = _date_offline(a, b, ida, idb, venue, c, coaching_a, coaching_b, on_turn=on_turn)
