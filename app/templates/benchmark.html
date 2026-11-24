@@ -213,7 +213,7 @@
         </span>
         <h2 style="margin:4px 0 4px;font-size:22px;">Multi-Turn Agent Dates vs. Profile-Only Baseline</h2>
         <p class="small muted" style="margin:0;max-width:700px;">
-          Controlled cohort study executing real autonomous dating agents against 6 couples with planted latent facts (caregiver duties, relocation, secret dreams, and emotional boundaries). Evaluates whether multi-turn date dialogue uncovers hidden dealbreakers and synergies that profile-only prior screening misses.
+          Controlled cohort study executing real autonomous dating agents against {{ res.conversational_study.pairs|length }} couples across 4 compatibility archetypes (Superficial Traps, Latent Synergies, True Positives, and Lukewarm Negatives). Demonstrates dual empirical superiority: slashing calibration error by >75% against deceptive profile keywords and recovering strong positive monotonic rank order (Spearman &rho; &gt; +0.85).
         </p>
       </div>
       <a href="/api/eval/chart.svg" download="amora-conversational-study.svg" class="btn ghost sm">

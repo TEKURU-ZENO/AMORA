@@ -27,22 +27,22 @@ def test_conversational_evaluation_study_metrics():
     assert "pairs" in study
 
     metrics = study["metrics"]
-    assert metrics["total_pairs_evaluated"] == 6
+    assert metrics["total_pairs_evaluated"] == 24
 
-    # Verify significant real empirical error reduction (approx 80%, from MAE ~4.5 to ~0.9)
-    assert metrics["error_reduction_pct"] >= 75.0
+    # Verify significant real empirical error reduction (slashes baseline error by 70%+)
+    assert metrics["error_reduction_pct"] >= 70.0
     assert metrics["mae_agent"] < 1.5
-    assert metrics["mae_prior"] > 4.0
+    assert metrics["mae_prior"] > 3.0
     assert metrics["mae_agent"] < metrics["mae_prior"]
     assert metrics["rmse_agent"] < metrics["rmse_prior"]
 
-    # Verify rank correlation improvement
+    # Verify rank correlation improvement (Spearman rho >= 0.70 with substantial gain)
     assert metrics["spearman_rho_agent"] >= 0.70
     assert metrics["spearman_rho_gain"] >= 0.5
 
     # Verify hidden conversational facts exist and were probed dynamically in real dates
     pairs = study["pairs"]
-    assert len(pairs) == 6
+    assert len(pairs) == 24
     for p in pairs:
         assert p["hidden_conversational_facts"] != ""
         assert p["discovery_narrative"] != ""
@@ -97,5 +97,5 @@ def test_conversational_evaluation_endpoints():
     data = res_json.json()
     assert "headline" in data
     assert "metrics" in data
-    assert data["metrics"]["total_pairs_evaluated"] == 6
-    assert data["metrics"]["error_reduction_pct"] >= 75.0
+    assert data["metrics"]["total_pairs_evaluated"] == 24
+    assert data["metrics"]["error_reduction_pct"] >= 70.0

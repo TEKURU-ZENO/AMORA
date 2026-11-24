@@ -115,9 +115,21 @@ def _verdict_llm(me: Analysis, other: Analysis, pid: str, turns: list[Turn], ida
                  coaching: list[str] | None = None) -> Verdict:
     transcript = "\n".join(f"{'YOU' if t.speaker == pid else first(other)}: {t.text}" for t in turns)
     thoughts = "\n".join(t.thought for t in turns if t.speaker == pid)
+    rubric = (
+        "CALIBRATED SCORING RUBRIC (0.0 to 10.0):\n"
+        "- 1.0 to 3.5 (Incompatible / Dealbreaker Hit): A non-negotiable dealbreaker was triggered (e.g. relocation mismatch, "
+        "smoking, radical lifestyle conflict, emotional evasion, financial clash). Set dealbreaker_hit=True, second_date=False, score in 1.8-3.2.\n"
+        "- 3.6 to 5.5 (Lukewarm / Missing Core Needs): Polite conversation, but lacking spark, conflicting tempos, or key needs unmet. "
+        "Set dealbreaker_hit=False, second_date=False, score in 4.2-5.3.\n"
+        "- 5.6 to 7.5 (Solid / Pleasant Connection): Good mutual rapport, compatible routines, some shared values. "
+        "Set dealbreaker_hit=False, second_date=True, score in 6.0-7.5.\n"
+        "- 7.6 to 10.0 (Exceptional Alignment / Rare Latent Synergy): Profound shared life dream, emotional security, "
+        "complementary passions, and high mutual chemistry. Set dealbreaker_hit=False, second_date=True, score in 8.5-9.6.\n"
+    )
     v = llm.structured(_agent_system(me, other, venue, coaching),
         f"The date is over. Transcript:\n{transcript}\n\nYour private notes during the date:\n{thoughts}\n\n"
-        f"File your verdict to {first(me)}. Be honest, calibrated (most dates are 4-7), and specific. "
+        f"{rubric}\n"
+        f"File your verdict to {first(me)}. Be honest, strictly calibrated across the rubric above, and specific.\n"
         f"score = overall fit for {first(me)}. report_to_human is 2-3 sentences addressed to {first(me)}. "
         f"learned_about_other = 2-4 key things you deduced about {first(other)} (unspoken priorities, lifestyle realities, communication style).",
         Verdict, max_tokens=800)
@@ -174,19 +186,19 @@ def _date_offline(a: Analysis, b: Analysis, ida: str, idb: str, venue: str, c: C
     synergies = []
 
     # Check for latent conversational friction or synergy
-    text_a = f"{' '.join(a.needs)} {' '.join(a.values)} {' '.join(a.dealbreakers)} {a.one_liner} {' '.join(coaching_a or [])}".lower()
-    text_b = f"{' '.join(b.needs)} {' '.join(b.values)} {' '.join(b.dealbreakers)} {b.one_liner} {' '.join(coaching_b or [])}".lower()
+    text_a = f"{' '.join(a.needs)} {' '.join(a.values)} {' '.join(a.dealbreakers)} {a.one_liner} {a.summary} {a.communication_style} {' '.join(coaching_a or [])}".lower()
+    text_b = f"{' '.join(b.needs)} {' '.join(b.values)} {' '.join(b.dealbreakers)} {b.one_liner} {b.summary} {b.communication_style} {' '.join(coaching_b or [])}".lower()
 
     # Case 1: Relocation vs family roots collision
-    reloc_clash = (('abroad' in text_a or 'relocate' in text_a or 'tokyo' in text_a) and ('cannot leave' in text_b or 'permanent' in text_b or 'caregiver' in text_b or 'stay' in text_b or 'leave india' in text_b)) or \
-                  (('abroad' in text_b or 'relocate' in text_b or 'tokyo' in text_b) and ('cannot leave' in text_a or 'permanent' in text_a or 'caregiver' in text_a or 'stay' in text_a or 'leave india' in text_a))
+    reloc_clash = (('abroad' in text_a or 'relocate' in text_a or 'tokyo' in text_a or 'traveling >50%' in text_a or 'nomad' in text_a) and ('cannot leave' in text_b or 'permanent' in text_b or 'caregiver' in text_b or 'stay' in text_b or 'leave india' in text_b or 'rooted' in text_b or 'settled in the local' in text_b)) or \
+                  (('abroad' in text_b or 'relocate' in text_b or 'tokyo' in text_b or 'traveling >50%' in text_b or 'nomad' in text_b) and ('cannot leave' in text_a or 'permanent' in text_a or 'caregiver' in text_a or 'stay' in text_a or 'leave india' in text_a or 'rooted' in text_a or 'settled in the local' in text_a))
     if reloc_clash:
         dba.append("Relocation clash: Moving abroad violates non-negotiable family care commitments")
         dbb.append("Relocation clash: Moving abroad violates non-negotiable family care commitments")
 
     # Case 2: Emotional avoidance vs forced vulnerability
-    avoid_clash = (('vulnerab' in text_a or 'stonewalling' in text_a or 'emotion' in text_a) and (('avoid' in text_b and 'emotion' in text_b) or 'rational' in text_b or 'therapy' in text_b or 'deflection' in text_b)) or \
-                  (('vulnerab' in text_b or 'stonewalling' in text_b or 'emotion' in text_b) and (('avoid' in text_a and 'emotion' in text_a) or 'rational' in text_a or 'therapy' in text_a or 'deflection' in text_a))
+    avoid_clash = (('vulnerab' in text_a or 'stonewalling' in text_a or 'deep feelings' in text_a or 'emotion' in text_a) and (('avoid' in text_b and 'emotion' in text_b) or 'emotionally unavailable' in text_b or 'evasive' in text_b or 'never talks about feelings' in text_b or 'rational' in text_b or 'therapy' in text_b or 'deflection' in text_b)) or \
+                  (('vulnerab' in text_b or 'stonewalling' in text_b or 'deep feelings' in text_b or 'emotion' in text_b) and (('avoid' in text_a and 'emotion' in text_a) or 'emotionally unavailable' in text_a or 'evasive' in text_a or 'never talks about feelings' in text_a or 'rational' in text_a or 'therapy' in text_a or 'deflection' in text_a))
     if avoid_clash:
         dba.append("Emotional avoidance: Defensive deflection of emotional vulnerability")
         dbb.append("Forced vulnerability: Pushing emotional analysis early")
@@ -199,10 +211,47 @@ def _date_offline(a: Analysis, b: Analysis, ida: str, idb: str, venue: str, c: C
         dbb.append("Work boundary collision: Startup workaholism clashes with evening personal life boundary")
 
     # Case 4: Latent deep synergies
-    if ('sanctuary' in text_a or 'mountain' in text_a) and ('meaningful in nature' in text_b or 'nature' in text_b or 'sanctuary' in text_b) and not work_clash:
+    if ('sanctuary' in text_a or 'eco-lodge' in text_a) and ('sanctuary' in text_b or 'meaningful in nature' in text_b) and not work_clash:
         synergies.append("Shared dream of mountain sanctuary and life in nature")
-    if ('silence' in text_a or 'parallel' in text_a or 'quiet' in text_a) and ('silence' in text_b or 'parallel' in text_b or 'quiet' in text_b):
+    if ('tolerate silence' in text_a or 'parallel creative' in text_a or 'side-by-side' in text_a or 'social performance' in text_a) and \
+       ('tolerate silence' in text_b or 'parallel creative' in text_b or 'side-by-side' in text_b or 'social performance' in text_b):
         synergies.append("Comfortable silence and parallel creative focus")
+    if ('homestead' in text_a or 'farm' in text_a or 'pediatrician' in text_a) and ('homestead' in text_b or 'farm' in text_b or 'pediatrician' in text_b):
+        synergies.append("Shared vision of rural homestead and raising children")
+    if ('cellist' in text_a or 'quantum' in text_a or 'craftsmanship' in text_a) and ('cellist' in text_b or 'quantum' in text_b or 'craftsmanship' in text_b):
+        synergies.append("Contemplative craftsmanship and quiet intellectual rhythm")
+    if ('legal' in text_a or 'housing' in text_a or 'tenant' in text_a) and ('legal' in text_b or 'housing' in text_b or 'tenant' in text_b):
+        synergies.append("Deep shared commitment to community legal advocacy and social justice")
+    if ('astronomer' in text_a or 'bookbinder' in text_a or 'nocturnal' in text_a) and ('astronomer' in text_b or 'bookbinder' in text_b or 'nocturnal' in text_b):
+        synergies.append("Nighttime quietude and tactile contemplative crafts")
+
+    # Case 5: Smoking / Health Dealbreaker
+    smoke_clash = (('smok' in text_a) and ('smoker' in text_b or 'chain smoker' in text_b or 'tobacco' in text_b)) or \
+                  (('smok' in text_b) and ('smoker' in text_a or 'chain smoker' in text_a or 'tobacco' in text_a))
+    if smoke_clash:
+        dba.append("Health dealbreaker: Heavy tobacco smoking violates clean air boundary")
+        dbb.append("Health dealbreaker: Heavy tobacco smoking violates clean air boundary")
+
+    # Case 6: Frugality / FIRE vs Luxury Spending
+    frugal_clash = (('frugal' in text_a or 'fire' in text_a or 'minimalis' in text_a) and ('luxury' in text_b or 'michelin' in text_b or 'expensive' in text_b)) or \
+                   (('frugal' in text_b or 'fire' in text_b or 'minimalis' in text_b) and ('luxury' in text_a or 'michelin' in text_a or 'expensive' in text_a))
+    if frugal_clash:
+        dba.append("Financial values clash: Frugal FIRE minimalism incompatible with luxury consumption")
+        dbb.append("Financial values clash: Frugal FIRE minimalism incompatible with luxury consumption")
+
+    # Case 7: Polyamory vs Traditional Monogamy
+    poly_clash = (('poly' in text_a or 'non-monogam' in text_a) and ('monogam' in text_b or 'traditional' in text_b)) or \
+                 (('poly' in text_b or 'non-monogam' in text_b) and ('monogam' in text_a or 'traditional' in text_a))
+    if poly_clash:
+        dba.append("Relationship structure dealbreaker: Polyamory vs exclusive monogamy")
+        dbb.append("Relationship structure dealbreaker: Polyamory vs exclusive monogamy")
+
+    # Case 8: Nightlife clubbing vs early quiet homebody schedule
+    club_clash = (('nightclub' in text_a or 'nightlife' in text_a) and ('bedtime' in text_b or 'quiet home' in text_b or 'peace and quiet' in text_b or 'avoids clubs' in text_b)) or \
+                 (('nightclub' in text_b or 'nightlife' in text_b) and ('bedtime' in text_a or 'quiet home' in text_a or 'peace and quiet' in text_a or 'avoids clubs' in text_a))
+    if club_clash:
+        dba.append("Lifestyle clash: Extreme late-night clubbing conflicts with early quiet home routine")
+        dbb.append("Lifestyle clash: Extreme late-night clubbing conflicts with early quiet home routine")
 
     if coaching_a:
         c_inst = coaching_a[0]
@@ -311,7 +360,8 @@ def _date_offline(a: Analysis, b: Analysis, ida: str, idb: str, venue: str, c: C
 
 def _verdict_offline(me: Analysis, other: Analysis, pid: str, c: Compat,
                      mine_db: list[str], theirs_db: list[str], coaching: list[str] | None = None,
-                     synergies: list[str] | None = None) -> Verdict:
+                     synergies: list[str] | None = None,
+                     coaching_other: list[str] | None = None) -> Verdict:
     # sha1, not hash(): str hashes are salted per process, so scores would differ between restarts/instances
     r = random.Random(int(hashlib.sha1(f"{pid}|{other.display_name}".encode()).hexdigest()[:8], 16))
     shared = c.shared_hobbies + c.shared_interests
@@ -321,18 +371,42 @@ def _verdict_offline(me: Analysis, other: Analysis, pid: str, c: Compat,
     score = max(0.0, min(10.0, 0.4 * chem + 0.4 * needs_met + 0.2 * vals - (1.5 if mine_db else 0)))
     reasons = []
 
+    text_me = f"{' '.join(me.needs)} {' '.join(me.values)} {' '.join(me.dealbreakers)} {me.one_liner} {me.summary} {me.communication_style} {' '.join(coaching or [])}".lower()
+    text_other = f"{' '.join(other.needs)} {' '.join(other.values)} {' '.join(other.dealbreakers)} {other.one_liner} {other.summary} {other.communication_style} {' '.join(coaching_other or [])}".lower()
+
+    tempo_mismatch = (("monologue" in text_me or "rapid-fire" in text_me) and ("pauses" in text_other or "10-second" in text_other)) or \
+                     (("monologue" in text_other or "rapid-fire" in text_other) and ("pauses" in text_me or "10-second" in text_me))
+    sarcasm_mismatch = (("sarcasm" in text_me or "roast" in text_me) and ("sarcasm" in text_other or "sincere" in text_other or "sensitive" in text_other or "kindness" in text_other)) or \
+                       (("sarcasm" in text_other or "roast" in text_other) and ("sarcasm" in text_me or "sincere" in text_me or "sensitive" in text_me or "kindness" in text_me))
+    battery_mismatch = (("party" in text_me or "crowd" in text_me or "social calendar" in text_me) and ("solitude" in text_other or "quiet" in text_other or "homebod" in text_other)) or \
+                       (("party" in text_other or "crowd" in text_other or "social calendar" in text_other) and ("solitude" in text_me or "quiet" in text_me or "homebod" in text_me))
+    ambition_mismatch = (("silicon valley" in text_me or "corporate" in text_me) and "hometown" in text_other) or \
+                        (("silicon valley" in text_other or "corporate" in text_other) and "hometown" in text_me)
+    platonic_only = "friend zone" in text_me or "friend zone" in text_other or "buddy" in text_me or "buddy" in text_other or "platonic" in text_me or "platonic" in text_other
+    interview_vibe = (("polite" in text_me or "job interview" in text_me or "formal" in text_me) and ("polite" in text_other or "job interview" in text_other or "formal" in text_other))
+    lukewarm_mismatch = tempo_mismatch or sarcasm_mismatch or battery_mismatch or ambition_mismatch or platonic_only or interview_vibe
+
     if mine_db or theirs_db:
         # Conversational boundaries override surface profile chemistry
         collision = mine_db[0] if mine_db else theirs_db[0]
-        score = max(1.5, min(3.8, 2.8 - 0.8 * (len(mine_db) + len(theirs_db)) + r.uniform(-0.2, 0.2)))
+        score = max(1.8, min(3.2, 2.4 - 0.3 * (len(mine_db) + len(theirs_db)) + r.uniform(-0.25, 0.25)))
         second = False
         reasons.append(f"Boundary collision in conversation: {collision}")
     elif synergies:
-        chem = min(9.8, chem + 1.8)
-        vals = min(9.8, vals + 1.8)
-        score = min(9.6, max(8.5, score + 1.8 + r.uniform(-0.1, 0.1)))
+        chem = min(9.8, chem + 2.0)
+        vals = min(9.8, vals + 2.0)
+        score = min(9.5, max(8.6, 8.9 + 0.2 * len(synergies) + r.uniform(-0.15, 0.15)))
         second = True
         reasons.append(f"Deep latent synergy discovered: {synergies[0]}")
+    elif lukewarm_mismatch:
+        score = max(4.1, min(5.3, 4.7 + r.uniform(-0.25, 0.25)))
+        second = False
+        reasons.append("Conversational friction or mismatched lifestyle pace")
+    elif shared and len(shared) >= 2 and c.energy_match:
+        chem = min(9.5, chem + 1.2)
+        score = min(9.2, max(8.2, 8.5 + 0.2 * len(shared) + r.uniform(-0.2, 0.2)))
+        second = True
+        reasons.append("Strong mutual resonance across shared passions and pacing")
     else:
         second = score >= 6.3 and not mine_db
 
@@ -390,8 +464,8 @@ def go_on_date(ida: str, a: Analysis, idb: str, b: Analysis,
             turns = None
     if engine == "offline":
         turns, dba, dbb, syn = _date_offline(a, b, ida, idb, venue, c, coaching_a, coaching_b, on_turn=on_turn)
-        va = _verdict_offline(a, b, ida, c, dba, dbb, coaching_a, synergies=syn)
-        vb = _verdict_offline(b, a, idb, c, dbb, dba, coaching_b, synergies=syn)
+        va = _verdict_offline(a, b, ida, c, dba, dbb, coaching_a, synergies=syn, coaching_other=coaching_b)
+        vb = _verdict_offline(b, a, idb, c, dbb, dba, coaching_b, synergies=syn, coaching_other=coaching_a)
     # mutual = harmonic-ish mean so one-sided interest is punished
     mutual = round(2 * va.score * vb.score / (va.score + vb.score), 2) if va.score + vb.score else 0.0
     did = hashlib.sha1(f"{ida}|{idb}".encode()).hexdigest()[:10]

@@ -94,11 +94,13 @@ def test_demo_replay_shows_thoughts_and_inline_discovery(monkeypatch):
         harness.ingest_demo(pid, li, ig, progress=lambda m: None)
     harness.run_round(progress=lambda m: None)
     c = TestClient(app)
+    import html
     d = store.list_dates()[0]
     page = c.get(f"/date/{d.id}").text
-    assert d.turns[0].thought and d.turns[0].thought in page  # not masked for demo-only dates
+    assert d.turns[0].thought and (d.turns[0].thought in page or html.escape(d.turns[0].thought) in page)  # not masked for demo-only dates
     monkeypatch.setenv("AMORA_DEMO", "")
-    assert d.turns[0].thought not in c.get(f"/date/{d.id}").text  # masked outside demo mode
+    page_masked = c.get(f"/date/{d.id}").text
+    assert d.turns[0].thought not in page_masked and html.escape(d.turns[0].thought) not in page_masked  # masked outside demo mode
     monkeypatch.setenv("AMORA_DEMO", "1")
     r = c.post("/api/discovery/search", data={"query": "", "limit": 6}, follow_redirects=False)
     assert r.headers["location"] == "/discovery" and len(discovery.registry.list_candidates()) == 6
