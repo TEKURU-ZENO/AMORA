@@ -1,28 +1,31 @@
 {% extends "base.html" %}
-{% block title %}Create Your Dating Agent · Zero Scraping Onboarding · AMORA{% endblock %}
+{% block title %}Psychological & Archetype Behavioral Assessment · AMORA{% endblock %}
 {% block body %}
-<div class="narrow" style="max-width:940px;margin:24px auto;padding-bottom:80px;">
+<div class="narrow" style="max-width:980px;margin:24px auto;padding-bottom:80px;">
 
   <!-- Header -->
   <div style="text-align:center;margin-bottom:32px;">
     <span class="chip g" style="font-size:12px;font-weight:700;margin-bottom:8px;display:inline-block;">
-      ✓ ZERO WEB SCRAPING · 100% PRIVATE &amp; ACCURATE
+      ✓ ZERO WEB SCRAPING · 100% PRIVATE &amp; REGULATION COMPLIANT
     </span>
     <h1 style="margin:4px 0 10px;font-size:36px;font-family:Georgia,serif;">
-      Build Your Autonomous Dating Agent
+      Psychological &amp; Behavioral Dating Assessment
     </h1>
-    <p class="muted" style="font-size:16px;max-width:640px;margin:0 auto;line-height:1.5;">
-      Traditional scrapers only pull outdated corporate titles. AMORA captures your authentic relationship dynamics, Sunday rhythm, and hard boundaries directly.
+    <h2 style="font-size:18px;font-weight:600;color:var(--accent);margin:0 0 10px;">
+      Build Your Autonomous Dating Agent
+    </h2>
+    <p class="muted" style="font-size:16px;max-width:700px;margin:0 auto;line-height:1.5;">
+      Web scraping is brittle and violates platform terms. AMORA evaluates your relational archetype, attachment dynamics, life pacing, work ambition, and future horizons directly to construct an authentic autonomous dating agent.
     </p>
   </div>
 
   <!-- Intake Mode Selector Tabs -->
   <div style="display:flex;justify-content:center;gap:12px;margin-bottom:28px;">
-    <button type="button" class="btn sm" id="tab-btn-interview" style="background:var(--accent);color:#fff;font-weight:600;padding:10px 20px;" onclick="switchMode('interview')">
-      ☕ 3-Minute Agent Interview
+    <button type="button" class="btn sm" id="tab-btn-psych" style="background:var(--accent);color:#fff;font-weight:600;padding:10px 20px;" onclick="switchMode('psych')">
+      🧠 3-Minute Agent Interview &amp; Psychological Archetype Assessment
     </button>
     <button type="button" class="btn secondary sm" id="tab-btn-pdf" style="font-weight:600;padding:10px 20px;" onclick="switchMode('pdf')">
-      📄 Upload LinkedIn PDF / Resume
+      📄 Upload LinkedIn PDF / Resume (100% Offline)
     </button>
   </div>
 
@@ -30,57 +33,155 @@
 
     <!-- Left Column: Forms -->
     <div>
-      <!-- Mode 1: AI Intake Interview Form -->
-      <div id="mode-interview" class="card" style="padding:28px;">
+      <!-- Mode 1: Psychological & Archetype Assessment Form -->
+      <div id="mode-psych" class="card" style="padding:28px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
           <div>
-            <h3 style="margin:0;font-size:20px;">Conversational Intake Interview</h3>
-            <p class="small muted" style="margin:2px 0 0;">Takes 3 minutes. Your agent uses these answers on every date.</p>
+            <h3 style="margin:0;font-size:20px;">Psychological &amp; Behavioral Intake</h3>
+            <p class="small muted" style="margin:2px 0 0;">Takes 3 minutes. Your agent uses these psychological dimensions on every date.</p>
           </div>
-          <span class="badge" style="background:rgba(255,77,109,0.15);color:var(--accent);font-weight:700;">5 QUESTIONS</span>
+          <span class="badge" style="background:rgba(255,77,109,0.15);color:var(--accent);font-weight:700;">5 DIMENSIONS</span>
         </div>
 
-        <form method="post" action="/api/intake/interview" id="interview-form" style="display:flex;flex-direction:column;gap:18px;">
-          <div>
-            <label class="small muted" style="font-weight:600;display:block;margin-bottom:6px;">Your Full Name</label>
-            <input type="text" name="display_name" id="in-name" required placeholder="e.g. Maya Chen" style="width:100%;padding:10px 14px;border-radius:8px;background:var(--bg);border:1px solid var(--border);color:var(--fg);font-size:14px;" oninput="updatePreview()">
+        <form method="post" action="/api/intake/psychological" id="psych-form" style="display:flex;flex-direction:column;gap:22px;">
+          
+          <!-- Section 1: Core Identity & Relational Archetype -->
+          <div style="border-bottom:1px solid rgba(255,255,255,0.08);padding-bottom:18px;">
+            <div class="small muted" style="font-weight:700;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px;color:var(--accent);">
+              1. Identity &amp; Relational Archetype
+            </div>
+            
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+              <div>
+                <label class="small muted" style="font-weight:600;display:block;margin-bottom:6px;">Your Name</label>
+                <input type="text" name="display_name" id="in-name" required placeholder="e.g. Maya Chen" style="width:100%;padding:10px 14px;border-radius:8px;background:var(--bg);border:1px solid var(--border);color:var(--fg);font-size:14px;" oninput="updatePreview()">
+              </div>
+              <div>
+                <label class="small muted" style="font-weight:600;display:block;margin-bottom:6px;">One-Line Identity &amp; Vocation</label>
+                <input type="text" name="one_liner" id="in-headline" required placeholder="e.g. Sustainable Architect &amp; Ceramicist" style="width:100%;padding:10px 14px;border-radius:8px;background:var(--bg);border:1px solid var(--border);color:var(--fg);font-size:14px;" oninput="updatePreview()">
+              </div>
+            </div>
+
+            <div>
+              <label class="small muted" style="font-weight:600;display:block;margin-bottom:6px;">Your Primary Relational Archetype</label>
+              <select name="archetype_preference" id="in-archetype" style="width:100%;padding:10px 14px;border-radius:8px;background:var(--bg);border:1px solid var(--border);color:var(--fg);font-size:13px;" onchange="updatePreview()">
+                <option value="">Auto-Detect from Assessment Answers (Recommended)</option>
+                <option value="contemplative_craftsman">The Contemplative Craftsman (Quiet mastery, tactile flow, comfortable silence)</option>
+                <option value="visionary_builder">The Visionary Builder (Relentless creator, founder velocity, mission drive)</option>
+                <option value="grounded_sanctuary">The Grounded Sanctuary (Domestic warmth, rooted family values, local anchor)</option>
+                <option value="mindful_nomad">The Mindful Nomad (Geographic freedom, spontaneous wanderer, minimalism)</option>
+                <option value="high_velocity_strategist">The High-Velocity Strategist (Incisive intellect, corporate/legal excellence, high candor)</option>
+                <option value="empathic_healer">The Empathic Healer (Soulful creativity, radical emotional honesty, deep intuition)</option>
+                <option value="cozy_domesticist">The Cozy Domesticist (Homebody sanctuary, culinary exploration, slow peaceful rituals)</option>
+                <option value="high_octane_catalyst">The High-Octane Catalyst (Life of the room, community curator, extroverted spark)</option>
+                <option value="intentional_minimalist">The Intentional Minimalist / FIRE (Conscious consumption, anti-consumerist)</option>
+                <option value="sensual_epicurean">The Sensual Epicurean (Fine gastronomy, aesthetic beauty, curated sensory experiences)</option>
+                <option value="holistic_seeker">The Holistic Seeker (Mindfulness, nature-attuned living, somatic wellness)</option>
+                <option value="playful_maverick">The Playful Maverick (Irreverent wit, playful banter, spontaneous adventure)</option>
+              </select>
+            </div>
           </div>
 
-          <div>
-            <label class="small muted" style="font-weight:600;display:block;margin-bottom:6px;">One-Line Identity &amp; Headline</label>
-            <input type="text" name="one_liner" id="in-headline" required placeholder="e.g. Sustainable Architect &amp; Ceramic Sculptor" style="width:100%;padding:10px 14px;border-radius:8px;background:var(--bg);border:1px solid var(--border);color:var(--fg);font-size:14px;" oninput="updatePreview()">
+          <!-- Section 2: Life Architecture & Pacing -->
+          <div style="border-bottom:1px solid rgba(255,255,255,0.08);padding-bottom:18px;">
+            <div class="small muted" style="font-weight:700;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px;color:#58a6ff;">
+              2. Life Architecture &amp; Relational Pacing
+            </div>
+
+            <div style="margin-bottom:12px;">
+              <label class="small muted" style="font-weight:600;display:block;margin-bottom:4px;">Sunday Morning Rhythm &amp; Pace</label>
+              <div class="small muted" style="margin-bottom:6px;">What does your ideal, uninterrupted Sunday look like?</div>
+              <textarea name="sunday_rhythm" id="in-sunday" rows="2" required placeholder="e.g. Quiet pour-over coffee, morning light, trail running, then creative parallel focus without social rush." style="width:100%;padding:10px 14px;border-radius:8px;background:var(--bg);border:1px solid var(--border);color:var(--fg);font-size:13px;line-height:1.4;" oninput="updatePreview()"></textarea>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+              <div>
+                <label class="small muted" style="font-weight:600;display:block;margin-bottom:4px;">Geographic Anchor vs. Mobility</label>
+                <input type="text" name="geo_anchor" id="in-anchor" placeholder="e.g. Permanently rooted in this city (family caregiver) / Digital nomad / Open to relocate" style="width:100%;padding:9px 12px;border-radius:8px;background:var(--bg);border:1px solid var(--border);color:var(--fg);font-size:13px;">
+              </div>
+              <div>
+                <label class="small muted" style="font-weight:600;display:block;margin-bottom:4px;">Family &amp; Children Vision</label>
+                <input type="text" name="family_vision" id="in-family" placeholder="e.g. Want children within 3-4 years / Open to family / Firmly child-free" style="width:100%;padding:9px 12px;border-radius:8px;background:var(--bg);border:1px solid var(--border);color:var(--fg);font-size:13px;">
+              </div>
+            </div>
+
+            <div>
+              <label class="small muted" style="font-weight:600;display:block;margin-bottom:4px;">Social Battery &amp; Domestic Sanctuary</label>
+              <input type="text" name="social_battery" id="in-battery" placeholder="e.g. Drains after 90 mins in crowds; needs quiet domestic weekends / Recharged by dynamic events 5 nights a week" style="width:100%;padding:9px 12px;border-radius:8px;background:var(--bg);border:1px solid var(--border);color:var(--fg);font-size:13px;">
+            </div>
           </div>
 
-          <div>
-            <label class="small muted" style="font-weight:600;display:block;margin-bottom:6px;">1. Sunday Morning Rhythm</label>
-            <div class="small muted" style="margin-bottom:6px;">What does your ideal, uninterrupted Sunday morning look like?</div>
-            <textarea name="sunday_rhythm" id="in-sunday" rows="2" required placeholder="e.g. Quiet pour-over coffee, morning light, trail running, then creative parallel focus without social rush." style="width:100%;padding:10px 14px;border-radius:8px;background:var(--bg);border:1px solid var(--border);color:var(--fg);font-size:13px;line-height:1.4;" oninput="updatePreview()"></textarea>
+          <!-- Section 3: Work Ethos & Ambition Horizons -->
+          <div style="border-bottom:1px solid rgba(255,255,255,0.08);padding-bottom:18px;">
+            <div class="small muted" style="font-weight:700;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px;color:#3fb950;">
+              3. Work Ethos &amp; Ambition Horizons
+            </div>
+
+            <div style="margin-bottom:12px;">
+              <label class="small muted" style="font-weight:600;display:block;margin-bottom:4px;">Ambition Velocity vs. Personal Boundaries</label>
+              <div class="small muted" style="margin-bottom:6px;">How does your career drive interact with evening &amp; weekend boundaries?</div>
+              <textarea name="work_ambition" id="in-ambition" rows="2" placeholder="e.g. Founder mode with high mission intensity, but strict no-work rule on date nights / 9-to-5 professional who clocks out at 5 PM for personal life." style="width:100%;padding:10px 14px;border-radius:8px;background:var(--bg);border:1px solid var(--border);color:var(--fg);font-size:13px;line-height:1.4;"></textarea>
+            </div>
+
+            <div>
+              <label class="small muted" style="font-weight:600;display:block;margin-bottom:4px;">Financial &amp; Material Philosophy</label>
+              <input type="text" name="financial_philosophy" id="in-finance" placeholder="e.g. FIRE minimalism &amp; conscious saving ($15/day) / Sensual epicurean who loves fine dining and aesthetic hotels" style="width:100%;padding:9px 12px;border-radius:8px;background:var(--bg);border:1px solid var(--border);color:var(--fg);font-size:13px;">
+            </div>
           </div>
 
-          <div>
-            <label class="small muted" style="font-weight:600;display:block;margin-bottom:6px;">2. Non-Negotiable Boundaries</label>
-            <div class="small muted" style="margin-bottom:6px;">What are 1 or 2 hard boundaries or non-negotiables for you in a relationship?</div>
-            <textarea name="dealbreakers" id="in-db" rows="2" required placeholder="e.g. Moving abroad (I cannot relocate), emotional avoidance, smoking, workaholism without boundaries." style="width:100%;padding:10px 14px;border-radius:8px;background:var(--bg);border:1px solid var(--border);color:var(--fg);font-size:13px;line-height:1.4;" oninput="updatePreview()"></textarea>
+          <!-- Section 4: Future Visions & Secret Dreams -->
+          <div style="border-bottom:1px solid rgba(255,255,255,0.08);padding-bottom:18px;">
+            <div class="small muted" style="font-weight:700;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px;color:#e3b341;">
+              4. Future Visions &amp; Secret Dreams
+            </div>
+
+            <div>
+              <label class="small muted" style="font-weight:600;display:block;margin-bottom:4px;">5-Year Secret Horizon</label>
+              <div class="small muted" style="margin-bottom:6px;">Outside of day-to-day work, what is something you're secretly building, dreaming of, or longing to explore?</div>
+              <textarea name="future_vision" id="in-future" rows="2" placeholder="e.g. Moving to an off-grid rural farm in Uttarakhand to raise kids / Launching a pro-bono tenant rights legal clinic / Building an indie game studio." style="width:100%;padding:10px 14px;border-radius:8px;background:var(--bg);border:1px solid var(--border);color:var(--fg);font-size:13px;line-height:1.4;"></textarea>
+            </div>
           </div>
 
+          <!-- Section 5: Psychological Dynamics & Boundaries -->
           <div>
-            <label class="small muted" style="font-weight:600;display:block;margin-bottom:6px;">3. Emotional &amp; Conflict Style</label>
-            <div class="small muted" style="margin-bottom:6px;">When you feel stressed or misunderstood, how do you prefer to communicate?</div>
-            <textarea name="communication" id="in-comm" rows="2" placeholder="e.g. I need 30 minutes of quiet space to process, followed by direct, calm, non-defensive check-ins." style="width:100%;padding:10px 14px;border-radius:8px;background:var(--bg);border:1px solid var(--border);color:var(--fg);font-size:13px;line-height:1.4;"></textarea>
+            <div class="small muted" style="font-weight:700;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px;color:#f0883e;">
+              5. Psychological Dynamics &amp; Boundaries
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+              <div>
+                <label class="small muted" style="font-weight:600;display:block;margin-bottom:4px;">Attachment Style</label>
+                <select name="attachment_choice" id="in-attachment" style="width:100%;padding:9px 12px;border-radius:8px;background:var(--bg);border:1px solid var(--border);color:var(--fg);font-size:13px;" onchange="updatePreview()">
+                  <option value="secure">Secure (Values closeness &amp; independence equally)</option>
+                  <option value="anxious">Anxious-Preoccupied (Expressive, craves reassurance)</option>
+                  <option value="avoidant">Dismissive-Avoidant (Fiercely self-reliant, needs space)</option>
+                  <option value="fearful">Fearful-Avoidant (Soulful, vigilant about trust)</option>
+                </select>
+              </div>
+              <div>
+                <label class="small muted" style="font-weight:600;display:block;margin-bottom:4px;">Conflict Resolution Style</label>
+                <select name="conflict_choice" id="in-conflict" style="width:100%;padding:9px 12px;border-radius:8px;background:var(--bg);border:1px solid var(--border);color:var(--fg);font-size:13px;">
+                  <option value="collaborative">Collaborative &amp; Validating (Listens before solving)</option>
+                  <option value="processing_space">Regulated Processing (Needs 30m space first)</option>
+                  <option value="high_candor">High-Candor Directness (Raw clarity immediately)</option>
+                  <option value="gentle_deescalation">Gentle De-escalation (Warmth &amp; soothing calm)</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="margin-bottom:12px;">
+              <label class="small muted" style="font-weight:600;display:block;margin-bottom:4px;">Hard Boundaries &amp; Dealbreakers (Non-Negotiables)</label>
+              <div class="small muted" style="margin-bottom:6px;">What behaviors or lifestyle choices are non-negotiable passes for you?</div>
+              <textarea name="dealbreakers" id="in-db" rows="2" required placeholder="e.g. Relocating abroad, heavy smoking, emotional stonewalling/defensive mockery, workaholism on dates, polyamory." style="width:100%;padding:10px 14px;border-radius:8px;background:var(--bg);border:1px solid var(--border);color:var(--fg);font-size:13px;line-height:1.4;" oninput="updatePreview()"></textarea>
+            </div>
+
+            <div>
+              <label class="small muted" style="font-weight:600;display:block;margin-bottom:4px;">Ideal First Date Atmosphere</label>
+              <input type="text" name="ideal_date" id="in-date" placeholder="e.g. A cozy, quiet corner of a vinyl café where we can actually hear each other speak" style="width:100%;padding:9px 12px;border-radius:8px;background:var(--bg);border:1px solid var(--border);color:var(--fg);font-size:13px;">
+            </div>
           </div>
 
-          <div>
-            <label class="small muted" style="font-weight:600;display:block;margin-bottom:6px;">4. Hidden Longings &amp; Latent Dreams</label>
-            <div class="small muted" style="margin-bottom:6px;">Outside of work, what is something you're secretly building, dreaming of, or longing to explore?</div>
-            <textarea name="latent_passions" id="in-passions" rows="2" placeholder="e.g. Building an off-grid mountain wildlife sanctuary, learning wheel pottery, writing a graphic novel." style="width:100%;padding:10px 14px;border-radius:8px;background:var(--bg);border:1px solid var(--border);color:var(--fg);font-size:13px;line-height:1.4;"></textarea>
-          </div>
-
-          <div>
-            <label class="small muted" style="font-weight:600;display:block;margin-bottom:6px;">5. Ideal First Date Atmosphere</label>
-            <input type="text" name="ideal_date" id="in-date" placeholder="e.g. A cozy vinyl café with corner seating where we can actually hear each other talk." style="width:100%;padding:10px 14px;border-radius:8px;background:var(--bg);border:1px solid var(--border);color:var(--fg);font-size:13px;">
-          </div>
-
-          <button type="submit" class="btn" style="background:var(--accent);color:#fff;padding:12px;font-size:15px;font-weight:700;border:none;border-radius:8px;cursor:pointer;margin-top:6px;">
+          <button type="submit" class="btn" style="background:var(--accent);color:#fff;padding:14px;font-size:15px;font-weight:700;border:none;border-radius:8px;cursor:pointer;margin-top:8px;">
             ✨ Synthesize Agent &amp; Date the Pool &rarr;
           </button>
         </form>
@@ -90,14 +191,14 @@
       <div id="mode-pdf" class="card" style="padding:28px;display:none;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
           <div>
-            <h3 style="margin:0;font-size:20px;">Upload LinkedIn Profile PDF / Resume</h3>
-            <p class="small muted" style="margin:2px 0 0;">Zero scraping. Instant 100ms parsing directly on server.</p>
+            <h3 style="margin:0;font-size:20px;">Upload Resume or LinkedIn PDF Export</h3>
+            <p class="small muted" style="margin:2px 0 0;">Zero web scraping. Instant 100ms offline parsing directly on the server.</p>
           </div>
           <span class="badge" style="background:rgba(56,139,253,0.15);color:#58a6ff;font-weight:700;">100% COMPLIANT</span>
         </div>
 
         <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);padding:14px;border-radius:8px;margin-bottom:18px;">
-          <b style="font-size:13px;">How to download your official LinkedIn PDF:</b>
+          <b style="font-size:13px;">How to download your official LinkedIn PDF export:</b>
           <ol class="small muted" style="margin:8px 0 0 16px;padding:0;line-height:1.5;">
             <li>Go to your own LinkedIn profile in your browser.</li>
             <li>Click the <b>"More"</b> button below your profile headline.</li>
@@ -132,20 +233,30 @@
         <h3 id="prev-name" style="margin:0 0 4px;font-size:22px;color:var(--text);">Your Name</h3>
         <p id="prev-headline" class="small muted" style="margin:0 0 16px;">Headline &amp; Passion</p>
 
-        <div style="margin-bottom:14px;background:rgba(255,255,255,0.03);padding:10px 12px;border-radius:8px;">
+        <div style="margin-bottom:12px;background:rgba(255,255,255,0.03);padding:10px 12px;border-radius:8px;">
+          <div class="small muted" style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Psychological Archetype</div>
+          <div id="prev-archetype" style="font-weight:600;font-size:13px;color:#58a6ff;margin-top:2px;">The Contemplative Craftsman</div>
+        </div>
+
+        <div style="margin-bottom:12px;background:rgba(255,255,255,0.03);padding:10px 12px;border-radius:8px;">
+          <div class="small muted" style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Attachment Dynamic</div>
+          <div id="prev-attachment" style="font-weight:600;font-size:13px;color:#3fb950;margin-top:2px;">Secure (Intimacy &amp; Autonomy)</div>
+        </div>
+
+        <div style="margin-bottom:12px;background:rgba(255,255,255,0.03);padding:10px 12px;border-radius:8px;">
           <div class="small muted" style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Deduced Pacing</div>
-          <div id="prev-pace" style="font-weight:600;font-size:14px;color:var(--ok);margin-top:2px;">Balanced rhythm</div>
+          <div id="prev-pace" style="font-weight:600;font-size:13px;color:var(--ok);margin-top:2px;">Slow intentional living</div>
         </div>
 
         <div style="margin-bottom:14px;">
-          <div class="small muted" style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Hard Boundaries Protected</div>
+          <div class="small muted" style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Hard Boundaries Shielded</div>
           <div id="prev-db" style="display:flex;flex-wrap:wrap;gap:6px;">
-            <span class="badge" style="background:rgba(235,87,87,0.12);color:var(--accent);font-size:11px;">✕ Boundaries active</span>
+            <span class="badge" style="background:rgba(235,87,87,0.12);color:var(--accent);font-size:11px;">✕ Dealbreakers active</span>
           </div>
         </div>
 
         <div style="padding-top:14px;border-top:1px solid rgba(255,255,255,0.08);font-size:12px;color:var(--muted);line-height:1.4;">
-          💡 <b>Grounded Agency:</b> Your agent negotiates dates using your actual verified answers, shielding you from dealbreaker collisions before you ever meet in person.
+          💡 <b>Grounded Agency:</b> Your agent negotiates dates using your authentic psychological profile, shielding you from dealbreaker collisions before you ever meet in person.
         </div>
       </div>
     </div>
@@ -155,28 +266,28 @@
 
 <script>
 function switchMode(mode) {
-  const btnInterview = document.getElementById('tab-btn-interview');
+  const btnPsych = document.getElementById('tab-btn-psych');
   const btnPdf = document.getElementById('tab-btn-pdf');
-  const modeInterview = document.getElementById('mode-interview');
+  const modePsych = document.getElementById('mode-psych');
   const modePdf = document.getElementById('mode-pdf');
 
-  if (mode === 'interview') {
-    btnInterview.className = 'btn sm';
-    btnInterview.style.background = 'var(--accent)';
-    btnInterview.style.color = '#fff';
+  if (mode === 'psych') {
+    btnPsych.className = 'btn sm';
+    btnPsych.style.background = 'var(--accent)';
+    btnPsych.style.color = '#fff';
     btnPdf.className = 'btn secondary sm';
     btnPdf.style.background = '';
     btnPdf.style.color = '';
-    modeInterview.style.display = 'block';
+    modePsych.style.display = 'block';
     modePdf.style.display = 'none';
   } else {
     btnPdf.className = 'btn sm';
     btnPdf.style.background = '#58a6ff';
     btnPdf.style.color = '#fff';
-    btnInterview.className = 'btn secondary sm';
-    btnInterview.style.background = '';
-    btnInterview.style.color = '';
-    modeInterview.style.display = 'none';
+    btnPsych.className = 'btn secondary sm';
+    btnPsych.style.background = '';
+    btnPsych.style.color = '';
+    modePsych.style.display = 'none';
     modePdf.style.display = 'block';
   }
 }
@@ -185,7 +296,7 @@ function handleFileSelected(input) {
   if (input.files && input.files[0]) {
     document.getElementById('upload-btn-label').textContent = '✓ ' + input.files[0].name;
     document.getElementById('prev-name').textContent = input.files[0].name.replace('.pdf', '');
-    document.getElementById('prev-headline').textContent = 'LinkedIn Verified PDF Document';
+    document.getElementById('prev-headline').textContent = 'Document Verified Persona';
   }
 }
 
@@ -194,10 +305,36 @@ function updatePreview() {
   const headline = document.getElementById('in-headline').value.trim();
   const sunday = document.getElementById('in-sunday').value.trim().toLowerCase();
   const db = document.getElementById('in-db').value.trim();
+  const archSelect = document.getElementById('in-archetype');
+  const attachSelect = document.getElementById('in-attachment');
 
   if (name) document.getElementById('prev-name').textContent = name;
   if (headline) document.getElementById('prev-headline').textContent = headline;
 
+  // Archetype
+  if (archSelect && archSelect.value) {
+    const text = archSelect.options[archSelect.selectedIndex].text;
+    document.getElementById('prev-archetype').textContent = text.split('(')[0].trim();
+  } else {
+    // Inferred Archetype
+    if (sunday.includes('build') || sunday.includes('startup') || sunday.includes('founder')) {
+      document.getElementById('prev-archetype').textContent = 'The Visionary Builder';
+    } else if (sunday.includes('travel') || sunday.includes('nomad')) {
+      document.getElementById('prev-archetype').textContent = 'The Mindful Nomad';
+    } else if (sunday.includes('family') || sunday.includes('root') || sunday.includes('kids')) {
+      document.getElementById('prev-archetype').textContent = 'The Grounded Sanctuary';
+    } else {
+      document.getElementById('prev-archetype').textContent = 'The Contemplative Craftsman';
+    }
+  }
+
+  // Attachment
+  if (attachSelect) {
+    const aText = attachSelect.options[attachSelect.selectedIndex].text;
+    document.getElementById('prev-attachment').textContent = aText.split('(')[0].trim();
+  }
+
+  // Pace
   let pace = 'Balanced rhythm';
   if (sunday.includes('quiet') || sunday.includes('slow') || sunday.includes('coffee') || sunday.includes('reading')) {
     pace = 'Slow intentional living';
@@ -214,6 +351,11 @@ function updatePreview() {
       document.getElementById('prev-db').innerHTML = items.map(i => `<span class="badge" style="background:rgba(235,87,87,0.12);color:var(--accent);font-size:11px;">✕ ${i}</span>`).join(' ');
     }
   }
+}
+
+// Support hash-based anchor e.g. /intake#pdf
+if (window.location.hash === '#pdf') {
+  switchMode('pdf');
 }
 </script>
 {% endblock %}

@@ -152,8 +152,15 @@ def home(request: Request):
 
 @app.get("/join", response_class=HTMLResponse)
 def join(request: Request, token: str = ""):
+    from .intake import ARCHETYPES, ATTACHMENT_STYLES, CONFLICT_STYLES
     cand = discovery.registry.get_candidate_by_token(token) if token else None
-    return tpl.TemplateResponse(request, "join.html", _ctx(request, candidate=cand))
+    return tpl.TemplateResponse(request, "join.html", _ctx(
+        request,
+        candidate=cand,
+        archetypes=ARCHETYPES,
+        attachment_styles=ATTACHMENT_STYLES,
+        conflict_styles=CONFLICT_STYLES,
+    ))
 
 
 
@@ -1132,7 +1139,72 @@ def create_saas_persona(
 @app.get("/intake", response_class=HTMLResponse)
 @app.get("/onboarding", response_class=HTMLResponse)
 def intake_page(request: Request):
-    return tpl.TemplateResponse(request, "intake.html", _ctx(request))
+    from .intake import ARCHETYPES, ATTACHMENT_STYLES, CONFLICT_STYLES
+    return tpl.TemplateResponse(request, "intake.html", _ctx(
+        request,
+        archetypes=ARCHETYPES,
+        attachment_styles=ATTACHMENT_STYLES,
+        conflict_styles=CONFLICT_STYLES,
+    ))
+
+
+@app.post("/api/intake/psychological")
+def intake_psychological_api(
+    request: Request,
+    display_name: str = Form(...),
+    one_liner: str = Form(...),
+    archetype_preference: str = Form(""),
+    sunday_rhythm: str = Form(...),
+    geo_anchor: str = Form(""),
+    family_vision: str = Form(""),
+    social_battery: str = Form(""),
+    work_ambition: str = Form(""),
+    financial_philosophy: str = Form(""),
+    future_vision: str = Form(""),
+    attachment_choice: str = Form(""),
+    conflict_choice: str = Form(""),
+    dealbreakers: str = Form(...),
+    ideal_date: str = Form(""),
+):
+    from . import harness, saas
+    from .intake import synthesize_psychological_persona
+
+    answers = {
+        "archetype_preference": archetype_preference,
+        "sunday_rhythm": sunday_rhythm,
+        "geo_anchor": geo_anchor,
+        "family_vision": family_vision,
+        "social_battery": social_battery,
+        "work_ambition": work_ambition,
+        "financial_philosophy": financial_philosophy,
+        "future_vision": future_vision,
+        "attachment_choice": attachment_choice,
+        "conflict_choice": conflict_choice,
+        "dealbreakers": dealbreakers,
+        "ideal_date": ideal_date,
+    }
+
+    person = synthesize_psychological_persona(
+        display_name=display_name,
+        one_liner=one_liner,
+        answers=answers,
+    )
+    store.save_person(person)
+
+    # Auto-link to logged-in SaaS user if any
+    user = saas.get_current_user(request)
+    if user:
+        saas.link_person_to_user(user.id, person.id)
+
+    # Date against pool so matches are ready immediately
+    try:
+        harness.run_round(progress=lambda m: None, only=person.id)
+    except Exception as e:
+        logger.info("Automatic pool dating on psychological intake skipped: %s", e)
+
+    if user:
+        return RedirectResponse("/my-agent", status_code=303)
+    return RedirectResponse(f"/person/{person.id}", status_code=303)
 
 
 @app.post("/api/intake/interview")

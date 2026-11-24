@@ -10,7 +10,7 @@
 {%- endmacro %}
 
 {% macro src(source) -%}
-<span class="src {{ source }}">{{ 'LinkedIn' if source == 'linkedin' else 'Instagram' }}</span>
+<span class="src {{ source }}">{{ 'Psychological Assessment' if source == 'psychological_intake' else ('Resume PDF' if source == 'resume_pdf' else ('LinkedIn' if source == 'linkedin' else ('Instagram' if source == 'instagram' else source))) }}</span>
 {%- endmacro %}
 
 {% macro fit(value, why="") -%}
@@ -19,21 +19,15 @@
 {%- endmacro %}
 
 {% macro paste(scraping, candidate=none) %}
-<form class="card stack" id="paste" novalidate>
-  <h3>Paste two links</h3>
-  {% if not scraping %}<div class="banner"><b>Scraping is off on this server.</b> No APIFY_TOKEN is set, so links can't be read and nobody new can join. Every profile in the pool is scraped live through Apify.</div>{% endif %}
-  <div class="field" data-kind="linkedin"><span class="ico li">in</span>
-    <input type="url" name="linkedin" value="{{ candidate.linkedin_url if candidate else '' }}" placeholder="https://www.linkedin.com/in/your-handle" autocomplete="off" required aria-describedby="hint-li">
-    <div class="hint" id="hint-li" aria-live="polite">Your public LinkedIn profile</div></div>
-  <div class="field" data-kind="instagram"><span class="ico ig">ig</span>
-    <input type="url" name="instagram" value="{{ candidate.instagram_url if candidate else '' }}" placeholder="https://www.instagram.com/your_handle" autocomplete="off" required aria-describedby="hint-ig">
-    <div class="hint" id="hint-ig" aria-live="polite">A public Instagram profile, not a post</div></div>
-  {% if candidate and candidate.invitation_token %}
-  <input type="hidden" name="token" value="{{ candidate.invitation_token }}">
-  {% endif %}
-  <label class="consent"><input type="checkbox" name="consent" value="yes" required> This is me, or I have this person's permission to be profiled and matched here.</label>
-  <div class="row"><button class="btn" type="submit">Send my agent out <span class="arrow">→</span></button></div>
-  <div class="saying" id="paste-status" aria-live="polite"></div>
-</form>
+<div class="card stack" style="border:1px solid rgba(255,255,255,0.15);">
+  <span class="chip g" style="font-size:11px;font-weight:700;">✓ ZERO SCRAPING · 100% PRIVATE</span>
+  <h3 style="margin:4px 0 6px;">Build Your Dating Agent</h3>
+  <p class="small muted" style="margin:0 0 16px;">
+    AMORA uses compliant psychological profiling across your relational archetype, attachment dynamics, and life/work pacing.
+  </p>
+  <a href="/intake" class="btn" style="text-align:center;justify-content:center;font-weight:700;padding:12px;background:var(--accent);color:#fff;">
+    ✨ Start Psychological Assessment &rarr;
+  </a>
+</div>
 {% endmacro %}
 

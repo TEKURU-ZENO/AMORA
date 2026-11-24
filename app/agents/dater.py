@@ -65,6 +65,23 @@ def _brief(me: Analysis, coaching: list[str] | None = None) -> str:
     base = (f"Name: {me.display_name}\nSummary: {me.summary}\nNeeds: {me.needs}\nHobbies: {me.hobbies}\n"
             f"Interests: {me.interests}\nValues: {me.values}\nPersonality: {me.personality}\n"
             f"Lifestyle: {me.lifestyle}\nCommunication: {me.communication_style}\nDealbreakers: {me.dealbreakers}")
+    if me.archetype:
+        base += f"\nPsychological Archetype: {me.archetype}"
+        if me.archetype_traits:
+            base += f" ({', '.join(me.archetype_traits)})"
+    if me.attachment_style:
+        base += f"\nAttachment Dynamic: {me.attachment_style}"
+    if me.conflict_style:
+        base += f"\nConflict & Stress Style: {me.conflict_style}"
+    if me.life_architecture:
+        base += f"\nLife Architecture: {me.life_architecture}"
+    if me.work_ethos:
+        base += f"\nWork & Ambition Ethos: {me.work_ethos}"
+    if me.future_horizon:
+        base += f"\n5-Year Secret Vision: {me.future_horizon}"
+    if me.psychological_patterns:
+        pat_lines = "\n".join(f"- {p}" for p in me.psychological_patterns)
+        base += f"\nBehavioral Patterns & Tendencies:\n{pat_lines}"
     if coaching:
         coach_lines = "\n".join(f"- {c}" for c in coaching)
         base += f"\nCOACHING FROM YOUR HUMAN (follow these closely):\n{coach_lines}"
@@ -73,15 +90,26 @@ def _brief(me: Analysis, coaching: list[str] | None = None) -> str:
 
 def _card(other: Analysis) -> str:
     # what an agent can see of the other person before the date: their public profile card
-    return f"{other.display_name}: {other.one_liner}. Hobbies {other.hobbies[:4]}, interests {other.interests[:4]}."
+    arch_str = f" · {other.archetype}" if other.archetype else ""
+    return f"{other.display_name}: {other.one_liner}{arch_str}. Hobbies {other.hobbies[:4]}, interests {other.interests[:4]}."
 
 
 def _agent_system(me: Analysis, other: Analysis, venue: str, coaching: list[str] | None = None) -> str:
+    psych_instructions = ""
+    if me.archetype:
+        psych_instructions += (
+            f"\n\nPERSONA & PSYCHOLOGICAL DIRECTIVES:\n"
+            f"- Embody your human's psychological archetype: {me.archetype}. Let your tone, cadence, and social energy reflect this archetype.\n"
+        )
+    if me.attachment_style:
+        psych_instructions += f"- Attachment Style: {me.attachment_style}. In conversation, reflect this dynamic (maintain healthy boundaries and genuine presence).\n"
+    if me.conflict_style:
+        psych_instructions += f"- Conflict Handling: {me.conflict_style}. When differing views or boundary topics arise, handle them with this communication rhythm.\n"
     return (f"You are the dating agent for {me.display_name}. You go on this date ON THEIR BEHALF and speak "
             f"as them, grounded strictly in the brief below. Your job is to find out, honestly, whether "
             f"{first(other)} is good for {first(me)}: probe their needs and your human's dealbreakers, follow "
             f"your human's coaching directives, share real things about your human, be warm and natural, never "
-            f"invent facts beyond the brief. Do not oversell. Never discuss looks.\n\nPRIVATE BRIEF\n{_brief(me, coaching)}\n\n"
+            f"invent facts beyond the brief. Do not oversell. Never discuss looks.{psych_instructions}\n\nPRIVATE BRIEF\n{_brief(me, coaching)}\n\n"
             f"WHAT YOU KNOW ABOUT YOUR DATE (their public card)\n{_card(other)}\n\nVENUE: {venue}")
 
 
@@ -186,8 +214,10 @@ def _date_offline(a: Analysis, b: Analysis, ida: str, idb: str, venue: str, c: C
     synergies = []
 
     # Check for latent conversational friction or synergy
-    text_a = f"{' '.join(a.needs)} {' '.join(a.values)} {' '.join(a.dealbreakers)} {a.one_liner} {a.summary} {a.communication_style} {' '.join(coaching_a or [])}".lower()
-    text_b = f"{' '.join(b.needs)} {' '.join(b.values)} {' '.join(b.dealbreakers)} {b.one_liner} {b.summary} {b.communication_style} {' '.join(coaching_b or [])}".lower()
+    arch_a = f"{a.archetype or ''} {' '.join(a.archetype_traits)} {a.attachment_style or ''} {a.conflict_style or ''} {a.future_horizon or ''}"
+    arch_b = f"{b.archetype or ''} {' '.join(b.archetype_traits)} {b.attachment_style or ''} {b.conflict_style or ''} {b.future_horizon or ''}"
+    text_a = f"{' '.join(a.needs)} {' '.join(a.values)} {' '.join(a.dealbreakers)} {a.one_liner} {a.summary} {a.communication_style} {arch_a} {' '.join(coaching_a or [])}".lower()
+    text_b = f"{' '.join(b.needs)} {' '.join(b.values)} {' '.join(b.dealbreakers)} {b.one_liner} {b.summary} {b.communication_style} {arch_b} {' '.join(coaching_b or [])}".lower()
 
     # Case 1: Relocation vs family roots collision
     reloc_clash = (('abroad' in text_a or 'relocate' in text_a or 'tokyo' in text_a or 'traveling >50%' in text_a or 'nomad' in text_a) and ('cannot leave' in text_b or 'permanent' in text_b or 'caregiver' in text_b or 'stay' in text_b or 'leave india' in text_b or 'rooted' in text_b or 'settled in the local' in text_b)) or \
@@ -197,8 +227,8 @@ def _date_offline(a: Analysis, b: Analysis, ida: str, idb: str, venue: str, c: C
         dbb.append("Relocation clash: Moving abroad violates non-negotiable family care commitments")
 
     # Case 2: Emotional avoidance vs forced vulnerability
-    avoid_clash = (('vulnerab' in text_a or 'stonewalling' in text_a or 'deep feelings' in text_a or 'emotion' in text_a) and (('avoid' in text_b and 'emotion' in text_b) or 'emotionally unavailable' in text_b or 'evasive' in text_b or 'never talks about feelings' in text_b or 'rational' in text_b or 'therapy' in text_b or 'deflection' in text_b)) or \
-                  (('vulnerab' in text_b or 'stonewalling' in text_b or 'deep feelings' in text_b or 'emotion' in text_b) and (('avoid' in text_a and 'emotion' in text_a) or 'emotionally unavailable' in text_a or 'evasive' in text_a or 'never talks about feelings' in text_a or 'rational' in text_a or 'therapy' in text_a or 'deflection' in text_a))
+    avoid_clash = (('vulnerab' in text_a or 'stonewalling' in text_a or 'deep feelings' in text_a) and (('avoid' in text_b and 'emotion' in text_b) or 'emotionally unavailable' in text_b or 'evasive' in text_b or 'never talks about feelings' in text_b or 'deflection' in text_b)) or \
+                  (('vulnerab' in text_b or 'stonewalling' in text_b or 'deep feelings' in text_b) and (('avoid' in text_a and 'emotion' in text_a) or 'emotionally unavailable' in text_a or 'evasive' in text_a or 'never talks about feelings' in text_a or 'deflection' in text_a))
     if avoid_clash:
         dba.append("Emotional avoidance: Defensive deflection of emotional vulnerability")
         dbb.append("Forced vulnerability: Pushing emotional analysis early")
@@ -371,15 +401,19 @@ def _verdict_offline(me: Analysis, other: Analysis, pid: str, c: Compat,
     score = max(0.0, min(10.0, 0.4 * chem + 0.4 * needs_met + 0.2 * vals - (1.5 if mine_db else 0)))
     reasons = []
 
-    text_me = f"{' '.join(me.needs)} {' '.join(me.values)} {' '.join(me.dealbreakers)} {me.one_liner} {me.summary} {me.communication_style} {' '.join(coaching or [])}".lower()
-    text_other = f"{' '.join(other.needs)} {' '.join(other.values)} {' '.join(other.dealbreakers)} {other.one_liner} {other.summary} {other.communication_style} {' '.join(coaching_other or [])}".lower()
+    arch_me = f"{me.archetype or ''} {' '.join(me.archetype_traits)} {me.attachment_style or ''} {me.conflict_style or ''} {me.future_horizon or ''}"
+    arch_other = f"{other.archetype or ''} {' '.join(other.archetype_traits)} {other.attachment_style or ''} {other.conflict_style or ''} {other.future_horizon or ''}"
+    text_me = f"{' '.join(me.needs)} {' '.join(me.values)} {' '.join(me.dealbreakers)} {me.one_liner} {me.summary} {me.communication_style} {arch_me} {' '.join(coaching or [])}".lower()
+    text_other = f"{' '.join(other.needs)} {' '.join(other.values)} {' '.join(other.dealbreakers)} {other.one_liner} {other.summary} {other.communication_style} {arch_other} {' '.join(coaching_other or [])}".lower()
 
     tempo_mismatch = (("monologue" in text_me or "rapid-fire" in text_me) and ("pauses" in text_other or "10-second" in text_other)) or \
                      (("monologue" in text_other or "rapid-fire" in text_other) and ("pauses" in text_me or "10-second" in text_me))
     sarcasm_mismatch = (("sarcasm" in text_me or "roast" in text_me) and ("sarcasm" in text_other or "sincere" in text_other or "sensitive" in text_other or "kindness" in text_other)) or \
                        (("sarcasm" in text_other or "roast" in text_other) and ("sarcasm" in text_me or "sincere" in text_me or "sensitive" in text_me or "kindness" in text_me))
-    battery_mismatch = (("party" in text_me or "crowd" in text_me or "social calendar" in text_me) and ("solitude" in text_other or "quiet" in text_other or "homebod" in text_other)) or \
-                       (("party" in text_other or "crowd" in text_other or "social calendar" in text_other) and ("solitude" in text_me or "quiet" in text_me or "homebod" in text_me))
+    party_me = f"{' '.join(me.needs)} {' '.join(me.hobbies)} {' '.join(me.interests)} {me.one_liner} {me.summary} {(me.lifestyle or {}).get('social_energy', '')}".lower()
+    party_other = f"{' '.join(other.needs)} {' '.join(other.hobbies)} {' '.join(other.interests)} {other.one_liner} {other.summary} {(other.lifestyle or {}).get('social_energy', '')}".lower()
+    battery_mismatch = (("party" in party_me or "crowd" in party_me or "social calendar" in party_me) and ("solitude" in party_other or "quiet" in party_other or "homebod" in party_other)) or \
+                       (("party" in party_other or "crowd" in party_other or "social calendar" in party_other) and ("solitude" in party_me or "quiet" in party_me or "homebod" in party_me))
     ambition_mismatch = (("silicon valley" in text_me or "corporate" in text_me) and "hometown" in text_other) or \
                         (("silicon valley" in text_other or "corporate" in text_other) and "hometown" in text_me)
     platonic_only = "friend zone" in text_me or "friend zone" in text_other or "buddy" in text_me or "buddy" in text_other or "platonic" in text_me or "platonic" in text_other
@@ -430,6 +464,12 @@ def _verdict_offline(me: Analysis, other: Analysis, pid: str, c: Compat,
         f"Communication style: {other.communication_style}",
         f"Lifestyle pace: {(other.lifestyle or {}).get('pace', 'balanced')}, values personal downtime",
     ]
+    if other.archetype:
+        learned.append(f"Psychological Archetype: {other.archetype}")
+    if other.attachment_style:
+        learned.append(f"Attachment Dynamic: {other.attachment_style}")
+    if other.future_horizon:
+        learned.append(f"Future Vision: {other.future_horizon[:70]}")
     if mine_db:
         learned.append(f"Boundary alert: touches your dealbreaker on {mine_db[0].lower()}")
     elif c.shared_values:

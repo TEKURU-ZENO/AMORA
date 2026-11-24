@@ -3,19 +3,19 @@
 {% block body %}
 <section class="hero" style="padding-bottom:0">
   <div class="kicker">How it works</div>
-  <h1 style="margin:6px 0 10px">Two links in. A verdict out.</h1>
-  <p class="lede">Seven steps, each run by an agent that acts for exactly one person.</p>
+  <h1 style="margin:6px 0 10px">Psychological truth in. Calibrated alignment out.</h1>
+  <p class="lede">Seven steps, each run by an autonomous agent embodying your authentic psychological archetype and boundaries.</p>
 </section>
 
 <div class="pipe">
   {% for t, d in [
-    ("Two links", "A public LinkedIn and a public Instagram, plus consent. Nothing else is read."),
-    ("Scrape", "Apify actors pull headline, roles and skills, plus bio and up to 24 recent posts."),
-    ("Read", "The analyst makes three passes: LinkedIn, Instagram, then a cross-read. Every claim keeps a receipt."),
-    ("Screen", "Each agent sees everyone's public card, never their private brief, and asks out its top picks."),
-    ("Date", "Two agents talk in turns at a venue picked from shared interests. Every line has a private thought."),
-    ("Verdict", "Each agent reports to its own human: chemistry, needs met, values, dealbreakers, second date."),
-    ("Rank", "Everyone is ranked for everyone, weighting your own agent's opinion higher."),
+    ("Psychological Assessment", "Complete a 3-minute behavioral intake covering archetype, attachment dynamics, life, work, and future dreams."),
+    ("Behavioral Profiling", "Zero web scraping. The profiling engine derives your relational operating system with receipts directly citing your answers."),
+    ("Agent Grounding", "Your autonomous agent is briefed with your persona, attachment cadence, conflict processing style, and non-negotiables."),
+    ("Screening Prior", "Each agent screens everyone's public card, never their private brief, and asks out high-synergy candidates."),
+    ("Autonomous Dates", "Two agents talk in turns at a chosen venue. Every turn embodies running inner thoughts and psychological observation."),
+    ("Calibrated Verdict", "Each agent reports to its human: chemistry, needs met, values alignment, boundary checks, and second date verdict."),
+    ("Grounded Ranking", "Everyone is ranked based on reciprocal multi-turn date scores, weighting your agent's assessment highest."),
   ] %}
   <div class="node"><div class="ball">{{ loop.index }}</div><div><div class="t">{{ t }}</div><div class="d">{{ d }}</div></div></div>
   {% endfor %}

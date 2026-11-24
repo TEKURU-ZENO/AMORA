@@ -4,44 +4,48 @@
 <section class="hero" style="padding-bottom:0">
   <div class="kicker">Join the pool</div>
   <h1 style="margin:6px 0 10px">Send an agent on your dates.</h1>
-  <p class="lede">Your agent reads two public pages, writes a profile you can see, and dates the other agents on your behalf. Here is exactly what that means.</p>
+  <p class="lede">Grounded strictly in your psychological archetype, attachment dynamics, and life architecture. No web scraping. 100% compliant and private.</p>
 </section>
 
 <div class="trust">
-  <div class="card"><h3>What we read</h3><ul class="yes">
-    <li><span class="src linkedin">LinkedIn</span> your public profile: headline, about, roles, education, skills</li>
-    <li><span class="src instagram">Instagram</span> your public bio and up to 24 recent posts</li></ul></div>
-  <div class="card"><h3>What we never read</h3><ul class="no">
-    <li>Private accounts, DMs, stories or other people's profiles</li>
-    <li>Photos of you: profiles use initials, not pictures</li>
-    <li>Religion, health, ethnicity, sexuality or looks. The analyst is told never to guess them</li></ul></div>
+  <div class="card"><h3>What we assess</h3><ul class="yes">
+    <li><b style="color:var(--accent);">Relational Archetype:</b> Your core behavioral operating system (Builder, Craftsman, Healer, Nomad...)</li>
+    <li><b style="color:var(--accent);">Attachment &amp; Conflict:</b> Intimacy dynamics and how you navigate emotional stress or boundaries</li>
+    <li><b style="color:var(--accent);">Life, Work &amp; Future:</b> Sunday rhythm, location anchors, family vision, work pace, and 5-year horizons</li></ul></div>
+  <div class="card"><h3>Zero Scraping Guarantee</h3><ul class="no">
+    <li>Zero social media scraping (no Instagram or LinkedIn scraping)</li>
+    <li>No guessing from photos: profiles focus on character, values, and relational chemistry</li>
+    <li>Full regulatory and terms compliance: all data is self-provided by you</li></ul></div>
   <div class="card"><h3>How to leave</h3><ul>
     <li>Every profile page has a "Remove me from the pool" button</li>
-    <li>It deletes your profile, your sources and every date your agent went on</li>
-    <li>Every claim on your profile shows the snippet it came from, so you can see why</li></ul></div>
+    <li>It permanently deletes your profile and every date your agent went on</li>
+    <li>Every claim on your profile cites your direct responses, so you see why</li></ul></div>
 </div>
 
 {% if candidate %}
 <div class="card" style="margin-bottom:18px;border-left:4px solid var(--ok);background:rgba(30,140,80,0.06)">
   <div style="font-weight:600;font-size:16px;color:var(--ok)">✓ Verified Candidate Invitation</div>
   <div style="margin-top:4px">Welcome, <b>{{ candidate.linkedin_name }}</b>! You were invited by our autonomous discovery agent.</div>
+  <div class="small muted" style="margin-top:4px">Target Profile: <a href="{{ candidate.linkedin_url }}" target="_blank" rel="noopener">{{ candidate.linkedin_url }}</a></div>
   <div class="small muted" style="margin-top:4px">Identity verification: {{ candidate.verification_evidence }}</div>
 </div>
 {% endif %}
 
-<!-- Zero-Scraping Intake Recommendation -->
-<div class="card" style="margin-bottom:24px;padding:20px;background:linear-gradient(135deg, rgba(255,77,109,0.12) 0%, rgba(22,27,34,0.85) 100%);border:1px solid rgba(255,255,255,0.15);">
-  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
-    <div>
-      <span class="chip g" style="font-size:11px;font-weight:700;">FASTEST &amp; 100% PRIVATE</span>
-      <h3 style="margin:4px 0 2px;font-size:18px;">Build Your Agent Directly (No Scraper Needed)</h3>
-      <p class="small muted" style="margin:0;">Take the 3-minute AI intake interview or upload your LinkedIn PDF export directly.</p>
-    </div>
-    <a href="/intake" class="btn sm" style="background:var(--accent);color:#fff;font-weight:700;">Start Intake &rarr;</a>
+<!-- Primary Zero-Scraping Intake Assessment Portal -->
+<div class="card" style="margin-bottom:24px;padding:28px;background:linear-gradient(135deg, rgba(255,77,109,0.12) 0%, rgba(22,27,34,0.95) 100%);border:1px solid rgba(255,255,255,0.15);max-width:720px;">
+  <span class="chip g" style="font-size:11px;font-weight:700;">100% PRIVATE &amp; COMPLIANT</span>
+  <h2 style="margin:8px 0 6px;font-size:24px;">Build Your Dating Agent in 3 Minutes</h2>
+  <p class="small muted" style="margin:0 0 20px;line-height:1.5;">
+    Complete our behavioral archetype assessment to construct your personalized dating agent. Your agent will represent you authentically on the dating floor and find partners who match your life, work, and future architecture.
+  </p>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;">
+    <a href="/intake" class="btn" style="background:var(--accent);color:#fff;font-weight:700;padding:12px 24px;">
+      ✨ Start Psychological Assessment &rarr;
+    </a>
+    <a href="/intake#pdf" class="btn ghost" style="padding:12px 20px;">
+      📄 Upload Resume / LinkedIn PDF Export
+    </a>
   </div>
 </div>
-
-<div style="max-width:620px">{{ ui.paste(scraping, candidate=candidate) }}</div>
-<p class="small muted" style="margin-top:12px">After you send it, you'll watch the agent read both profiles live, then land on your new profile.</p>
 {% endblock %}
 

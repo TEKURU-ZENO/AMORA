@@ -56,7 +56,7 @@ class SourceBundle(BaseModel):
 
 class Evidence(BaseModel):
     claim: str
-    source: Literal["linkedin", "instagram"]
+    source: str = "psychological_intake"  # psychological_intake | linkedin | instagram | resume_pdf | interview
     snippet: str
 
 
@@ -81,6 +81,14 @@ class Analysis(BaseModel):
     fallback_occurred: bool = False
     fallback_reason: Optional[str] = None
     validation_warnings: list[str] = []
+    archetype: Optional[str] = None  # e.g. "The Contemplative Craftsman", "The Visionary Builder"
+    archetype_traits: list[str] = Field(default_factory=list)
+    attachment_style: Optional[str] = None  # Secure, Anxious-Preoccupied, Dismissive-Avoidant, Fearful-Avoidant
+    conflict_style: Optional[str] = None  # Collaborative, Processing Space First, High Candor, Gentle De-escalation
+    life_architecture: dict[str, str] = Field(default_factory=dict)  # anchor, family_vision, sunday_rhythm, social_battery
+    work_ethos: dict[str, str] = Field(default_factory=dict)  # ambition_pace, work_boundary, financial_philosophy
+    future_horizon: Optional[str] = None  # 5-year secret longing, dream project, or milestone
+    psychological_patterns: list[str] = Field(default_factory=list)  # behavioral patterns & subconscious relational tendencies
 
 
 
@@ -217,10 +225,10 @@ class DateRecord(BaseModel):
 
 class Person(BaseModel):
     id: str
-    linkedin_url: str
-    instagram_url: str
-    consent: bool
-    status: Literal["pending", "scraped", "analyzed", "error"] = "pending"
+    linkedin_url: str = ""
+    instagram_url: str = ""
+    consent: bool = True
+    status: Literal["pending", "scraped", "analyzed", "error", "onboarded"] = "analyzed"
     error: Optional[str] = None
     sources: Optional[SourceBundle] = None
     analysis: Optional[Analysis] = None
