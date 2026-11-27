@@ -8,8 +8,8 @@ import time
 
 # Ensure Ollama and calibrated date turns are active
 os.environ["USE_OLLAMA"] = "1"
-os.environ.setdefault("OLLAMA_MODEL", "llama3.2:1b")
-os.environ.setdefault("DATE_TURNS", "4")
+os.environ.setdefault("OLLAMA_MODEL", "llama3:8b")
+os.environ.setdefault("DATE_TURNS", "2")
 
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))

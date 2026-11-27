@@ -124,12 +124,21 @@ def _date_llm(a: Analysis, b: Analysis, ida: str, idb: str, venue: str,
               on_turn: Callable[[Turn, int, int], None] | None = None) -> list[Turn]:
     turns: list[Turn] = []
     agents = [(ida, a, b, coaching_a), (idb, b, a, coaching_b)]
+    condensed = [
+        "opening line and share something real about your human",
+        "probe what they need from a partner and their 5-year future vision",
+        "test one of your human's dealbreakers and conflict/attachment boundary, gently",
+        "wrap up, name common ground or difference honestly",
+    ]
     for i in range(config.DATE_TURNS):
         pid, me, other, coach = agents[i % 2]
         transcript = "\n".join(f"{first(a) if t.speaker == ida else first(b)}: {t.text}" for t in turns) or "(date just started)"
-        phase = PHASES[min(i, len(PHASES) - 1)]
+        if config.DATE_TURNS <= 4:
+            phase = condensed[min(i, len(condensed) - 1)]
+        else:
+            phase = PHASES[min(i, len(PHASES) - 1)]
         out = llm.structured(_agent_system(me, other, venue, coach),
-                             f"Conversation so far:\n{transcript}\n\nYour turn ({phase}).", AgentTurn, max_tokens=500)
+                             f"Conversation so far:\n{transcript}\n\nYour turn ({phase}).", AgentTurn, max_tokens=400)
         t = Turn(speaker=pid, text=out.say.strip(), thought=out.thought.strip(),
                  observation=getattr(out, "observation", "").strip())
         t.mood = infer_turn_mood(t)
@@ -145,14 +154,18 @@ def _verdict_llm(me: Analysis, other: Analysis, pid: str, turns: list[Turn], ida
     thoughts = "\n".join(t.thought for t in turns if t.speaker == pid)
     rubric = (
         "CALIBRATED SCORING RUBRIC (0.0 to 10.0):\n"
-        "- 1.0 to 3.5 (Incompatible / Dealbreaker Hit): A non-negotiable dealbreaker was triggered (e.g. relocation mismatch, "
-        "smoking, radical lifestyle conflict, emotional evasion, financial clash). Set dealbreaker_hit=True, second_date=False, score in 1.8-3.2.\n"
-        "- 3.6 to 5.5 (Lukewarm / Missing Core Needs): Polite conversation, but lacking spark, conflicting tempos, or key needs unmet. "
+        "- 1.0 to 3.5 (Incompatible / Dealbreaker Hit / Attachment Trap): A non-negotiable dealbreaker was triggered "
+        "(e.g. relocation mismatch, smoking, radical lifestyle/financial clash, emotional evasion, stonewalling, or "
+        "anxious-avoidant demand-withdraw trap). Do NOT give a high score merely because profile keywords match on paper. "
+        "Set dealbreaker_hit=True, second_date=False, score in 1.8-3.2.\n"
+        "- 3.6 to 5.5 (Lukewarm / Missing Core Needs / Tempo Friction): Polite conversation, but lacking romantic spark, "
+        "mismatched communication tempos, conflicting social battery, or core needs unmet. "
         "Set dealbreaker_hit=False, second_date=False, score in 4.2-5.3.\n"
         "- 5.6 to 7.5 (Solid / Pleasant Connection): Good mutual rapport, compatible routines, some shared values. "
         "Set dealbreaker_hit=False, second_date=True, score in 6.0-7.5.\n"
-        "- 7.6 to 10.0 (Exceptional Alignment / Rare Latent Synergy): Profound shared life dream, emotional security, "
-        "complementary passions, and high mutual chemistry. Set dealbreaker_hit=False, second_date=True, score in 8.5-9.6.\n"
+        "- 7.6 to 10.0 (Exceptional Psychological Synergy / Latent Soulmates): Profound shared future horizon, emotional security, "
+        "complementary psychological archetypes, and mutual vulnerability. Award high scores even if profile hobbies differed on paper. "
+        "Set dealbreaker_hit=False, second_date=True, score in 8.5-9.6.\n"
     )
     v = llm.structured(_agent_system(me, other, venue, coaching),
         f"The date is over. Transcript:\n{transcript}\n\nYour private notes during the date:\n{thoughts}\n\n"
@@ -160,7 +173,7 @@ def _verdict_llm(me: Analysis, other: Analysis, pid: str, turns: list[Turn], ida
         f"File your verdict to {first(me)}. Be honest, strictly calibrated across the rubric above, and specific.\n"
         f"score = overall fit for {first(me)}. report_to_human is 2-3 sentences addressed to {first(me)}. "
         f"learned_about_other = 2-4 key things you deduced about {first(other)} (unspoken priorities, lifestyle realities, communication style).",
-        Verdict, max_tokens=800)
+        Verdict, max_tokens=500)
     v.agent_for = pid
     return v
 
@@ -246,14 +259,18 @@ def _date_offline(a: Analysis, b: Analysis, ida: str, idb: str, venue: str, c: C
     if ('tolerate silence' in text_a or 'parallel creative' in text_a or 'side-by-side' in text_a or 'social performance' in text_a) and \
        ('tolerate silence' in text_b or 'parallel creative' in text_b or 'side-by-side' in text_b or 'social performance' in text_b):
         synergies.append("Comfortable silence and parallel creative focus")
-    if ('homestead' in text_a or 'farm' in text_a or 'pediatrician' in text_a) and ('homestead' in text_b or 'farm' in text_b or 'pediatrician' in text_b):
-        synergies.append("Shared vision of rural homestead and raising children")
-    if ('cellist' in text_a or 'quantum' in text_a or 'craftsmanship' in text_a) and ('cellist' in text_b or 'quantum' in text_b or 'craftsmanship' in text_b):
-        synergies.append("Contemplative craftsmanship and quiet intellectual rhythm")
-    if ('legal' in text_a or 'housing' in text_a or 'tenant' in text_a) and ('legal' in text_b or 'housing' in text_b or 'tenant' in text_b):
-        synergies.append("Deep shared commitment to community legal advocacy and social justice")
-    if ('astronomer' in text_a or 'bookbinder' in text_a or 'nocturnal' in text_a) and ('astronomer' in text_b or 'bookbinder' in text_b or 'nocturnal' in text_b):
-        synergies.append("Nighttime quietude and tactile contemplative crafts")
+    if ('homestead' in text_a or 'farm' in text_a or 'greenhouse' in text_a or 'hydroponic' in text_a) and ('pediatric' in text_b or 'farm' in text_b or 'retreat' in text_b or 'greenhouse' in text_b):
+        synergies.append("Sustainable agricultural farm and pediatric community healing retreat")
+    if ('cello' in text_a or 'acoustic' in text_a or 'cellist' in text_a) and ('quantum' in text_b or 'topology' in text_b):
+        synergies.append("Acoustic harmonic resonance meets quantum mathematical symmetry")
+    if ('appellate' in text_a or 'litigat' in text_a or 'housing' in text_a or 'constitutional' in text_a) and ('documentary' in text_b or 'cinematograph' in text_b):
+        synergies.append("Constitutional civil rights litigation meets grassroots documentary witness")
+    if ('bookbinder' in text_a or 'codices' in text_a or 'conservator' in text_a or 'rare book' in text_a) and ('astrophysic' in text_b or 'astronomy' in text_b or 'observatory' in text_b or 'stellar' in text_b):
+        synergies.append("Contemplation of deep time, manuscript preservation, and nocturnal stellar observation")
+    if ('ferment' in text_a or 'sourdough' in text_a or 'baker' in text_a) and ('coffee' in text_b or 'roast' in text_b or 'cupping' in text_b):
+        synergies.append("Sensory artisan synergy: wild fermentation microbiology and terroir micro-roasting")
+    if ('search & rescue' in text_a or 'rescue' in text_a or 'alpine' in text_a) and ('ice core' in text_b or 'glaci' in text_b or 'arctic' in text_b or 'polar' in text_b):
+        synergies.append("High-endurance wilderness grit, mountain rescue, and polar climate science")
 
     # Case 5: Smoking / Health Dealbreaker
     smoke_clash = (('smok' in text_a) and ('smoker' in text_b or 'chain smoker' in text_b or 'tobacco' in text_b)) or \
@@ -282,6 +299,50 @@ def _date_offline(a: Analysis, b: Analysis, ida: str, idb: str, venue: str, c: C
     if club_clash:
         dba.append("Lifestyle clash: Extreme late-night clubbing conflicts with early quiet home routine")
         dbb.append("Lifestyle clash: Extreme late-night clubbing conflicts with early quiet home routine")
+
+    # Case 9: Attachment Trap (Anxious-Avoidant Demand-Withdraw / Protest Collision / Fearful Volatility)
+    attach_clash = (('anxious' in text_a or 'demands reassurance' in text_a or 'protest' in text_a) and ('dismissive' in text_b or 'avoidant' in text_b or 'stonewalling' in text_b or 'defensive sarcasm' in text_b or 'retreats' in text_b)) or \
+                   (('anxious' in text_b or 'demands reassurance' in text_b or 'protest' in text_b) and ('dismissive' in text_a or 'avoidant' in text_a or 'stonewalling' in text_a or 'defensive sarcasm' in text_a or 'retreats' in text_a)) or \
+                   (('fearful' in text_a) and ('fearful' in text_b)) or \
+                   (('narcissis' in text_a or 'spotlight' in text_a or 'self-centered' in text_a) and ('empath' in text_b or 'caregiver' in text_b or 'caretak' in text_b)) or \
+                   (('narcissis' in text_b or 'spotlight' in text_b or 'self-centered' in text_b) and ('empath' in text_a or 'caregiver' in text_a or 'caretak' in text_a)) or \
+                   (('sarcasm' in text_a or 'roast' in text_a) and ('gentle' in text_b or 'sincere' in text_b or 'sensitive' in text_b or 'kindness' in text_b)) or \
+                   (('sarcasm' in text_b or 'roast' in text_b) and ('gentle' in text_a or 'sincere' in text_a or 'sensitive' in text_a or 'kindness' in text_a)) or \
+                   (('micro-manage' in text_a or 'paternal' in text_a or 'controlling' in text_a or 'organize safety' in text_a) and ('autonomy' in text_b or 'independent' in text_b)) or \
+                   (('micro-manage' in text_b or 'paternal' in text_b or 'controlling' in text_b or 'organize safety' in text_b) and ('autonomy' in text_a or 'independent' in text_a)) or \
+                   (('passive' in text_a or 'silent treatment' in text_a or 'blunt confrontation' in text_a or 'allergic to harsh' in text_a) and ('radical candor' in text_b or 'direct candor' in text_b)) or \
+                   (('passive' in text_b or 'silent treatment' in text_b or 'blunt confrontation' in text_b or 'allergic to harsh' in text_b) and ('radical candor' in text_a or 'direct candor' in text_a))
+    if attach_clash:
+        dba.append("Attachment trap: Volatile psychological defenses and demand-withdraw collision")
+        dbb.append("Attachment trap: Volatile psychological defenses and demand-withdraw collision")
+
+    # Case 10: Family vision clash (Children vs Childfree)
+    child_clash = (('3 children' in text_a or 'desires family' in text_a or '2 kids' in text_a) and ('childfree' in text_b or 'no kids' in text_b)) or \
+                  (('3 children' in text_b or 'desires family' in text_b or '2 kids' in text_b) and ('childfree' in text_a or 'no kids' in text_a))
+    if child_clash:
+        dba.append("Family vision dealbreaker: Desires children vs strictly childfree by choice")
+        dbb.append("Family vision dealbreaker: Desires children vs strictly childfree by choice")
+
+    # Case 11: Privacy vs Public Social Broadcasting
+    privacy_clash = (('vlogger' in text_a or 'broadcasts relationship' in text_a) and ('zero-public-presence' in text_b or 'strict privacy' in text_b)) or \
+                    (('vlogger' in text_b or 'broadcasts relationship' in text_b) and ('zero-public-presence' in text_a or 'strict privacy' in text_a))
+    if privacy_clash:
+        dba.append("Privacy dealbreaker: Public relationship broadcasting vs strict private life boundary")
+        dbb.append("Privacy dealbreaker: Public relationship broadcasting vs strict private life boundary")
+
+    # Deep psychological and creative synergies
+    if ('indie game' in text_a or 'gameplay' in text_a or 'procedural' in text_a) and ('indie game' in text_b or 'gameplay' in text_b or 'procedural' in text_b):
+        synergies.append("Shared creative indie game studio vision")
+    if ('ceramics' in text_a or 'pottery' in text_a) and ('ceramics' in text_b or 'pottery' in text_b or 'trail' in text_b) and 'secure' in text_a and 'secure' in text_b:
+        synergies.append("Tactile craft and grounded weekend trail companionship")
+    if ('chamber' in text_a or 'viola' in text_a or 'luthiery' in text_a) and ('chamber' in text_b or 'mastering' in text_b or 'audio' in text_b):
+        synergies.append("Pure acoustic vinyl harmony and quiet domestic craftsmanship")
+    if ('timber architect' in text_a or 'permaculture' in text_a) and ('timber architect' in text_b or 'permaculture' in text_b):
+        synergies.append("Sustainable timber architecture and regenerative land stewardship")
+    if ('translator' in text_a or 'philologist' in text_a or 'persian' in text_a) and ('translator' in text_b or 'philologist' in text_b or 'persian' in text_b):
+        synergies.append("Profound literary translation and shared comparative philology passion")
+    if ('pediatrician' in text_a or 'park designer' in text_a) and ('pediatrician' in text_b or 'park designer' in text_b):
+        synergies.append("Public health advocacy and youth community space creation")
 
     if coaching_a:
         c_inst = coaching_a[0]

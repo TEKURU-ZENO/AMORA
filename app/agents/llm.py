@@ -76,10 +76,26 @@ def text(system: str, messages: list[dict], max_tokens: int = 600, temperature: 
     return "".join(b.text for b in r.content if b.type == "text").strip()
 
 
+def _repair_json(s: str) -> str:
+    """Attempt basic repairs on truncated JSON output."""
+    s = s.strip()
+    if not s:
+        return "{}"
+    if s.count('"') % 2 == 1:
+        s += '"'
+    open_b = s.count('{') - s.count('}')
+    if open_b > 0:
+        s += '}' * open_b
+    open_k = s.count('[') - s.count(']')
+    if open_k > 0:
+        s += ']' * open_k
+    return s
+
+
 def structured(system: str, prompt: str, schema: type[T], max_tokens: int = 2500) -> T:
     if config.llm_provider() == "ollama":
         all_msgs = [
-            {"role": "system", "content": f"{system}\nYou MUST output valid JSON conforming exactly to the requested schema."},
+            {"role": "system", "content": f"{system}\nYou MUST output valid JSON conforming exactly to the requested schema. Do not add conversational markdown outside the JSON."},
             {"role": "user", "content": prompt},
         ]
         raw_text = _ollama_chat(all_msgs, format_schema=schema.model_json_schema(), max_tokens=max_tokens, temperature=0.3)
@@ -87,15 +103,38 @@ def structured(system: str, prompt: str, schema: type[T], max_tokens: int = 2500
         try:
             return schema.model_validate_json(clean)
         except Exception:
-            # Attempt to extract outermost JSON object/array
-            m = re.search(r"(\{.*\}|\[.*\])", clean, re.DOTALL)
-            if m:
+            pass
+
+        # Try repairing truncated JSON
+        try:
+            return schema.model_validate_json(_repair_json(clean))
+        except Exception:
+            pass
+
+        # Attempt to extract outermost JSON object/array
+        m = re.search(r"(\{.*\}|\[.*\])", clean, re.DOTALL)
+        if m:
+            try:
+                return schema.model_validate_json(m.group(0))
+            except Exception:
                 try:
-                    return schema.model_validate_json(m.group(0))
+                    return schema.model_validate_json(_repair_json(m.group(0)))
                 except Exception:
                     pass
-            logger.warning(f"Ollama JSON parse error on {schema.__name__}: raw={raw_text[:200]}")
-            raise RuntimeError(f"Ollama failed to return valid {schema.__name__} structured JSON")
+
+        # Fallback for AgentTurn: synthesize valid model instance from raw text
+        if schema.__name__ == "AgentTurn":
+            thought_match = re.search(r'"thought"\s*:\s*"([^"]*)', clean)
+            say_match = re.search(r'"say"\s*:\s*"([^"]*)', clean)
+            thought = thought_match.group(1) if thought_match else clean[:120]
+            say = say_match.group(1) if say_match else clean[120:240]
+            try:
+                return schema(thought=thought or "Observing date dynamics.", say=say or "It is great meeting you tonight.")
+            except Exception:
+                pass
+
+        logger.warning(f"Ollama JSON parse error on {schema.__name__}: raw={raw_text[:200]}")
+        raise RuntimeError(f"Ollama failed to return valid {schema.__name__} structured JSON")
 
     tool = {
         "name": "submit",

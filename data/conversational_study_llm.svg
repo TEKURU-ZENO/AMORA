@@ -1,538 +1,663 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 580" width="1200" height="580">
-  <defs>
-    <linearGradient id="chart-bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0d1117"/>
-      <stop offset="100%" stop-color="#161b22"/>
-    </linearGradient>
-  </defs>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1512 600" width="100%" height="600">
+  <rect width="1512" height="600" rx="14" fill="#0d1117" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
 
-  <!-- Deep Canvas Background -->
-  <rect width="1200" height="580" rx="16" fill="url(#chart-bg)" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
+  <!-- Title & Subtitle -->
+  <text x="36" y="44" fill="#ffffff" font-family="-apple-system, sans-serif" font-size="20" font-weight="800">
+    AMORA Conversational Dates vs. Profile-Only Baseline
+  </text>
+  <text x="36" y="68" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="12">
+    Empirical Evaluation: Gold-Standard Ground Truth vs Baseline Prior vs Multi-Turn Agent Verdict (48 Dyads Across 12 Archetypes)
+  </text>
 
-  <!-- Research Title & Publication Header -->
-  <g transform="translate(36, 36)">
-    <rect width="210" height="28" rx="14" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.15)"/>
-    <text x="105" y="18" fill="#58a6ff" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" letter-spacing="1" text-anchor="middle">EMPIRICAL EVALUATION</text>
-    <text x="0" y="54" fill="#ffffff" font-family="Georgia, serif" font-size="24" font-weight="700">Simulated Dates vs. Profile-Only Baseline</text>
-    <text x="0" y="78" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="14">
-      Conversational agent dialogue recovers latent facts withheld from public profiles (elderly care, moving abroad, secret dreams).
+  <!-- Engine Badge -->
+  <g transform="translate(36, 84)">
+    <rect width="372" height="28" rx="6" fill="rgba(210,153,34,0.18)" stroke="#d29922" stroke-width="1.2"/>
+    <text x="12" y="18" fill="#ffb703" font-family="-apple-system, sans-serif" font-size="11" font-weight="700">
+      ENGINE: OFFLINE DETERMINISTIC (HEURISTIC BASELINE)
     </text>
-    <!-- Engine Provenance Badge -->
-    <g transform="translate(0, 92)">
-      <rect width="295" height="22" rx="6" fill="rgba(46,160,67,0.18)" stroke="#2ea043" stroke-width="1"/>
-      <text x="10" y="15" fill="#3fb950" font-family="-apple-system, sans-serif" font-size="10" font-weight="700">ENGINE: OLLAMA (LLAMA3.2:1B) (LIVE LLM)</text>
+  </g>
+
+  <!-- Metric Badges -->
+  
+    <g transform="translate(798, 32)">
+      <rect width="340" height="54" rx="10" fill="rgba(56,139,253,0.15)" stroke="#388bfd" stroke-width="1.5"/>
+      <text x="170.0" y="22" fill="#58a6ff" font-family="-apple-system, sans-serif" font-size="12" font-weight="800" text-anchor="middle">
+        PSYCHOLOGICAL ARCHETYPE VALIDATION
+      </text>
+      <text x="170.0" y="42" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="11" text-anchor="middle">
+        Real Compat &rho;: +0.77 vs Internal Consistency &rho;: -0.69
+      </text>
     </g>
-  </g>
+    
+  
+    <g transform="translate(1152, 32)">
+      <rect width="330" height="54" rx="10" fill="rgba(46,160,67,0.15)" stroke="#2ea043" stroke-width="1.5"/>
+      <text x="165.0" y="22" fill="#3fb950" font-family="-apple-system, sans-serif" font-size="12" font-weight="800" text-anchor="middle">
+        58.6% CALIBRATION ERROR REDUCTION
+      </text>
+      <text x="165.0" y="42" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="11" text-anchor="middle">
+        Ranking &rho;: -0.09 &rarr; +0.77 (+0.86 gain)
+      </text>
+    </g>
+    
 
-  <!-- Highlight Gain Pill (Top Right) -->
-  <g transform="translate(820, 36)">
-    <rect width="344" height="60" rx="12" fill="rgba(46,160,67,0.15)" stroke="#2ea043" stroke-width="1.5"/>
-    <text x="172" y="24" fill="#3fb950" font-family="-apple-system, sans-serif" font-size="13" font-weight="800" text-anchor="middle">
-      33.4% CALIBRATION ERROR REDUCTION
-    </text>
-    <text x="172" y="45" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="11" text-anchor="middle">
-      Spearman &rho;: -0.30 &rarr; +0.21 (+0.51 gain)
-    </text>
-  </g>
-
-  <!-- Legend -->
-  <g transform="translate(670, 112)">
-    <!-- Legend 1: Baseline -->
-    <rect x="0" y="0" width="14" height="14" rx="3" fill="#388bfd"/>
-    <text x="20" y="12" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="12">Profile Prior (&mu; err: 4.01)</text>
+  <!-- Chart Legends -->
+  <g transform="translate(36, 126)">
+    <!-- Legend 1: Baseline Prior -->
+    <rect x="0" y="0" width="14" height="14" rx="3" fill="#388bfd" fill-opacity="0.85"/>
+    <text x="22" y="11" fill="#c9d1d9" font-family="-apple-system, sans-serif" font-size="11">Profile Prior (Baseline y0)</text>
 
     <!-- Legend 2: Agent Verdict -->
-    <rect x="180" y="0" width="14" height="14" rx="3" fill="#ff4d6d"/>
-    <text x="200" y="12" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="12">Agent Date (&mu; err: 2.67)</text>
+    <rect x="180" y="0" width="14" height="14" rx="3" fill="#ff4d6d" fill-opacity="0.9"/>
+    <text x="202" y="11" fill="#c9d1d9" font-family="-apple-system, sans-serif" font-size="11">Agent Date Verdict (y_agent)</text>
 
     <!-- Legend 3: Ground Truth -->
-    <line x1="330" y1="7" x2="350" y2="7" stroke="#ffb703" stroke-width="3" stroke-dasharray="3,2"/>
-    <polygon points="340,3 344,7 340,11 336,7" fill="#ffb703"/>
-    <text x="358" y="12" fill="#ffb703" font-family="-apple-system, sans-serif" font-size="12">Ground Truth (y*)</text>
+    <polygon points="405,1 411,7 405,13 399,7" fill="#ffb703"/>
+    <line x1="395" y1="7" x2="415" y2="7" stroke="#ffb703" stroke-width="2"/>
+    <text x="424" y="11" fill="#c9d1d9" font-family="-apple-system, sans-serif" font-size="11">Relational Ground Truth (y*)</text>
   </g>
 
-  <!-- Axis & Grid -->
+  <!-- Axes & Grid -->
   
-        <line x1="65" y1="420.0" x2="1155" y2="420.0" stroke="rgba(255,255,255,0.08)" stroke-dasharray="3,3"/>
-        <text x="55" y="424.0" fill="#8b949e" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" text-anchor="end">0</text>
+        <line x1="70" y1="440.0" x2="1462" y2="440.0" stroke="rgba(255,255,255,0.08)" stroke-dasharray="3,3"/>
+        <text x="60" y="444.0" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="11" text-anchor="end">0</text>
         
-        <line x1="65" y1="364.0" x2="1155" y2="364.0" stroke="rgba(255,255,255,0.08)" stroke-dasharray="3,3"/>
-        <text x="55" y="368.0" fill="#8b949e" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" text-anchor="end">2</text>
+        <line x1="70" y1="382.0" x2="1462" y2="382.0" stroke="rgba(255,255,255,0.08)" stroke-dasharray="3,3"/>
+        <text x="60" y="386.0" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="11" text-anchor="end">2</text>
         
-        <line x1="65" y1="308.0" x2="1155" y2="308.0" stroke="rgba(255,255,255,0.08)" stroke-dasharray="3,3"/>
-        <text x="55" y="312.0" fill="#8b949e" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" text-anchor="end">4</text>
+        <line x1="70" y1="324.0" x2="1462" y2="324.0" stroke="rgba(255,255,255,0.08)" stroke-dasharray="3,3"/>
+        <text x="60" y="328.0" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="11" text-anchor="end">4</text>
         
-        <line x1="65" y1="252.0" x2="1155" y2="252.0" stroke="rgba(255,255,255,0.08)" stroke-dasharray="3,3"/>
-        <text x="55" y="256.0" fill="#8b949e" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" text-anchor="end">6</text>
+        <line x1="70" y1="266.0" x2="1462" y2="266.0" stroke="rgba(255,255,255,0.08)" stroke-dasharray="3,3"/>
+        <text x="60" y="270.0" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="11" text-anchor="end">6</text>
         
-        <line x1="65" y1="196.0" x2="1155" y2="196.0" stroke="rgba(255,255,255,0.08)" stroke-dasharray="3,3"/>
-        <text x="55" y="200.0" fill="#8b949e" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" text-anchor="end">8</text>
+        <line x1="70" y1="208.0" x2="1462" y2="208.0" stroke="rgba(255,255,255,0.08)" stroke-dasharray="3,3"/>
+        <text x="60" y="212.0" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="11" text-anchor="end">8</text>
         
-        <line x1="65" y1="140.0" x2="1155" y2="140.0" stroke="rgba(255,255,255,0.08)" stroke-dasharray="3,3"/>
-        <text x="55" y="144.0" fill="#8b949e" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" text-anchor="end">10</text>
+        <line x1="70" y1="150.0" x2="1462" y2="150.0" stroke="rgba(255,255,255,0.08)" stroke-dasharray="3,3"/>
+        <text x="60" y="154.0" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="11" text-anchor="end">10</text>
         
 
-  <!-- Plot Bars & Markers -->
+  <!-- Bars & Markers -->
   
-        <!-- Pair 0: Aarav×Meera -->
         <g>
-          <!-- Baseline Prior Bar -->
-          <rect x="71.70833333333333" y="140.0" width="14" height="280.0" rx="3" fill="#388bfd" fill-opacity="0.85"/>
-          <text x="78.70833333333333" y="136.0" fill="#58a6ff" font-family="-apple-system, sans-serif" font-size="9" font-weight="600" text-anchor="middle">10.0</text>
-
-          <!-- Agent Date Verdict Bar -->
-          <rect x="89.70833333333333" y="252.0" width="14" height="168.0" rx="3" fill="#ff4d6d" fill-opacity="0.9"/>
-          <text x="96.70833333333333" y="248.0" fill="#ff758f" font-family="-apple-system, sans-serif" font-size="9" font-weight="700" text-anchor="middle">6.0</text>
-
-          <!-- Ground Truth Gold Target Marker -->
-          <line x1="68.70833333333333" y1="358.4" x2="106.70833333333333" y2="358.4" stroke="#ffb703" stroke-width="2.5" stroke-dasharray="3,1"/>
-          <polygon points="87.70833333333333,354.4 91.70833333333333,358.4 87.70833333333333,362.4 83.70833333333333,358.4" fill="#ffb703"/>
-
-          <!-- X-Axis Label -->
-          <text x="87.70833333333333" y="440" fill="#e6edf3" font-family="-apple-system, sans-serif" font-size="9" font-weight="600" text-anchor="middle">Aarav×Meera</text>
-          <text x="87.70833333333333" y="454" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="9" text-anchor="middle">y*:2.2</text>
+          <rect x="72.0" y="150.0" width="11.0" height="290.0" rx="2" fill="#388bfd" fill-opacity="0.85"/>
+          <rect x="86.0" y="387.8" width="11.0" height="52.2" rx="2" fill="#ff4d6d" fill-opacity="0.9"/>
         </g>
         
-        <!-- Pair 1: Rohan×Ishita -->
         <g>
-          <!-- Baseline Prior Bar -->
-          <rect x="117.125" y="238.0" width="14" height="182.0" rx="3" fill="#388bfd" fill-opacity="0.85"/>
-          <text x="124.125" y="234.0" fill="#58a6ff" font-family="-apple-system, sans-serif" font-size="9" font-weight="600" text-anchor="middle">6.5</text>
-
-          <!-- Agent Date Verdict Bar -->
-          <rect x="135.125" y="220.36" width="14" height="199.64" rx="3" fill="#ff4d6d" fill-opacity="0.9"/>
-          <text x="142.125" y="216.36" fill="#ff758f" font-family="-apple-system, sans-serif" font-size="9" font-weight="700" text-anchor="middle">7.1</text>
-
-          <!-- Ground Truth Gold Target Marker -->
-          <line x1="114.125" y1="162.40000000000003" x2="152.125" y2="162.40000000000003" stroke="#ffb703" stroke-width="2.5" stroke-dasharray="3,1"/>
-          <polygon points="133.125,158.40000000000003 137.125,162.40000000000003 133.125,166.40000000000003 129.125,162.40000000000003" fill="#ffb703"/>
-
-          <!-- X-Axis Label -->
-          <text x="133.125" y="440" fill="#e6edf3" font-family="-apple-system, sans-serif" font-size="9" font-weight="600" text-anchor="middle">Rohan×Ishita</text>
-          <text x="133.125" y="454" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="9" text-anchor="middle">y*:9.2</text>
+          <rect x="101.0" y="150.0" width="11.0" height="290.0" rx="2" fill="#388bfd" fill-opacity="0.85"/>
+          <rect x="115.0" y="385.2" width="11.0" height="54.8" rx="2" fill="#ff4d6d" fill-opacity="0.9"/>
         </g>
         
-        <!-- Pair 2: Kiran×Farhan -->
         <g>
-          <!-- Baseline Prior Bar -->
-          <rect x="162.54166666666666" y="140.0" width="14" height="280.0" rx="3" fill="#388bfd" fill-opacity="0.85"/>
-          <text x="169.54166666666666" y="136.0" fill="#58a6ff" font-family="-apple-system, sans-serif" font-size="9" font-weight="600" text-anchor="middle">10.0</text>
-
-          <!-- Agent Date Verdict Bar -->
-          <rect x="180.54166666666666" y="259.28" width="14" height="160.72000000000003" rx="3" fill="#ff4d6d" fill-opacity="0.9"/>
-          <text x="187.54166666666666" y="255.27999999999997" fill="#ff758f" font-family="-apple-system, sans-serif" font-size="9" font-weight="700" text-anchor="middle">5.7</text>
-
-          <!-- Ground Truth Gold Target Marker -->
-          <line x1="159.54166666666666" y1="341.6" x2="197.54166666666666" y2="341.6" stroke="#ffb703" stroke-width="2.5" stroke-dasharray="3,1"/>
-          <polygon points="178.54166666666666,337.6 182.54166666666666,341.6 178.54166666666666,345.6 174.54166666666666,341.6" fill="#ffb703"/>
-
-          <!-- X-Axis Label -->
-          <text x="178.54166666666666" y="440" fill="#e6edf3" font-family="-apple-system, sans-serif" font-size="9" font-weight="600" text-anchor="middle">Kiran×Farhan</text>
-          <text x="178.54166666666666" y="454" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="9" text-anchor="middle">y*:2.8</text>
+          <rect x="130.0" y="150.0" width="11.0" height="290.0" rx="2" fill="#388bfd" fill-opacity="0.85"/>
+          <rect x="144.0" y="387.8" width="11.0" height="52.2" rx="2" fill="#ff4d6d" fill-opacity="0.9"/>
         </g>
         
-        <!-- Pair 3: Ananya×Kabir -->
         <g>
-          <!-- Baseline Prior Bar -->
-          <rect x="207.95833333333334" y="140.0" width="14" height="280.0" rx="3" fill="#388bfd" fill-opacity="0.85"/>
-          <text x="214.95833333333334" y="136.0" fill="#58a6ff" font-family="-apple-system, sans-serif" font-size="9" font-weight="600" text-anchor="middle">10.0</text>
-
-          <!-- Agent Date Verdict Bar -->
-          <rect x="225.95833333333334" y="233.23999999999998" width="14" height="186.76000000000002" rx="3" fill="#ff4d6d" fill-opacity="0.9"/>
-          <text x="232.95833333333334" y="229.23999999999998" fill="#ff758f" font-family="-apple-system, sans-serif" font-size="9" font-weight="700" text-anchor="middle">6.7</text>
-
-          <!-- Ground Truth Gold Target Marker -->
-          <line x1="204.95833333333334" y1="168.0" x2="242.95833333333334" y2="168.0" stroke="#ffb703" stroke-width="2.5" stroke-dasharray="3,1"/>
-          <polygon points="223.95833333333334,164.0 227.95833333333334,168.0 223.95833333333334,172.0 219.95833333333334,168.0" fill="#ffb703"/>
-
-          <!-- X-Axis Label -->
-          <text x="223.95833333333334" y="440" fill="#e6edf3" font-family="-apple-system, sans-serif" font-size="9" font-weight="600" text-anchor="middle">Ananya×Kabir</text>
-          <text x="223.95833333333334" y="454" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="9" text-anchor="middle">y*:9.0</text>
+          <rect x="159.0" y="150.0" width="11.0" height="290.0" rx="2" fill="#388bfd" fill-opacity="0.85"/>
+          <rect x="173.0" y="387.8" width="11.0" height="52.2" rx="2" fill="#ff4d6d" fill-opacity="0.9"/>
         </g>
         
-        <!-- Pair 4: Vikram×Tara -->
         <g>
-          <!-- Baseline Prior Bar -->
-          <rect x="253.375" y="140.0" width="14" height="280.0" rx="3" fill="#388bfd" fill-opacity="0.85"/>
-          <text x="260.375" y="136.0" fill="#58a6ff" font-family="-apple-system, sans-serif" font-size="9" font-weight="600" text-anchor="middle">10.0</text>
-
-          <!-- Agent Date Verdict Bar -->
-          <rect x="271.375" y="245.28" width="14" height="174.72" rx="3" fill="#ff4d6d" fill-opacity="0.9"/>
-          <text x="278.375" y="241.28" fill="#ff758f" font-family="-apple-system, sans-serif" font-size="9" font-weight="700" text-anchor="middle">6.2</text>
-
-          <!-- Ground Truth Gold Target Marker -->
-          <line x1="250.375" y1="336.0" x2="288.375" y2="336.0" stroke="#ffb703" stroke-width="2.5" stroke-dasharray="3,1"/>
-          <polygon points="269.375,332.0 273.375,336.0 269.375,340.0 265.375,336.0" fill="#ffb703"/>
-
-          <!-- X-Axis Label -->
-          <text x="269.375" y="440" fill="#e6edf3" font-family="-apple-system, sans-serif" font-size="9" font-weight="600" text-anchor="middle">Vikram×Tara</text>
-          <text x="269.375" y="454" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="9" text-anchor="middle">y*:3.0</text>
+          <rect x="188.0" y="150.0" width="11.0" height="290.0" rx="2" fill="#388bfd" fill-opacity="0.85"/>
+          <rect x="202.0" y="386.6" width="11.0" height="53.4" rx="2" fill="#ff4d6d" fill-opacity="0.9"/>
         </g>
         
-        <!-- Pair 5: Neel×Zain -->
         <g>
-          <!-- Baseline Prior Bar -->
-          <rect x="298.79166666666663" y="140.0" width="14" height="280.0" rx="3" fill="#388bfd" fill-opacity="0.85"/>
-          <text x="305.79166666666663" y="136.0" fill="#58a6ff" font-family="-apple-system, sans-serif" font-size="9" font-weight="600" text-anchor="middle">10.0</text>
-
-          <!-- Agent Date Verdict Bar -->
-          <rect x="316.79166666666663" y="252.0" width="14" height="168.0" rx="3" fill="#ff4d6d" fill-opacity="0.9"/>
-          <text x="323.79166666666663" y="248.0" fill="#ff758f" font-family="-apple-system, sans-serif" font-size="9" font-weight="700" text-anchor="middle">6.0</text>
-
-          <!-- Ground Truth Gold Target Marker -->
-          <line x1="295.79166666666663" y1="173.59999999999997" x2="333.79166666666663" y2="173.59999999999997" stroke="#ffb703" stroke-width="2.5" stroke-dasharray="3,1"/>
-          <polygon points="314.79166666666663,169.59999999999997 318.79166666666663,173.59999999999997 314.79166666666663,177.59999999999997 310.79166666666663,173.59999999999997" fill="#ffb703"/>
-
-          <!-- X-Axis Label -->
-          <text x="314.79166666666663" y="440" fill="#e6edf3" font-family="-apple-system, sans-serif" font-size="9" font-weight="600" text-anchor="middle">Neel×Zain</text>
-          <text x="314.79166666666663" y="454" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="9" text-anchor="middle">y*:8.8</text>
+          <rect x="217.0" y="150.0" width="11.0" height="290.0" rx="2" fill="#388bfd" fill-opacity="0.85"/>
+          <rect x="231.0" y="387.8" width="11.0" height="52.2" rx="2" fill="#ff4d6d" fill-opacity="0.9"/>
         </g>
         
-        <!-- Pair 6: Maya×Dev -->
         <g>
-          <!-- Baseline Prior Bar -->
-          <rect x="344.2083333333333" y="140.0" width="14" height="280.0" rx="3" fill="#388bfd" fill-opacity="0.85"/>
-          <text x="351.2083333333333" y="136.0" fill="#58a6ff" font-family="-apple-system, sans-serif" font-size="9" font-weight="600" text-anchor="middle">10.0</text>
-
-          <!-- Agent Date Verdict Bar -->
-          <rect x="362.2083333333333" y="252.0" width="14" height="168.0" rx="3" fill="#ff4d6d" fill-opacity="0.9"/>
-          <text x="369.2083333333333" y="248.0" fill="#ff758f" font-family="-apple-system, sans-serif" font-size="9" font-weight="700" text-anchor="middle">6.0</text>
-
-          <!-- Ground Truth Gold Target Marker -->
-          <line x1="341.2083333333333" y1="364.0" x2="379.2083333333333" y2="364.0" stroke="#ffb703" stroke-width="2.5" stroke-dasharray="3,1"/>
-          <polygon points="360.2083333333333,360.0 364.2083333333333,364.0 360.2083333333333,368.0 356.2083333333333,364.0" fill="#ffb703"/>
-
-          <!-- X-Axis Label -->
-          <text x="360.2083333333333" y="440" fill="#e6edf3" font-family="-apple-system, sans-serif" font-size="9" font-weight="600" text-anchor="middle">Maya×Dev</text>
-          <text x="360.2083333333333" y="454" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="9" text-anchor="middle">y*:2.0</text>
+          <rect x="246.0" y="150.0" width="11.0" height="290.0" rx="2" fill="#388bfd" fill-opacity="0.85"/>
+          <rect x="260.0" y="185.4" width="11.0" height="254.6" rx="2" fill="#ff4d6d" fill-opacity="0.9"/>
         </g>
         
-        <!-- Pair 7: Arjun×Priya -->
         <g>
-          <!-- Baseline Prior Bar -->
-          <rect x="389.62499999999994" y="140.0" width="14" height="280.0" rx="3" fill="#388bfd" fill-opacity="0.85"/>
-          <text x="396.62499999999994" y="136.0" fill="#58a6ff" font-family="-apple-system, sans-serif" font-size="9" font-weight="600" text-anchor="middle">10.0</text>
-
-          <!-- Agent Date Verdict Bar -->
-          <rect x="407.62499999999994" y="245.28" width="14" height="174.72" rx="3" fill="#ff4d6d" fill-opacity="0.9"/>
-          <text x="414.62499999999994" y="241.28" fill="#ff758f" font-family="-apple-system, sans-serif" font-size="9" font-weight="700" text-anchor="middle">6.2</text>
-
-          <!-- Ground Truth Gold Target Marker -->
-          <line x1="386.62499999999994" y1="350.0" x2="424.62499999999994" y2="350.0" stroke="#ffb703" stroke-width="2.5" stroke-dasharray="3,1"/>
-          <polygon points="405.62499999999994,346.0 409.62499999999994,350.0 405.62499999999994,354.0 401.62499999999994,350.0" fill="#ffb703"/>
-
-          <!-- X-Axis Label -->
-          <text x="405.62499999999994" y="440" fill="#e6edf3" font-family="-apple-system, sans-serif" font-size="9" font-weight="600" text-anchor="middle">Arjun×Priya</text>
-          <text x="405.62499999999994" y="454" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="9" text-anchor="middle">y*:2.5</text>
+          <rect x="275.0" y="150.0" width="11.0" height="290.0" rx="2" fill="#388bfd" fill-opacity="0.85"/>
+          <rect x="289.0" y="387.2" width="11.0" height="52.8" rx="2" fill="#ff4d6d" fill-opacity="0.9"/>
         </g>
         
-        <!-- Pair 8: Leela×Sameer -->
         <g>
-          <!-- Baseline Prior Bar -->
-          <rect x="435.04166666666663" y="140.0" width="14" height="280.0" rx="3" fill="#388bfd" fill-opacity="0.85"/>
-          <text x="442.04166666666663" y="136.0" fill="#58a6ff" font-family="-apple-system, sans-serif" font-size="9" font-weight="600" text-anchor="middle">10.0</text>
-
-          <!-- Agent Date Verdict Bar -->
-          <rect x="453.04166666666663" y="252.0" width="14" height="168.0" rx="3" fill="#ff4d6d" fill-opacity="0.9"/>
-          <text x="460.04166666666663" y="248.0" fill="#ff758f" font-family="-apple-system, sans-serif" font-size="9" font-weight="700" text-anchor="middle">6.0</text>
-
-          <!-- Ground Truth Gold Target Marker -->
-          <line x1="432.04166666666663" y1="369.6" x2="470.04166666666663" y2="369.6" stroke="#ffb703" stroke-width="2.5" stroke-dasharray="3,1"/>
-          <polygon points="451.04166666666663,365.6 455.04166666666663,369.6 451.04166666666663,373.6 447.04166666666663,369.6" fill="#ffb703"/>
-
-          <!-- X-Axis Label -->
-          <text x="451.04166666666663" y="440" fill="#e6edf3" font-family="-apple-system, sans-serif" font-size="9" font-weight="600" text-anchor="middle">Leela×Sameer</text>
-          <text x="451.04166666666663" y="454" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="9" text-anchor="middle">y*:1.8</text>
+          <rect x="304.0" y="251.5" width="11.0" height="188.5" rx="2" fill="#388bfd" fill-opacity="0.85"/>
+          <rect x="318.0" y="177.6" width="11.0" height="262.4" rx="2" fill="#ff4d6d" fill-opacity="0.9"/>
         </g>
         
-        <!-- Pair 9: Siddha×Nina -->
         <g>
-          <!-- Baseline Prior Bar -->
-          <rect x="480.4583333333333" y="238.0" width="14" height="182.0" rx="3" fill="#388bfd" fill-opacity="0.85"/>
-          <text x="487.4583333333333" y="234.0" fill="#58a6ff" font-family="-apple-system, sans-serif" font-size="9" font-weight="600" text-anchor="middle">6.5</text>
-
-          <!-- Agent Date Verdict Bar -->
-          <rect x="498.4583333333333" y="249.76" width="14" height="170.24" rx="3" fill="#ff4d6d" fill-opacity="0.9"/>
-          <text x="505.4583333333333" y="245.76" fill="#ff758f" font-family="-apple-system, sans-serif" font-size="9" font-weight="700" text-anchor="middle">6.1</text>
-
-          <!-- Ground Truth Gold Target Marker -->
-          <line x1="477.4583333333333" y1="159.59999999999997" x2="515.4583333333333" y2="159.59999999999997" stroke="#ffb703" stroke-width="2.5" stroke-dasharray="3,1"/>
-          <polygon points="496.4583333333333,155.59999999999997 500.4583333333333,159.59999999999997 496.4583333333333,163.59999999999997 492.4583333333333,159.59999999999997" fill="#ffb703"/>
-
-          <!-- X-Axis Label -->
-          <text x="496.4583333333333" y="440" fill="#e6edf3" font-family="-apple-system, sans-serif" font-size="9" font-weight="600" text-anchor="middle">Siddha×Nina</text>
-          <text x="496.4583333333333" y="454" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="9" text-anchor="middle">y*:9.3</text>
+          <rect x="333.0" y="150.0" width="11.0" height="290.0" rx="2" fill="#388bfd" fill-opacity="0.85"/>
+          <rect x="347.0" y="178.4" width="11.0" height="261.6" rx="2" fill="#ff4d6d" fill-opacity="0.9"/>
         </g>
         
-        <!-- Pair 10: Aditi×Kavi -->
         <g>
-          <!-- Baseline Prior Bar -->
-          <rect x="525.875" y="176.40000000000003" width="14" height="243.59999999999997" rx="3" fill="#388bfd" fill-opacity="0.85"/>
-          <text x="532.875" y="172.40000000000003" fill="#58a6ff" font-family="-apple-system, sans-serif" font-size="9" font-weight="600" text-anchor="middle">8.7</text>
-
-          <!-- Agent Date Verdict Bar -->
-          <rect x="543.875" y="262.36" width="14" height="157.64" rx="3" fill="#ff4d6d" fill-opacity="0.9"/>
-          <text x="550.875" y="258.36" fill="#ff758f" font-family="-apple-system, sans-serif" font-size="9" font-weight="700" text-anchor="middle">5.6</text>
-
-          <!-- Ground Truth Gold Target Marker -->
-          <line x1="522.875" y1="168.0" x2="560.875" y2="168.0" stroke="#ffb703" stroke-width="2.5" stroke-dasharray="3,1"/>
-          <polygon points="541.875,164.0 545.875,168.0 541.875,172.0 537.875,168.0" fill="#ffb703"/>
-
-          <!-- X-Axis Label -->
-          <text x="541.875" y="440" fill="#e6edf3" font-family="-apple-system, sans-serif" font-size="9" font-weight="600" text-anchor="middle">Aditi×Kavi</text>
-          <text x="541.875" y="454" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="9" text-anchor="middle">y*:9.0</text>
+          <rect x="362.0" y="251.5" width="11.0" height="188.5" rx="2" fill="#388bfd" fill-opacity="0.85"/>
+          <rect x="376.0" y="174.4" width="11.0" height="265.6" rx="2" fill="#ff4d6d" fill-opacity="0.9"/>
         </g>
         
-        <!-- Pair 11: Ananya×Kabir -->
         <g>
-          <!-- Baseline Prior Bar -->
-          <rect x="571.2916666666666" y="238.0" width="14" height="182.0" rx="3" fill="#388bfd" fill-opacity="0.85"/>
-          <text x="578.2916666666666" y="234.0" fill="#58a6ff" font-family="-apple-system, sans-serif" font-size="9" font-weight="600" text-anchor="middle">6.5</text>
-
-          <!-- Agent Date Verdict Bar -->
-          <rect x="589.2916666666666" y="233.23999999999998" width="14" height="186.76000000000002" rx="3" fill="#ff4d6d" fill-opacity="0.9"/>
-          <text x="596.2916666666666" y="229.23999999999998" fill="#ff758f" font-family="-apple-system, sans-serif" font-size="9" font-weight="700" text-anchor="middle">6.7</text>
-
-          <!-- Ground Truth Gold Target Marker -->
-          <line x1="568.2916666666666" y1="156.8" x2="606.2916666666666" y2="156.8" stroke="#ffb703" stroke-width="2.5" stroke-dasharray="3,1"/>
-          <polygon points="587.2916666666666,152.8 591.2916666666666,156.8 587.2916666666666,160.8 583.2916666666666,156.8" fill="#ffb703"/>
-
-          <!-- X-Axis Label -->
-          <text x="587.2916666666666" y="440" fill="#e6edf3" font-family="-apple-system, sans-serif" font-size="9" font-weight="600" text-anchor="middle">Ananya×Kabir</text>
-          <text x="587.2916666666666" y="454" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="9" text-anchor="middle">y*:9.4</text>
+          <rect x="391.0" y="251.5" width="11.0" height="188.5" rx="2" fill="#388bfd" fill-opacity="0.85"/>
+          <rect x="405.0" y="175.2" width="11.0" height="264.8" rx="2" fill="#ff4d6d" fill-opacity="0.9"/>
         </g>
         
-        <!-- Pair 12: Diya×Taran -->
         <g>
-          <!-- Baseline Prior Bar -->
-          <rect x="616.7083333333334" y="238.0" width="14" height="182.0" rx="3" fill="#388bfd" fill-opacity="0.85"/>
-          <text x="623.7083333333334" y="234.0" fill="#58a6ff" font-family="-apple-system, sans-serif" font-size="9" font-weight="600" text-anchor="middle">6.5</text>
-
-          <!-- Agent Date Verdict Bar -->
-          <rect x="634.7083333333334" y="252.0" width="14" height="168.0" rx="3" fill="#ff4d6d" fill-opacity="0.9"/>
-          <text x="641.7083333333334" y="248.0" fill="#ff758f" font-family="-apple-system, sans-serif" font-size="9" font-weight="700" text-anchor="middle">6.0</text>
-
-          <!-- Ground Truth Gold Target Marker -->
-          <line x1="613.7083333333334" y1="165.20000000000002" x2="651.7083333333334" y2="165.20000000000002" stroke="#ffb703" stroke-width="2.5" stroke-dasharray="3,1"/>
-          <polygon points="632.7083333333334,161.20000000000002 636.7083333333334,165.20000000000002 632.7083333333334,169.20000000000002 628.7083333333334,165.20000000000002" fill="#ffb703"/>
-
-          <!-- X-Axis Label -->
-          <text x="632.7083333333334" y="440" fill="#e6edf3" font-family="-apple-system, sans-serif" font-size="9" font-weight="600" text-anchor="middle">Diya×Taran</text>
-          <text x="632.7083333333334" y="454" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="9" text-anchor="middle">y*:9.1</text>
+          <rect x="420.0" y="251.5" width="11.0" height="188.5" rx="2" fill="#388bfd" fill-opacity="0.85"/>
+          <rect x="434.0" y="177.6" width="11.0" height="262.4" rx="2" fill="#ff4d6d" fill-opacity="0.9"/>
         </g>
         
-        <!-- Pair 13: Ritu×Varun -->
         <g>
-          <!-- Baseline Prior Bar -->
-          <rect x="662.125" y="140.0" width="14" height="280.0" rx="3" fill="#388bfd" fill-opacity="0.85"/>
-          <text x="669.125" y="136.0" fill="#58a6ff" font-family="-apple-system, sans-serif" font-size="9" font-weight="600" text-anchor="middle">10.0</text>
-
-          <!-- Agent Date Verdict Bar -->
-          <rect x="680.125" y="242.2" width="14" height="177.8" rx="3" fill="#ff4d6d" fill-opacity="0.9"/>
-          <text x="687.125" y="238.2" fill="#ff758f" font-family="-apple-system, sans-serif" font-size="9" font-weight="700" text-anchor="middle">6.3</text>
-
-          <!-- Ground Truth Gold Target Marker -->
-          <line x1="659.125" y1="173.59999999999997" x2="697.125" y2="173.59999999999997" stroke="#ffb703" stroke-width="2.5" stroke-dasharray="3,1"/>
-          <polygon points="678.125,169.59999999999997 682.125,173.59999999999997 678.125,177.59999999999997 674.125,173.59999999999997" fill="#ffb703"/>
-
-          <!-- X-Axis Label -->
-          <text x="678.125" y="440" fill="#e6edf3" font-family="-apple-system, sans-serif" font-size="9" font-weight="600" text-anchor="middle">Ritu×Varun</text>
-          <text x="678.125" y="454" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="9" text-anchor="middle">y*:8.8</text>
+          <rect x="449.0" y="251.5" width="11.0" height="188.5" rx="2" fill="#388bfd" fill-opacity="0.85"/>
+          <rect x="463.0" y="173.5" width="11.0" height="266.5" rx="2" fill="#ff4d6d" fill-opacity="0.9"/>
         </g>
         
-        <!-- Pair 14: Alisha×Nikhil -->
         <g>
-          <!-- Baseline Prior Bar -->
-          <rect x="707.5416666666666" y="140.0" width="14" height="280.0" rx="3" fill="#388bfd" fill-opacity="0.85"/>
-          <text x="714.5416666666666" y="136.0" fill="#58a6ff" font-family="-apple-system, sans-serif" font-size="9" font-weight="600" text-anchor="middle">10.0</text>
-
-          <!-- Agent Date Verdict Bar -->
-          <rect x="725.5416666666666" y="259.28" width="14" height="160.72000000000003" rx="3" fill="#ff4d6d" fill-opacity="0.9"/>
-          <text x="732.5416666666666" y="255.27999999999997" fill="#ff758f" font-family="-apple-system, sans-serif" font-size="9" font-weight="700" text-anchor="middle">5.7</text>
-
-          <!-- Ground Truth Gold Target Marker -->
-          <line x1="704.5416666666666" y1="170.79999999999998" x2="742.5416666666666" y2="170.79999999999998" stroke="#ffb703" stroke-width="2.5" stroke-dasharray="3,1"/>
-          <polygon points="723.5416666666666,166.79999999999998 727.5416666666666,170.79999999999998 723.5416666666666,174.79999999999998 719.5416666666666,170.79999999999998" fill="#ffb703"/>
-
-          <!-- X-Axis Label -->
-          <text x="723.5416666666666" y="440" fill="#e6edf3" font-family="-apple-system, sans-serif" font-size="9" font-weight="600" text-anchor="middle">Alisha×Nikhil</text>
-          <text x="723.5416666666666" y="454" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="9" text-anchor="middle">y*:8.9</text>
+          <rect x="478.0" y="251.5" width="11.0" height="188.5" rx="2" fill="#388bfd" fill-opacity="0.85"/>
+          <rect x="492.0" y="176.4" width="11.0" height="263.6" rx="2" fill="#ff4d6d" fill-opacity="0.9"/>
         </g>
         
-        <!-- Pair 15: Tanvi×Harshv -->
         <g>
-          <!-- Baseline Prior Bar -->
-          <rect x="752.9583333333334" y="140.0" width="14" height="280.0" rx="3" fill="#388bfd" fill-opacity="0.85"/>
-          <text x="759.9583333333334" y="136.0" fill="#58a6ff" font-family="-apple-system, sans-serif" font-size="9" font-weight="600" text-anchor="middle">10.0</text>
-
-          <!-- Agent Date Verdict Bar -->
-          <rect x="770.9583333333334" y="233.23999999999998" width="14" height="186.76000000000002" rx="3" fill="#ff4d6d" fill-opacity="0.9"/>
-          <text x="777.9583333333334" y="229.23999999999998" fill="#ff758f" font-family="-apple-system, sans-serif" font-size="9" font-weight="700" text-anchor="middle">6.7</text>
-
-          <!-- Ground Truth Gold Target Marker -->
-          <line x1="749.9583333333334" y1="176.40000000000003" x2="787.9583333333334" y2="176.40000000000003" stroke="#ffb703" stroke-width="2.5" stroke-dasharray="3,1"/>
-          <polygon points="768.9583333333334,172.40000000000003 772.9583333333334,176.40000000000003 768.9583333333334,180.40000000000003 764.9583333333334,176.40000000000003" fill="#ffb703"/>
-
-          <!-- X-Axis Label -->
-          <text x="768.9583333333334" y="440" fill="#e6edf3" font-family="-apple-system, sans-serif" font-size="9" font-weight="600" text-anchor="middle">Tanvi×Harshv</text>
-          <text x="768.9583333333334" y="454" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="9" text-anchor="middle">y*:8.7</text>
+          <rect x="507.0" y="251.5" width="11.0" height="188.5" rx="2" fill="#388bfd" fill-opacity="0.85"/>
+          <rect x="521.0" y="172.0" width="11.0" height="268.0" rx="2" fill="#ff4d6d" fill-opacity="0.9"/>
         </g>
         
-        <!-- Pair 16: Sanjan×Pranav -->
         <g>
-          <!-- Baseline Prior Bar -->
-          <rect x="798.375" y="140.0" width="14" height="280.0" rx="3" fill="#388bfd" fill-opacity="0.85"/>
-          <text x="805.375" y="136.0" fill="#58a6ff" font-family="-apple-system, sans-serif" font-size="9" font-weight="600" text-anchor="middle">10.0</text>
-
-          <!-- Agent Date Verdict Bar -->
-          <rect x="816.375" y="233.79999999999998" width="14" height="186.20000000000002" rx="3" fill="#ff4d6d" fill-opacity="0.9"/>
-          <text x="823.375" y="229.79999999999998" fill="#ff758f" font-family="-apple-system, sans-serif" font-size="9" font-weight="700" text-anchor="middle">6.7</text>
-
-          <!-- Ground Truth Gold Target Marker -->
-          <line x1="795.375" y1="165.20000000000002" x2="833.375" y2="165.20000000000002" stroke="#ffb703" stroke-width="2.5" stroke-dasharray="3,1"/>
-          <polygon points="814.375,161.20000000000002 818.375,165.20000000000002 814.375,169.20000000000002 810.375,165.20000000000002" fill="#ffb703"/>
-
-          <!-- X-Axis Label -->
-          <text x="814.375" y="440" fill="#e6edf3" font-family="-apple-system, sans-serif" font-size="9" font-weight="600" text-anchor="middle">Sanjan×Pranav</text>
-          <text x="814.375" y="454" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="9" text-anchor="middle">y*:9.1</text>
+          <rect x="536.0" y="150.0" width="11.0" height="290.0" rx="2" fill="#388bfd" fill-opacity="0.85"/>
+          <rect x="550.0" y="387.8" width="11.0" height="52.2" rx="2" fill="#ff4d6d" fill-opacity="0.9"/>
         </g>
         
-        <!-- Pair 17: Meenak×Devang -->
         <g>
-          <!-- Baseline Prior Bar -->
-          <rect x="843.7916666666666" y="140.0" width="14" height="280.0" rx="3" fill="#388bfd" fill-opacity="0.85"/>
-          <text x="850.7916666666666" y="136.0" fill="#58a6ff" font-family="-apple-system, sans-serif" font-size="9" font-weight="600" text-anchor="middle">10.0</text>
-
-          <!-- Agent Date Verdict Bar -->
-          <rect x="861.7916666666666" y="252.0" width="14" height="168.0" rx="3" fill="#ff4d6d" fill-opacity="0.9"/>
-          <text x="868.7916666666666" y="248.0" fill="#ff758f" font-family="-apple-system, sans-serif" font-size="9" font-weight="700" text-anchor="middle">6.0</text>
-
-          <!-- Ground Truth Gold Target Marker -->
-          <line x1="840.7916666666666" y1="162.40000000000003" x2="878.7916666666666" y2="162.40000000000003" stroke="#ffb703" stroke-width="2.5" stroke-dasharray="3,1"/>
-          <polygon points="859.7916666666666,158.40000000000003 863.7916666666666,162.40000000000003 859.7916666666666,166.40000000000003 855.7916666666666,162.40000000000003" fill="#ffb703"/>
-
-          <!-- X-Axis Label -->
-          <text x="859.7916666666666" y="440" fill="#e6edf3" font-family="-apple-system, sans-serif" font-size="9" font-weight="600" text-anchor="middle">Meenak×Devang</text>
-          <text x="859.7916666666666" y="454" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="9" text-anchor="middle">y*:9.2</text>
+          <rect x="565.0" y="150.0" width="11.0" height="290.0" rx="2" fill="#388bfd" fill-opacity="0.85"/>
+          <rect x="579.0" y="387.8" width="11.0" height="52.2" rx="2" fill="#ff4d6d" fill-opacity="0.9"/>
         </g>
         
-        <!-- Pair 18: Sunita×Rahul -->
         <g>
-          <!-- Baseline Prior Bar -->
-          <rect x="889.2083333333334" y="140.0" width="14" height="280.0" rx="3" fill="#388bfd" fill-opacity="0.85"/>
-          <text x="896.2083333333334" y="136.0" fill="#58a6ff" font-family="-apple-system, sans-serif" font-size="9" font-weight="600" text-anchor="middle">10.0</text>
-
-          <!-- Agent Date Verdict Bar -->
-          <rect x="907.2083333333334" y="229.88" width="14" height="190.12" rx="3" fill="#ff4d6d" fill-opacity="0.9"/>
-          <text x="914.2083333333334" y="225.88" fill="#ff758f" font-family="-apple-system, sans-serif" font-size="9" font-weight="700" text-anchor="middle">6.8</text>
-
-          <!-- Ground Truth Gold Target Marker -->
-          <line x1="886.2083333333334" y1="285.6" x2="924.2083333333334" y2="285.6" stroke="#ffb703" stroke-width="2.5" stroke-dasharray="3,1"/>
-          <polygon points="905.2083333333334,281.6 909.2083333333334,285.6 905.2083333333334,289.6 901.2083333333334,285.6" fill="#ffb703"/>
-
-          <!-- X-Axis Label -->
-          <text x="905.2083333333334" y="440" fill="#e6edf3" font-family="-apple-system, sans-serif" font-size="9" font-weight="600" text-anchor="middle">Sunita×Rahul</text>
-          <text x="905.2083333333334" y="454" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="9" text-anchor="middle">y*:4.8</text>
+          <rect x="594.0" y="150.0" width="11.0" height="290.0" rx="2" fill="#388bfd" fill-opacity="0.85"/>
+          <rect x="608.0" y="385.2" width="11.0" height="54.8" rx="2" fill="#ff4d6d" fill-opacity="0.9"/>
         </g>
         
-        <!-- Pair 19: Bhavna×Kunal -->
         <g>
-          <!-- Baseline Prior Bar -->
-          <rect x="934.625" y="140.0" width="14" height="280.0" rx="3" fill="#388bfd" fill-opacity="0.85"/>
-          <text x="941.625" y="136.0" fill="#58a6ff" font-family="-apple-system, sans-serif" font-size="9" font-weight="600" text-anchor="middle">10.0</text>
-
-          <!-- Agent Date Verdict Bar -->
-          <rect x="952.625" y="233.23999999999998" width="14" height="186.76000000000002" rx="3" fill="#ff4d6d" fill-opacity="0.9"/>
-          <text x="959.625" y="229.23999999999998" fill="#ff758f" font-family="-apple-system, sans-serif" font-size="9" font-weight="700" text-anchor="middle">6.7</text>
-
-          <!-- Ground Truth Gold Target Marker -->
-          <line x1="931.625" y1="294.0" x2="969.625" y2="294.0" stroke="#ffb703" stroke-width="2.5" stroke-dasharray="3,1"/>
-          <polygon points="950.625,290.0 954.625,294.0 950.625,298.0 946.625,294.0" fill="#ffb703"/>
-
-          <!-- X-Axis Label -->
-          <text x="950.625" y="440" fill="#e6edf3" font-family="-apple-system, sans-serif" font-size="9" font-weight="600" text-anchor="middle">Bhavna×Kunal</text>
-          <text x="950.625" y="454" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="9" text-anchor="middle">y*:4.5</text>
+          <rect x="623.0" y="150.0" width="11.0" height="290.0" rx="2" fill="#388bfd" fill-opacity="0.85"/>
+          <rect x="637.0" y="387.8" width="11.0" height="52.2" rx="2" fill="#ff4d6d" fill-opacity="0.9"/>
         </g>
         
-        <!-- Pair 20: Shalin×Vivek -->
         <g>
-          <!-- Baseline Prior Bar -->
-          <rect x="980.0416666666666" y="140.0" width="14" height="280.0" rx="3" fill="#388bfd" fill-opacity="0.85"/>
-          <text x="987.0416666666666" y="136.0" fill="#58a6ff" font-family="-apple-system, sans-serif" font-size="9" font-weight="600" text-anchor="middle">10.0</text>
-
-          <!-- Agent Date Verdict Bar -->
-          <rect x="998.0416666666666" y="252.0" width="14" height="168.0" rx="3" fill="#ff4d6d" fill-opacity="0.9"/>
-          <text x="1005.0416666666666" y="248.0" fill="#ff758f" font-family="-apple-system, sans-serif" font-size="9" font-weight="700" text-anchor="middle">6.0</text>
-
-          <!-- Ground Truth Gold Target Marker -->
-          <line x1="977.0416666666666" y1="302.4" x2="1015.0416666666666" y2="302.4" stroke="#ffb703" stroke-width="2.5" stroke-dasharray="3,1"/>
-          <polygon points="996.0416666666666,298.4 1000.0416666666666,302.4 996.0416666666666,306.4 992.0416666666666,302.4" fill="#ffb703"/>
-
-          <!-- X-Axis Label -->
-          <text x="996.0416666666666" y="440" fill="#e6edf3" font-family="-apple-system, sans-serif" font-size="9" font-weight="600" text-anchor="middle">Shalin×Vivek</text>
-          <text x="996.0416666666666" y="454" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="9" text-anchor="middle">y*:4.2</text>
+          <rect x="652.0" y="150.0" width="11.0" height="290.0" rx="2" fill="#388bfd" fill-opacity="0.85"/>
+          <rect x="666.0" y="384.0" width="11.0" height="56.0" rx="2" fill="#ff4d6d" fill-opacity="0.9"/>
         </g>
         
-        <!-- Pair 21: Preeti×Aman -->
         <g>
-          <!-- Baseline Prior Bar -->
-          <rect x="1025.4583333333333" y="140.0" width="14" height="280.0" rx="3" fill="#388bfd" fill-opacity="0.85"/>
-          <text x="1032.4583333333333" y="136.0" fill="#58a6ff" font-family="-apple-system, sans-serif" font-size="9" font-weight="600" text-anchor="middle">10.0</text>
-
-          <!-- Agent Date Verdict Bar -->
-          <rect x="1043.4583333333333" y="233.23999999999998" width="14" height="186.76000000000002" rx="3" fill="#ff4d6d" fill-opacity="0.9"/>
-          <text x="1050.4583333333333" y="229.23999999999998" fill="#ff758f" font-family="-apple-system, sans-serif" font-size="9" font-weight="700" text-anchor="middle">6.7</text>
-
-          <!-- Ground Truth Gold Target Marker -->
-          <line x1="1022.4583333333333" y1="291.20000000000005" x2="1060.4583333333333" y2="291.20000000000005" stroke="#ffb703" stroke-width="2.5" stroke-dasharray="3,1"/>
-          <polygon points="1041.4583333333333,287.20000000000005 1045.4583333333333,291.20000000000005 1041.4583333333333,295.20000000000005 1037.4583333333333,291.20000000000005" fill="#ffb703"/>
-
-          <!-- X-Axis Label -->
-          <text x="1041.4583333333333" y="440" fill="#e6edf3" font-family="-apple-system, sans-serif" font-size="9" font-weight="600" text-anchor="middle">Preeti×Aman</text>
-          <text x="1041.4583333333333" y="454" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="9" text-anchor="middle">y*:4.6</text>
+          <rect x="681.0" y="150.0" width="11.0" height="290.0" rx="2" fill="#388bfd" fill-opacity="0.85"/>
+          <rect x="695.0" y="387.8" width="11.0" height="52.2" rx="2" fill="#ff4d6d" fill-opacity="0.9"/>
         </g>
         
-        <!-- Pair 22: Shruti×Gautam -->
         <g>
-          <!-- Baseline Prior Bar -->
-          <rect x="1070.8749999999998" y="140.0" width="14" height="280.0" rx="3" fill="#388bfd" fill-opacity="0.85"/>
-          <text x="1077.8749999999998" y="136.0" fill="#58a6ff" font-family="-apple-system, sans-serif" font-size="9" font-weight="600" text-anchor="middle">10.0</text>
-
-          <!-- Agent Date Verdict Bar -->
-          <rect x="1088.8749999999998" y="252.0" width="14" height="168.0" rx="3" fill="#ff4d6d" fill-opacity="0.9"/>
-          <text x="1095.8749999999998" y="248.0" fill="#ff758f" font-family="-apple-system, sans-serif" font-size="9" font-weight="700" text-anchor="middle">6.0</text>
-
-          <!-- Ground Truth Gold Target Marker -->
-          <line x1="1067.8749999999998" y1="282.79999999999995" x2="1105.8749999999998" y2="282.79999999999995" stroke="#ffb703" stroke-width="2.5" stroke-dasharray="3,1"/>
-          <polygon points="1086.8749999999998,278.79999999999995 1090.8749999999998,282.79999999999995 1086.8749999999998,286.79999999999995 1082.8749999999998,282.79999999999995" fill="#ffb703"/>
-
-          <!-- X-Axis Label -->
-          <text x="1086.8749999999998" y="440" fill="#e6edf3" font-family="-apple-system, sans-serif" font-size="9" font-weight="600" text-anchor="middle">Shruti×Gautam</text>
-          <text x="1086.8749999999998" y="454" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="9" text-anchor="middle">y*:4.9</text>
+          <rect x="710.0" y="150.0" width="11.0" height="290.0" rx="2" fill="#388bfd" fill-opacity="0.85"/>
+          <rect x="724.0" y="384.6" width="11.0" height="55.4" rx="2" fill="#ff4d6d" fill-opacity="0.9"/>
         </g>
         
-        <!-- Pair 23: Lavany×Manish -->
         <g>
-          <!-- Baseline Prior Bar -->
-          <rect x="1116.2916666666665" y="140.0" width="14" height="280.0" rx="3" fill="#388bfd" fill-opacity="0.85"/>
-          <text x="1123.2916666666665" y="136.0" fill="#58a6ff" font-family="-apple-system, sans-serif" font-size="9" font-weight="600" text-anchor="middle">10.0</text>
-
-          <!-- Agent Date Verdict Bar -->
-          <rect x="1134.2916666666665" y="276.08" width="14" height="143.92000000000002" rx="3" fill="#ff4d6d" fill-opacity="0.9"/>
-          <text x="1141.2916666666665" y="272.08" fill="#ff758f" font-family="-apple-system, sans-serif" font-size="9" font-weight="700" text-anchor="middle">5.1</text>
-
-          <!-- Ground Truth Gold Target Marker -->
-          <line x1="1113.2916666666665" y1="274.4" x2="1151.2916666666665" y2="274.4" stroke="#ffb703" stroke-width="2.5" stroke-dasharray="3,1"/>
-          <polygon points="1132.2916666666665,270.4 1136.2916666666665,274.4 1132.2916666666665,278.4 1128.2916666666665,274.4" fill="#ffb703"/>
-
-          <!-- X-Axis Label -->
-          <text x="1132.2916666666665" y="440" fill="#e6edf3" font-family="-apple-system, sans-serif" font-size="9" font-weight="600" text-anchor="middle">Lavany×Manish</text>
-          <text x="1132.2916666666665" y="454" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="9" text-anchor="middle">y*:5.2</text>
+          <rect x="739.0" y="150.0" width="11.0" height="290.0" rx="2" fill="#388bfd" fill-opacity="0.85"/>
+          <rect x="753.0" y="387.8" width="11.0" height="52.2" rx="2" fill="#ff4d6d" fill-opacity="0.9"/>
+        </g>
+        
+        <g>
+          <rect x="768.0" y="150.0" width="11.0" height="290.0" rx="2" fill="#388bfd" fill-opacity="0.85"/>
+          <rect x="782.0" y="299.9" width="11.0" height="140.1" rx="2" fill="#ff4d6d" fill-opacity="0.9"/>
+        </g>
+        
+        <g>
+          <rect x="797.0" y="150.0" width="11.0" height="290.0" rx="2" fill="#388bfd" fill-opacity="0.85"/>
+          <rect x="811.0" y="178.4" width="11.0" height="261.6" rx="2" fill="#ff4d6d" fill-opacity="0.9"/>
+        </g>
+        
+        <g>
+          <rect x="826.0" y="187.7" width="11.0" height="252.3" rx="2" fill="#388bfd" fill-opacity="0.85"/>
+          <rect x="840.0" y="179.3" width="11.0" height="260.7" rx="2" fill="#ff4d6d" fill-opacity="0.9"/>
+        </g>
+        
+        <g>
+          <rect x="855.0" y="150.0" width="11.0" height="290.0" rx="2" fill="#388bfd" fill-opacity="0.85"/>
+          <rect x="869.0" y="386.6" width="11.0" height="53.4" rx="2" fill="#ff4d6d" fill-opacity="0.9"/>
+        </g>
+        
+        <g>
+          <rect x="884.0" y="251.5" width="11.0" height="188.5" rx="2" fill="#388bfd" fill-opacity="0.85"/>
+          <rect x="898.0" y="251.5" width="11.0" height="188.5" rx="2" fill="#ff4d6d" fill-opacity="0.9"/>
+        </g>
+        
+        <g>
+          <rect x="913.0" y="150.0" width="11.0" height="290.0" rx="2" fill="#388bfd" fill-opacity="0.85"/>
+          <rect x="927.0" y="169.7" width="11.0" height="270.3" rx="2" fill="#ff4d6d" fill-opacity="0.9"/>
+        </g>
+        
+        <g>
+          <rect x="942.0" y="150.0" width="11.0" height="290.0" rx="2" fill="#388bfd" fill-opacity="0.85"/>
+          <rect x="956.0" y="302.5" width="11.0" height="137.5" rx="2" fill="#ff4d6d" fill-opacity="0.9"/>
+        </g>
+        
+        <g>
+          <rect x="971.0" y="150.0" width="11.0" height="290.0" rx="2" fill="#388bfd" fill-opacity="0.85"/>
+          <rect x="985.0" y="176.7" width="11.0" height="263.3" rx="2" fill="#ff4d6d" fill-opacity="0.9"/>
+        </g>
+        
+        <g>
+          <rect x="1000.0" y="251.5" width="11.0" height="188.5" rx="2" fill="#388bfd" fill-opacity="0.85"/>
+          <rect x="1014.0" y="244.8" width="11.0" height="195.2" rx="2" fill="#ff4d6d" fill-opacity="0.9"/>
+        </g>
+        
+        <g>
+          <rect x="1029.0" y="251.5" width="11.0" height="188.5" rx="2" fill="#388bfd" fill-opacity="0.85"/>
+          <rect x="1043.0" y="254.7" width="11.0" height="185.3" rx="2" fill="#ff4d6d" fill-opacity="0.9"/>
+        </g>
+        
+        <g>
+          <rect x="1058.0" y="251.5" width="11.0" height="188.5" rx="2" fill="#388bfd" fill-opacity="0.85"/>
+          <rect x="1072.0" y="249.2" width="11.0" height="190.8" rx="2" fill="#ff4d6d" fill-opacity="0.9"/>
+        </g>
+        
+        <g>
+          <rect x="1087.0" y="251.5" width="11.0" height="188.5" rx="2" fill="#388bfd" fill-opacity="0.85"/>
+          <rect x="1101.0" y="251.2" width="11.0" height="188.8" rx="2" fill="#ff4d6d" fill-opacity="0.9"/>
+        </g>
+        
+        <g>
+          <rect x="1116.0" y="187.7" width="11.0" height="252.3" rx="2" fill="#388bfd" fill-opacity="0.85"/>
+          <rect x="1130.0" y="236.7" width="11.0" height="203.3" rx="2" fill="#ff4d6d" fill-opacity="0.9"/>
+        </g>
+        
+        <g>
+          <rect x="1145.0" y="251.5" width="11.0" height="188.5" rx="2" fill="#388bfd" fill-opacity="0.85"/>
+          <rect x="1159.0" y="382.9" width="11.0" height="57.1" rx="2" fill="#ff4d6d" fill-opacity="0.9"/>
+        </g>
+        
+        <g>
+          <rect x="1174.0" y="251.5" width="11.0" height="188.5" rx="2" fill="#388bfd" fill-opacity="0.85"/>
+          <rect x="1188.0" y="245.1" width="11.0" height="194.9" rx="2" fill="#ff4d6d" fill-opacity="0.9"/>
+        </g>
+        
+        <g>
+          <rect x="1203.0" y="251.5" width="11.0" height="188.5" rx="2" fill="#388bfd" fill-opacity="0.85"/>
+          <rect x="1217.0" y="242.5" width="11.0" height="197.5" rx="2" fill="#ff4d6d" fill-opacity="0.9"/>
+        </g>
+        
+        <g>
+          <rect x="1232.0" y="150.0" width="11.0" height="290.0" rx="2" fill="#388bfd" fill-opacity="0.85"/>
+          <rect x="1246.0" y="185.1" width="11.0" height="254.9" rx="2" fill="#ff4d6d" fill-opacity="0.9"/>
+        </g>
+        
+        <g>
+          <rect x="1261.0" y="251.5" width="11.0" height="188.5" rx="2" fill="#388bfd" fill-opacity="0.85"/>
+          <rect x="1275.0" y="250.0" width="11.0" height="190.0" rx="2" fill="#ff4d6d" fill-opacity="0.9"/>
+        </g>
+        
+        <g>
+          <rect x="1290.0" y="251.5" width="11.0" height="188.5" rx="2" fill="#388bfd" fill-opacity="0.85"/>
+          <rect x="1304.0" y="387.2" width="11.0" height="52.8" rx="2" fill="#ff4d6d" fill-opacity="0.9"/>
+        </g>
+        
+        <g>
+          <rect x="1319.0" y="150.0" width="11.0" height="290.0" rx="2" fill="#388bfd" fill-opacity="0.85"/>
+          <rect x="1333.0" y="180.7" width="11.0" height="259.3" rx="2" fill="#ff4d6d" fill-opacity="0.9"/>
+        </g>
+        
+        <g>
+          <rect x="1348.0" y="187.7" width="11.0" height="252.3" rx="2" fill="#388bfd" fill-opacity="0.85"/>
+          <rect x="1362.0" y="230.0" width="11.0" height="210.0" rx="2" fill="#ff4d6d" fill-opacity="0.9"/>
+        </g>
+        
+        <g>
+          <rect x="1377.0" y="187.7" width="11.0" height="252.3" rx="2" fill="#388bfd" fill-opacity="0.85"/>
+          <rect x="1391.0" y="233.8" width="11.0" height="206.2" rx="2" fill="#ff4d6d" fill-opacity="0.9"/>
+        </g>
+        
+        <g>
+          <rect x="1406.0" y="150.0" width="11.0" height="290.0" rx="2" fill="#388bfd" fill-opacity="0.85"/>
+          <rect x="1420.0" y="179.3" width="11.0" height="260.7" rx="2" fill="#ff4d6d" fill-opacity="0.9"/>
+        </g>
+        
+        <g>
+          <rect x="1435.0" y="150.0" width="11.0" height="290.0" rx="2" fill="#388bfd" fill-opacity="0.85"/>
+          <rect x="1449.0" y="179.3" width="11.0" height="260.7" rx="2" fill="#ff4d6d" fill-opacity="0.9"/>
+        </g>
+        
+  
+        <g>
+          <line x1="69.5" y1="376.2" x2="99.5" y2="376.2" stroke="#ffb703" stroke-width="2.5"/>
+          <polygon points="84.5,372.2 88.5,376.2 84.5,380.2 80.5,376.2" fill="#ffb703"/>
+        </g>
+        
+        <g>
+          <line x1="98.5" y1="382.0" x2="128.5" y2="382.0" stroke="#ffb703" stroke-width="2.5"/>
+          <polygon points="113.5,378.0 117.5,382.0 113.5,386.0 109.5,382.0" fill="#ffb703"/>
+        </g>
+        
+        <g>
+          <line x1="127.5" y1="367.5" x2="157.5" y2="367.5" stroke="#ffb703" stroke-width="2.5"/>
+          <polygon points="142.5,363.5 146.5,367.5 142.5,371.5 138.5,367.5" fill="#ffb703"/>
+        </g>
+        
+        <g>
+          <line x1="156.5" y1="387.8" x2="186.5" y2="387.8" stroke="#ffb703" stroke-width="2.5"/>
+          <polygon points="171.5,383.8 175.5,387.8 171.5,391.8 167.5,387.8" fill="#ffb703"/>
+        </g>
+        
+        <g>
+          <line x1="185.5" y1="353.0" x2="215.5" y2="353.0" stroke="#ffb703" stroke-width="2.5"/>
+          <polygon points="200.5,349.0 204.5,353.0 200.5,357.0 196.5,353.0" fill="#ffb703"/>
+        </g>
+        
+        <g>
+          <line x1="214.5" y1="376.2" x2="244.5" y2="376.2" stroke="#ffb703" stroke-width="2.5"/>
+          <polygon points="229.5,372.2 233.5,376.2 229.5,380.2 225.5,376.2" fill="#ffb703"/>
+        </g>
+        
+        <g>
+          <line x1="243.5" y1="370.4" x2="273.5" y2="370.4" stroke="#ffb703" stroke-width="2.5"/>
+          <polygon points="258.5,366.4 262.5,370.4 258.5,374.4 254.5,370.4" fill="#ffb703"/>
+        </g>
+        
+        <g>
+          <line x1="272.5" y1="373.3" x2="302.5" y2="373.3" stroke="#ffb703" stroke-width="2.5"/>
+          <polygon points="287.5,369.3 291.5,373.3 287.5,377.3 283.5,373.3" fill="#ffb703"/>
+        </g>
+        
+        <g>
+          <line x1="301.5" y1="173.2" x2="331.5" y2="173.2" stroke="#ffb703" stroke-width="2.5"/>
+          <polygon points="316.5,169.2 320.5,173.2 316.5,177.2 312.5,173.2" fill="#ffb703"/>
+        </g>
+        
+        <g>
+          <line x1="330.5" y1="184.8" x2="360.5" y2="184.8" stroke="#ffb703" stroke-width="2.5"/>
+          <polygon points="345.5,180.8 349.5,184.8 345.5,188.8 341.5,184.8" fill="#ffb703"/>
+        </g>
+        
+        <g>
+          <line x1="359.5" y1="176.1" x2="389.5" y2="176.1" stroke="#ffb703" stroke-width="2.5"/>
+          <polygon points="374.5,172.1 378.5,176.1 374.5,180.1 370.5,176.1" fill="#ffb703"/>
+        </g>
+        
+        <g>
+          <line x1="388.5" y1="181.9" x2="418.5" y2="181.9" stroke="#ffb703" stroke-width="2.5"/>
+          <polygon points="403.5,177.9 407.5,181.9 403.5,185.9 399.5,181.9" fill="#ffb703"/>
+        </g>
+        
+        <g>
+          <line x1="417.5" y1="179.0" x2="447.5" y2="179.0" stroke="#ffb703" stroke-width="2.5"/>
+          <polygon points="432.5,175.0 436.5,179.0 432.5,183.0 428.5,179.0" fill="#ffb703"/>
+        </g>
+        
+        <g>
+          <line x1="446.5" y1="184.8" x2="476.5" y2="184.8" stroke="#ffb703" stroke-width="2.5"/>
+          <polygon points="461.5,180.8 465.5,184.8 461.5,188.8 457.5,184.8" fill="#ffb703"/>
+        </g>
+        
+        <g>
+          <line x1="475.5" y1="173.2" x2="505.5" y2="173.2" stroke="#ffb703" stroke-width="2.5"/>
+          <polygon points="490.5,169.2 494.5,173.2 490.5,177.2 486.5,173.2" fill="#ffb703"/>
+        </g>
+        
+        <g>
+          <line x1="504.5" y1="179.0" x2="534.5" y2="179.0" stroke="#ffb703" stroke-width="2.5"/>
+          <polygon points="519.5,175.0 523.5,179.0 519.5,183.0 515.5,179.0" fill="#ffb703"/>
+        </g>
+        
+        <g>
+          <line x1="533.5" y1="358.8" x2="563.5" y2="358.8" stroke="#ffb703" stroke-width="2.5"/>
+          <polygon points="548.5,354.8 552.5,358.8 548.5,362.8 544.5,358.8" fill="#ffb703"/>
+        </g>
+        
+        <g>
+          <line x1="562.5" y1="370.4" x2="592.5" y2="370.4" stroke="#ffb703" stroke-width="2.5"/>
+          <polygon points="577.5,366.4 581.5,370.4 577.5,374.4 573.5,370.4" fill="#ffb703"/>
+        </g>
+        
+        <g>
+          <line x1="591.5" y1="364.6" x2="621.5" y2="364.6" stroke="#ffb703" stroke-width="2.5"/>
+          <polygon points="606.5,360.6 610.5,364.6 606.5,368.6 602.5,364.6" fill="#ffb703"/>
+        </g>
+        
+        <g>
+          <line x1="620.5" y1="376.2" x2="650.5" y2="376.2" stroke="#ffb703" stroke-width="2.5"/>
+          <polygon points="635.5,372.2 639.5,376.2 635.5,380.2 631.5,376.2" fill="#ffb703"/>
+        </g>
+        
+        <g>
+          <line x1="649.5" y1="353.0" x2="679.5" y2="353.0" stroke="#ffb703" stroke-width="2.5"/>
+          <polygon points="664.5,349.0 668.5,353.0 664.5,357.0 660.5,353.0" fill="#ffb703"/>
+        </g>
+        
+        <g>
+          <line x1="678.5" y1="355.9" x2="708.5" y2="355.9" stroke="#ffb703" stroke-width="2.5"/>
+          <polygon points="693.5,351.9 697.5,355.9 693.5,359.9 689.5,355.9" fill="#ffb703"/>
+        </g>
+        
+        <g>
+          <line x1="707.5" y1="361.7" x2="737.5" y2="361.7" stroke="#ffb703" stroke-width="2.5"/>
+          <polygon points="722.5,357.7 726.5,361.7 722.5,365.7 718.5,361.7" fill="#ffb703"/>
+        </g>
+        
+        <g>
+          <line x1="736.5" y1="350.1" x2="766.5" y2="350.1" stroke="#ffb703" stroke-width="2.5"/>
+          <polygon points="751.5,346.1 755.5,350.1 751.5,354.1 747.5,350.1" fill="#ffb703"/>
+        </g>
+        
+        <g>
+          <line x1="765.5" y1="179.0" x2="795.5" y2="179.0" stroke="#ffb703" stroke-width="2.5"/>
+          <polygon points="780.5,175.0 784.5,179.0 780.5,183.0 776.5,179.0" fill="#ffb703"/>
+        </g>
+        
+        <g>
+          <line x1="794.5" y1="173.2" x2="824.5" y2="173.2" stroke="#ffb703" stroke-width="2.5"/>
+          <polygon points="809.5,169.2 813.5,173.2 809.5,177.2 805.5,173.2" fill="#ffb703"/>
+        </g>
+        
+        <g>
+          <line x1="823.5" y1="181.9" x2="853.5" y2="181.9" stroke="#ffb703" stroke-width="2.5"/>
+          <polygon points="838.5,177.9 842.5,181.9 838.5,185.9 834.5,181.9" fill="#ffb703"/>
+        </g>
+        
+        <g>
+          <line x1="852.5" y1="176.1" x2="882.5" y2="176.1" stroke="#ffb703" stroke-width="2.5"/>
+          <polygon points="867.5,172.1 871.5,176.1 867.5,180.1 863.5,176.1" fill="#ffb703"/>
+        </g>
+        
+        <g>
+          <line x1="881.5" y1="170.3" x2="911.5" y2="170.3" stroke="#ffb703" stroke-width="2.5"/>
+          <polygon points="896.5,166.3 900.5,170.3 896.5,174.3 892.5,170.3" fill="#ffb703"/>
+        </g>
+        
+        <g>
+          <line x1="910.5" y1="167.4" x2="940.5" y2="167.4" stroke="#ffb703" stroke-width="2.5"/>
+          <polygon points="925.5,163.4 929.5,167.4 925.5,171.4 921.5,167.4" fill="#ffb703"/>
+        </g>
+        
+        <g>
+          <line x1="939.5" y1="179.0" x2="969.5" y2="179.0" stroke="#ffb703" stroke-width="2.5"/>
+          <polygon points="954.5,175.0 958.5,179.0 954.5,183.0 950.5,179.0" fill="#ffb703"/>
+        </g>
+        
+        <g>
+          <line x1="968.5" y1="173.2" x2="998.5" y2="173.2" stroke="#ffb703" stroke-width="2.5"/>
+          <polygon points="983.5,169.2 987.5,173.2 983.5,177.2 979.5,173.2" fill="#ffb703"/>
+        </g>
+        
+        <g>
+          <line x1="997.5" y1="324.0" x2="1027.5" y2="324.0" stroke="#ffb703" stroke-width="2.5"/>
+          <polygon points="1012.5,320.0 1016.5,324.0 1012.5,328.0 1008.5,324.0" fill="#ffb703"/>
+        </g>
+        
+        <g>
+          <line x1="1026.5" y1="329.8" x2="1056.5" y2="329.8" stroke="#ffb703" stroke-width="2.5"/>
+          <polygon points="1041.5,325.8 1045.5,329.8 1041.5,333.8 1037.5,329.8" fill="#ffb703"/>
+        </g>
+        
+        <g>
+          <line x1="1055.5" y1="338.5" x2="1085.5" y2="338.5" stroke="#ffb703" stroke-width="2.5"/>
+          <polygon points="1070.5,334.5 1074.5,338.5 1070.5,342.5 1066.5,338.5" fill="#ffb703"/>
+        </g>
+        
+        <g>
+          <line x1="1084.5" y1="335.6" x2="1114.5" y2="335.6" stroke="#ffb703" stroke-width="2.5"/>
+          <polygon points="1099.5,331.6 1103.5,335.6 1099.5,339.6 1095.5,335.6" fill="#ffb703"/>
+        </g>
+        
+        <g>
+          <line x1="1113.5" y1="329.8" x2="1143.5" y2="329.8" stroke="#ffb703" stroke-width="2.5"/>
+          <polygon points="1128.5,325.8 1132.5,329.8 1128.5,333.8 1124.5,329.8" fill="#ffb703"/>
+        </g>
+        
+        <g>
+          <line x1="1142.5" y1="347.2" x2="1172.5" y2="347.2" stroke="#ffb703" stroke-width="2.5"/>
+          <polygon points="1157.5,343.2 1161.5,347.2 1157.5,351.2 1153.5,347.2" fill="#ffb703"/>
+        </g>
+        
+        <g>
+          <line x1="1171.5" y1="318.2" x2="1201.5" y2="318.2" stroke="#ffb703" stroke-width="2.5"/>
+          <polygon points="1186.5,314.2 1190.5,318.2 1186.5,322.2 1182.5,318.2" fill="#ffb703"/>
+        </g>
+        
+        <g>
+          <line x1="1200.5" y1="312.4" x2="1230.5" y2="312.4" stroke="#ffb703" stroke-width="2.5"/>
+          <polygon points="1215.5,308.4 1219.5,312.4 1215.5,316.4 1211.5,312.4" fill="#ffb703"/>
+        </g>
+        
+        <g>
+          <line x1="1229.5" y1="300.8" x2="1259.5" y2="300.8" stroke="#ffb703" stroke-width="2.5"/>
+          <polygon points="1244.5,296.8 1248.5,300.8 1244.5,304.8 1240.5,300.8" fill="#ffb703"/>
+        </g>
+        
+        <g>
+          <line x1="1258.5" y1="306.6" x2="1288.5" y2="306.6" stroke="#ffb703" stroke-width="2.5"/>
+          <polygon points="1273.5,302.6 1277.5,306.6 1273.5,310.6 1269.5,306.6" fill="#ffb703"/>
+        </g>
+        
+        <g>
+          <line x1="1287.5" y1="303.7" x2="1317.5" y2="303.7" stroke="#ffb703" stroke-width="2.5"/>
+          <polygon points="1302.5,299.7 1306.5,303.7 1302.5,307.7 1298.5,303.7" fill="#ffb703"/>
+        </g>
+        
+        <g>
+          <line x1="1316.5" y1="297.9" x2="1346.5" y2="297.9" stroke="#ffb703" stroke-width="2.5"/>
+          <polygon points="1331.5,293.9 1335.5,297.9 1331.5,301.9 1327.5,297.9" fill="#ffb703"/>
+        </g>
+        
+        <g>
+          <line x1="1345.5" y1="309.5" x2="1375.5" y2="309.5" stroke="#ffb703" stroke-width="2.5"/>
+          <polygon points="1360.5,305.5 1364.5,309.5 1360.5,313.5 1356.5,309.5" fill="#ffb703"/>
+        </g>
+        
+        <g>
+          <line x1="1374.5" y1="303.7" x2="1404.5" y2="303.7" stroke="#ffb703" stroke-width="2.5"/>
+          <polygon points="1389.5,299.7 1393.5,303.7 1389.5,307.7 1385.5,303.7" fill="#ffb703"/>
+        </g>
+        
+        <g>
+          <line x1="1403.5" y1="295.0" x2="1433.5" y2="295.0" stroke="#ffb703" stroke-width="2.5"/>
+          <polygon points="1418.5,291.0 1422.5,295.0 1418.5,299.0 1414.5,295.0" fill="#ffb703"/>
+        </g>
+        
+        <g>
+          <line x1="1432.5" y1="300.8" x2="1462.5" y2="300.8" stroke="#ffb703" stroke-width="2.5"/>
+          <polygon points="1447.5,296.8 1451.5,300.8 1447.5,304.8 1443.5,300.8" fill="#ffb703"/>
         </g>
         
 
-  <!-- Footer Citation Tag -->
-  <text x="600.0" y="562" fill="#6e7681" font-family="-apple-system, sans-serif" font-size="11" text-anchor="middle">
-    N=24 Controlled Relational Cohorts · Latent facts evaluated in multi-turn date transcripts · AMORA Autonomous Evaluation Framework
-  </text>
+  <!-- Pair Labels -->
+  
+        <text x="84.5" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="8" text-anchor="end" transform="rotate(-45, 84.5, 460)">Aarav×Meera</text>
+        
+        <text x="113.5" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="8" text-anchor="end" transform="rotate(-45, 113.5, 460)">Maya×Dev</text>
+        
+        <text x="142.5" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="8" text-anchor="end" transform="rotate(-45, 142.5, 460)">Arjun×Priya</text>
+        
+        <text x="171.5" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="8" text-anchor="end" transform="rotate(-45, 171.5, 460)">Samee×Leela</text>
+        
+        <text x="200.5" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="8" text-anchor="end" transform="rotate(-45, 200.5, 460)">Vikra×Tara</text>
+        
+        <text x="229.5" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="8" text-anchor="end" transform="rotate(-45, 229.5, 460)">Elena×Marcu</text>
+        
+        <text x="258.5" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="8" text-anchor="end" transform="rotate(-45, 258.5, 460)">David×Maya</text>
+        
+        <text x="287.5" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="8" text-anchor="end" transform="rotate(-45, 287.5, 460)">Chloe×Nikhi</text>
+        
+        <text x="316.5" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="8" text-anchor="end" transform="rotate(-45, 316.5, 460)">Rohan×Ishit</text>
+        
+        <text x="345.5" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="8" text-anchor="end" transform="rotate(-45, 345.5, 460)">Neel×Zain</text>
+        
+        <text x="374.5" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="8" text-anchor="end" transform="rotate(-45, 374.5, 460)">Samir×Dr.</text>
+        
+        <text x="403.5" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="8" text-anchor="end" transform="rotate(-45, 403.5, 460)">Aditi×Leo</text>
+        
+        <text x="432.5" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="8" text-anchor="end" transform="rotate(-45, 432.5, 460)">Anany×Siddh</text>
+        
+        <text x="461.5" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="8" text-anchor="end" transform="rotate(-45, 461.5, 460)">Eitan×Dr.</text>
+        
+        <text x="490.5" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="8" text-anchor="end" transform="rotate(-45, 490.5, 460)">Kaele×Mira</text>
+        
+        <text x="519.5" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="8" text-anchor="end" transform="rotate(-45, 519.5, 460)">Jorda×Sonia</text>
+        
+        <text x="548.5" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="8" text-anchor="end" transform="rotate(-45, 548.5, 460)">Kiran×Farha</text>
+        
+        <text x="577.5" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="8" text-anchor="end" transform="rotate(-45, 577.5, 460)">Maya×Julia</text>
+        
+        <text x="606.5" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="8" text-anchor="end" transform="rotate(-45, 606.5, 460)">Sasha×Liam</text>
+        
+        <text x="635.5" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="8" text-anchor="end" transform="rotate(-45, 635.5, 460)">Olive×Maya</text>
+        
+        <text x="664.5" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="8" text-anchor="end" transform="rotate(-45, 664.5, 460)">Tara×Rohit</text>
+        
+        <text x="693.5" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="8" text-anchor="end" transform="rotate(-45, 693.5, 460)">Nina×Devan</text>
+        
+        <text x="722.5" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="8" text-anchor="end" transform="rotate(-45, 722.5, 460)">Victo×Cleo</text>
+        
+        <text x="751.5" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="8" text-anchor="end" transform="rotate(-45, 751.5, 460)">Rita×Ken</text>
+        
+        <text x="780.5" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="8" text-anchor="end" transform="rotate(-45, 780.5, 460)">Anany×Kabir</text>
+        
+        <text x="809.5" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="8" text-anchor="end" transform="rotate(-45, 809.5, 460)">Maya×Ravi</text>
+        
+        <text x="838.5" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="8" text-anchor="end" transform="rotate(-45, 838.5, 460)">Priya×Tenzi</text>
+        
+        <text x="867.5" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="8" text-anchor="end" transform="rotate(-45, 867.5, 460)">Danie×Clara</text>
+        
+        <text x="896.5" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="8" text-anchor="end" transform="rotate(-45, 896.5, 460)">Dr.×Marcu</text>
+        
+        <text x="925.5" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="8" text-anchor="end" transform="rotate(-45, 925.5, 460)">Maya×Noah</text>
+        
+        <text x="954.5" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="8" text-anchor="end" transform="rotate(-45, 954.5, 460)">Liam×Zoe</text>
+        
+        <text x="983.5" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="8" text-anchor="end" transform="rotate(-45, 983.5, 460)">Soray×Julia</text>
+        
+        <text x="1012.5" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="8" text-anchor="end" transform="rotate(-45, 1012.5, 460)">Samee×Anita</text>
+        
+        <text x="1041.5" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="8" text-anchor="end" transform="rotate(-45, 1041.5, 460)">Varun×Leela</text>
+        
+        <text x="1070.5" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="8" text-anchor="end" transform="rotate(-45, 1070.5, 460)">Damon×Willo</text>
+        
+        <text x="1099.5" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="8" text-anchor="end" transform="rotate(-45, 1099.5, 460)">Evan×Maya</text>
+        
+        <text x="1128.5" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="8" text-anchor="end" transform="rotate(-45, 1128.5, 460)">Ron×Alex</text>
+        
+        <text x="1157.5" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="8" text-anchor="end" transform="rotate(-45, 1157.5, 460)">Silas×Genev</text>
+        
+        <text x="1186.5" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="8" text-anchor="end" transform="rotate(-45, 1186.5, 460)">Hugo×Nadia</text>
+        
+        <text x="1215.5" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="8" text-anchor="end" transform="rotate(-45, 1215.5, 460)">Dr.×Grace</text>
+        
+        <text x="1244.5" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="8" text-anchor="end" transform="rotate(-45, 1244.5, 460)">Adity×Neha</text>
+        
+        <text x="1273.5" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="8" text-anchor="end" transform="rotate(-45, 1273.5, 460)">Rohan×Maya</text>
+        
+        <text x="1302.5" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="8" text-anchor="end" transform="rotate(-45, 1302.5, 460)">Kunal×Anany</text>
+        
+        <text x="1331.5" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="8" text-anchor="end" transform="rotate(-45, 1331.5, 460)">Dev×Ritu</text>
+        
+        <text x="1360.5" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="8" text-anchor="end" transform="rotate(-45, 1360.5, 460)">Karth×Shali</text>
+        
+        <text x="1389.5" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="8" text-anchor="end" transform="rotate(-45, 1389.5, 460)">Vivek×Meaga</text>
+        
+        <text x="1418.5" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="8" text-anchor="end" transform="rotate(-45, 1418.5, 460)">Toby×Sarah</text>
+        
+        <text x="1447.5" y="460" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="8" text-anchor="end" transform="rotate(-45, 1447.5, 460)">Ethan×Clara</text>
+        
 </svg>

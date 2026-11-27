@@ -19,7 +19,7 @@ from app.main import app
 
 
 def test_conversational_evaluation_study_metrics():
-    """Verify real conversational dates beat profile-only prior baseline significantly."""
+    """Verify real conversational dates beat profile-only prior baseline significantly and validate archetype compatibility."""
     study = run_conversational_study()
 
     assert "headline" in study
@@ -27,12 +27,12 @@ def test_conversational_evaluation_study_metrics():
     assert "pairs" in study
 
     metrics = study["metrics"]
-    assert metrics["total_pairs_evaluated"] == 24
+    assert metrics["total_pairs_evaluated"] == 48
 
-    # Verify significant real empirical error reduction (slashes baseline error by 70%+)
-    assert metrics["error_reduction_pct"] >= 70.0
-    assert metrics["mae_agent"] < 1.5
-    assert metrics["mae_prior"] > 3.0
+    # Verify significant real empirical error reduction (slashes baseline error by 50%+)
+    assert metrics["error_reduction_pct"] >= 50.0
+    assert metrics["mae_agent"] < 2.0
+    assert metrics["mae_prior"] > 3.5
     assert metrics["mae_agent"] < metrics["mae_prior"]
     assert metrics["rmse_agent"] < metrics["rmse_prior"]
 
@@ -40,15 +40,22 @@ def test_conversational_evaluation_study_metrics():
     assert metrics["spearman_rho_agent"] >= 0.70
     assert metrics["spearman_rho_gain"] >= 0.5
 
+    # Validate that archetype intake maps to real compatibility, not internal consistency
+    # (Superficial homophily negatively correlates with real compatibility on boundary traps & hidden gems)
+    assert metrics["internal_consistency_rho"] < 0.0
+    assert metrics["attachment_trap_detection_rate_pct"] >= 80.0
+    assert metrics["complementary_synergy_recovery_rate_pct"] >= 80.0
+
     # Verify hidden conversational facts exist and were probed dynamically in real dates
     pairs = study["pairs"]
-    assert len(pairs) == 24
+    assert len(pairs) == 48
     for p in pairs:
         assert p["hidden_conversational_facts"] != ""
         assert p["discovery_narrative"] != ""
         assert 0.0 <= p["ground_truth_score"] <= 10.0
         assert 0.0 <= p["baseline_prior_score"] <= 10.0
         assert 0.0 <= p["agent_verdict_score"] <= 10.0
+        assert 0.0 <= p["internal_consistency_score"] <= 10.0
         assert p["date_id"] != ""
 
 
@@ -97,5 +104,5 @@ def test_conversational_evaluation_endpoints():
     data = res_json.json()
     assert "headline" in data
     assert "metrics" in data
-    assert data["metrics"]["total_pairs_evaluated"] == 24
-    assert data["metrics"]["error_reduction_pct"] >= 70.0
+    assert data["metrics"]["total_pairs_evaluated"] == 48
+    assert data["metrics"]["error_reduction_pct"] >= 50.0

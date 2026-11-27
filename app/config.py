@@ -58,7 +58,7 @@ ADMIN_API_KEY = os.getenv("ADMIN_API_KEY") or _env("DEMO_KEY", "amora-demo-secre
 
 # Local LLM / Ollama configuration
 OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://127.0.0.1:11434")
-OLLAMA_MODEL = _env("OLLAMA_MODEL", os.getenv("OLLAMA_MODEL", "llama3.2:1b"))
+OLLAMA_MODEL = _env("OLLAMA_MODEL", os.getenv("OLLAMA_MODEL", "llama3:8b"))
 
 
 def ollama_available() -> bool:
