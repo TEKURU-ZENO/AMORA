@@ -138,7 +138,7 @@ def _date_llm(a: Analysis, b: Analysis, ida: str, idb: str, venue: str,
         else:
             phase = PHASES[min(i, len(PHASES) - 1)]
         out = llm.structured(_agent_system(me, other, venue, coach),
-                             f"Conversation so far:\n{transcript}\n\nYour turn ({phase}).", AgentTurn, max_tokens=400)
+                             f"Conversation so far:\n{transcript}\n\nYour turn ({phase}).", AgentTurn, max_tokens=250)
         t = Turn(speaker=pid, text=out.say.strip(), thought=out.thought.strip(),
                  observation=getattr(out, "observation", "").strip())
         t.mood = infer_turn_mood(t)
@@ -173,7 +173,7 @@ def _verdict_llm(me: Analysis, other: Analysis, pid: str, turns: list[Turn], ida
         f"File your verdict to {first(me)}. Be honest, strictly calibrated across the rubric above, and specific.\n"
         f"score = overall fit for {first(me)}. report_to_human is 2-3 sentences addressed to {first(me)}. "
         f"learned_about_other = 2-4 key things you deduced about {first(other)} (unspoken priorities, lifestyle realities, communication style).",
-        Verdict, max_tokens=500)
+        Verdict, max_tokens=350)
     v.agent_for = pid
     return v
 

@@ -1268,7 +1268,7 @@ def run_conversational_study() -> dict[str, Any]:
     agent_scores = []
     internal_cons_scores = []
 
-    for pair in cohort:
+    for idx, pair in enumerate(cohort, 1):
         pa, pb = pair.person_a, pair.person_b
         store.save_person(pa)
         store.save_person(pb)
@@ -1301,6 +1301,8 @@ def run_conversational_study() -> dict[str, Any]:
         prior_scores.append(y_prior)
         agent_scores.append(y_agent)
         internal_cons_scores.append(y_cons)
+
+        print(f"[{idx:02d}/{len(cohort)}] {pair.pair_id:32s}: Prior={y_prior:4.1f}, Agent={y_agent:4.1f}, GT={y_gt:4.1f} (engine={d_rec.engine})", flush=True)
 
         pair_results.append({
             "pair_id": pair.pair_id,

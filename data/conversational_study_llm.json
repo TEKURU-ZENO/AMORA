@@ -1,29 +1,29 @@
 {
-  "headline": "Simulated dates beat profile-only prior by 58.6% calibration error reduction (Spearman rho: -0.09 -> +0.77, gain: +0.86) [offline_deterministic]",
-  "engine": "offline_deterministic",
-  "llm_enabled": false,
+  "headline": "Simulated dates beat profile-only prior by 49.6% calibration error reduction (Spearman rho: -0.09 -> +0.49, gain: +0.58) [Ollama (llama3:8b)]",
+  "engine": "Ollama (llama3:8b)",
+  "llm_enabled": true,
   "metrics": {
-    "engine": "offline_deterministic",
-    "llm_enabled": false,
+    "engine": "Ollama (llama3:8b)",
+    "llm_enabled": true,
     "mae_prior": 4.23,
-    "mae_agent": 1.75,
-    "error_reduction_pct": 58.6,
+    "mae_agent": 2.13,
+    "error_reduction_pct": 49.6,
     "rmse_prior": 4.96,
-    "rmse_agent": 2.47,
+    "rmse_agent": 2.62,
     "spearman_rho_prior": -0.09,
-    "spearman_rho_agent": 0.77,
-    "spearman_rho_gain": 0.86,
+    "spearman_rho_agent": 0.49,
+    "spearman_rho_gain": 0.58,
     "internal_consistency_rho": -0.69,
-    "agent_vs_internal_consistency_rho": -0.7,
-    "attachment_trap_detection_rate_pct": 100.0,
-    "complementary_synergy_recovery_rate_pct": 100.0,
-    "agent_win_rate_pct": 77.1,
+    "agent_vs_internal_consistency_rho": -0.13,
+    "attachment_trap_detection_rate_pct": 0.0,
+    "complementary_synergy_recovery_rate_pct": 0.0,
+    "agent_win_rate_pct": 70.8,
     "agent_recovered_top_match": true,
     "total_pairs_evaluated": 48,
     "superficial_traps_count": 16,
-    "superficial_traps_error_reduction_pct": 86.2,
+    "superficial_traps_error_reduction_pct": 73.7,
     "hidden_gems_count": 8,
-    "hidden_gems_error_reduction_pct": 80.3
+    "hidden_gems_error_reduction_pct": -68.0
   },
   "pairs": [
     {
@@ -36,14 +36,14 @@
       "discovery_narrative": "Aarav probed long-term relocation. Meera revealed Tokyo move; mutual hard boundary hit.",
       "ground_truth_score": 2.2,
       "baseline_prior_score": 10.0,
-      "agent_verdict_score": 1.8,
+      "agent_verdict_score": 2.52,
       "internal_consistency_score": 8.5,
       "error_prior": 7.8,
-      "error_agent": 0.4,
-      "error_reduction": 7.4,
+      "error_agent": 0.32,
+      "error_reduction": 7.48,
       "agent_won": true,
       "date_id": "6fe01cce5e",
-      "engine": "offline"
+      "engine": "ollama"
     },
     {
       "pair_id": "smoker_health_clash",
@@ -55,14 +55,14 @@
       "discovery_narrative": "Dev revealed daily smoking habit. Maya stated health boundary; date concluded incompatibly.",
       "ground_truth_score": 2.0,
       "baseline_prior_score": 10.0,
-      "agent_verdict_score": 1.89,
+      "agent_verdict_score": 2.52,
       "internal_consistency_score": 8.4,
       "error_prior": 8.0,
-      "error_agent": 0.11,
-      "error_reduction": 7.89,
+      "error_agent": 0.52,
+      "error_reduction": 7.48,
       "agent_won": true,
       "date_id": "43ae03a913",
-      "engine": "offline"
+      "engine": "ollama"
     },
     {
       "pair_id": "frugal_vs_luxury",
@@ -74,14 +74,14 @@
       "discovery_narrative": "Arjun revealed extreme budget minimalism. Priya named luxury expectations; friction confirmed.",
       "ground_truth_score": 2.5,
       "baseline_prior_score": 10.0,
-      "agent_verdict_score": 1.8,
+      "agent_verdict_score": 4.2,
       "internal_consistency_score": 8.6,
       "error_prior": 7.5,
-      "error_agent": 0.7,
-      "error_reduction": 6.8,
+      "error_agent": 1.7,
+      "error_reduction": 5.8,
       "agent_won": true,
       "date_id": "6d514f8a84",
-      "engine": "offline"
+      "engine": "ollama"
     },
     {
       "pair_id": "poly_vs_monogamy",
@@ -93,14 +93,14 @@
       "discovery_narrative": "Leela named polyamory structure; Sameer confirmed monogamy requirement. Incompatible structure.",
       "ground_truth_score": 1.8,
       "baseline_prior_score": 10.0,
-      "agent_verdict_score": 1.8,
+      "agent_verdict_score": 5.21,
       "internal_consistency_score": 8.8,
       "error_prior": 8.2,
-      "error_agent": 0.0,
-      "error_reduction": 8.2,
+      "error_agent": 3.41,
+      "error_reduction": 4.79,
       "agent_won": true,
       "date_id": "f39e2f3bc6",
-      "engine": "offline"
+      "engine": "ollama"
     },
     {
       "pair_id": "workaholic_vs_boundary",
@@ -112,14 +112,14 @@
       "discovery_narrative": "Tara enacted strict no-work boundary rule; Vikram could not disengage. Verdict declined.",
       "ground_truth_score": 3.0,
       "baseline_prior_score": 10.0,
-      "agent_verdict_score": 1.84,
+      "agent_verdict_score": 4.2,
       "internal_consistency_score": 8.2,
       "error_prior": 7.0,
-      "error_agent": 1.16,
-      "error_reduction": 5.84,
+      "error_agent": 1.2,
+      "error_reduction": 5.8,
       "agent_won": true,
       "date_id": "df34e4587c",
-      "engine": "offline"
+      "engine": "ollama"
     },
     {
       "pair_id": "children_timeline_clash",
@@ -138,7 +138,7 @@
       "error_reduction": 7.4,
       "agent_won": true,
       "date_id": "d4fed3f413",
-      "engine": "offline"
+      "engine": "ollama"
     },
     {
       "pair_id": "religious_orthodoxy_clash",
@@ -150,14 +150,14 @@
       "discovery_narrative": "David inquired about religious observance. Maya confirmed secular non-dogmatic stance; boundary collision.",
       "ground_truth_score": 2.4,
       "baseline_prior_score": 10.0,
-      "agent_verdict_score": 8.78,
+      "agent_verdict_score": 5.6,
       "internal_consistency_score": 8.5,
       "error_prior": 7.6,
-      "error_agent": 6.38,
-      "error_reduction": 1.22,
+      "error_agent": 3.2,
+      "error_reduction": 4.4,
       "agent_won": true,
       "date_id": "d9d7db4744",
-      "engine": "offline"
+      "engine": "ollama"
     },
     {
       "pair_id": "social_media_privacy_clash",
@@ -169,14 +169,14 @@
       "discovery_narrative": "Chloe asked about filming dates. Nikhil cited defense privacy mandate; insurmountable clash.",
       "ground_truth_score": 2.3,
       "baseline_prior_score": 10.0,
-      "agent_verdict_score": 1.82,
+      "agent_verdict_score": 3.63,
       "internal_consistency_score": 8.4,
       "error_prior": 7.7,
-      "error_agent": 0.48,
-      "error_reduction": 7.22,
+      "error_agent": 1.33,
+      "error_reduction": 6.37,
       "agent_won": true,
       "date_id": "21925d68c9",
-      "engine": "offline"
+      "engine": "ollama"
     },
     {
       "pair_id": "secret_sanctuary",
@@ -188,14 +188,14 @@
       "discovery_narrative": "Rohan revealed secret eco-lodge plan. Ishita lit up; profound latent synergy unlocked.",
       "ground_truth_score": 9.2,
       "baseline_prior_score": 6.5,
-      "agent_verdict_score": 9.05,
+      "agent_verdict_score": 5.28,
       "internal_consistency_score": 3.4,
       "error_prior": 2.7,
-      "error_agent": 0.15,
-      "error_reduction": 2.55,
-      "agent_won": true,
+      "error_agent": 3.92,
+      "error_reduction": -1.22,
+      "agent_won": false,
       "date_id": "ab2d2e257e",
-      "engine": "offline"
+      "engine": "ollama"
     },
     {
       "pair_id": "quiet_creative_flow",
@@ -207,14 +207,14 @@
       "discovery_narrative": "Shared love of comfortable silence and parallel creative focus emerged in dialogue.",
       "ground_truth_score": 8.8,
       "baseline_prior_score": 10.0,
-      "agent_verdict_score": 9.02,
+      "agent_verdict_score": 5.6,
       "internal_consistency_score": 5.2,
       "error_prior": 1.2,
-      "error_agent": 0.22,
-      "error_reduction": 0.98,
-      "agent_won": true,
+      "error_agent": 3.2,
+      "error_reduction": -2.0,
+      "agent_won": false,
       "date_id": "d15afcc2cb",
-      "engine": "offline"
+      "engine": "ollama"
     },
     {
       "pair_id": "urban_farm_pediatrician",
@@ -226,14 +226,14 @@
       "discovery_narrative": "Samir shared greenhouse project. Nisha found profound emotional resonance; exceptional fit.",
       "ground_truth_score": 9.1,
       "baseline_prior_score": 6.5,
-      "agent_verdict_score": 9.16,
+      "agent_verdict_score": 3.16,
       "internal_consistency_score": 3.8,
       "error_prior": 2.6,
-      "error_agent": 0.06,
-      "error_reduction": 2.54,
-      "agent_won": true,
+      "error_agent": 5.94,
+      "error_reduction": -3.34,
+      "agent_won": false,
       "date_id": "fe57a0b711",
-      "engine": "offline"
+      "engine": "ollama"
     },
     {
       "pair_id": "cellist_quantum_resonance",
@@ -245,14 +245,14 @@
       "discovery_narrative": "Discussion of Bach and topological harmonics revealed rare intellectual chemistry.",
       "ground_truth_score": 8.9,
       "baseline_prior_score": 6.5,
-      "agent_verdict_score": 9.13,
+      "agent_verdict_score": 6.45,
       "internal_consistency_score": 4.2,
       "error_prior": 2.4,
-      "error_agent": 0.23,
-      "error_reduction": 2.17,
-      "agent_won": true,
+      "error_agent": 2.45,
+      "error_reduction": -0.05,
+      "agent_won": false,
       "date_id": "0d8fcf39cc",
-      "engine": "offline"
+      "engine": "ollama"
     },
     {
       "pair_id": "legal_reform_synergy",
@@ -264,14 +264,14 @@
       "discovery_narrative": "Ananya litigator grit met Siddharth cinematic empathy; perfect purpose alignment.",
       "ground_truth_score": 9.0,
       "baseline_prior_score": 6.5,
-      "agent_verdict_score": 9.05,
+      "agent_verdict_score": 6.3,
       "internal_consistency_score": 4.1,
       "error_prior": 2.5,
-      "error_agent": 0.05,
-      "error_reduction": 2.45,
-      "agent_won": true,
+      "error_agent": 2.7,
+      "error_reduction": -0.2,
+      "agent_won": false,
       "date_id": "47b880420a",
-      "engine": "offline"
+      "engine": "ollama"
     },
     {
       "pair_id": "bookbinder_astronomer",
@@ -283,14 +283,14 @@
       "discovery_narrative": "Shared love of nocturnal stillness and deep-time preservation unlocked immediate bond.",
       "ground_truth_score": 8.8,
       "baseline_prior_score": 6.5,
-      "agent_verdict_score": 9.19,
+      "agent_verdict_score": 2.86,
       "internal_consistency_score": 3.7,
       "error_prior": 2.3,
-      "error_agent": 0.39,
-      "error_reduction": 1.91,
-      "agent_won": true,
+      "error_agent": 5.94,
+      "error_reduction": -3.64,
+      "agent_won": false,
       "date_id": "89fa5f7c4f",
-      "engine": "offline"
+      "engine": "ollama"
     },
     {
       "pair_id": "ferment_coffee_artisans",
@@ -302,14 +302,14 @@
       "discovery_narrative": "Deep mutual passion for tactile microbiology and slow sensory culinary craft confirmed.",
       "ground_truth_score": 9.2,
       "baseline_prior_score": 6.5,
-      "agent_verdict_score": 9.09,
+      "agent_verdict_score": 5.97,
       "internal_consistency_score": 4.8,
       "error_prior": 2.7,
-      "error_agent": 0.11,
-      "error_reduction": 2.59,
-      "agent_won": true,
+      "error_agent": 3.23,
+      "error_reduction": -0.53,
+      "agent_won": false,
       "date_id": "0de182ce24",
-      "engine": "offline"
+      "engine": "ollama"
     },
     {
       "pair_id": "marathon_climate_allies",
@@ -321,14 +321,14 @@
       "discovery_narrative": "Shared fortitude under extreme polar and alpine conditions sparked instant deep respect.",
       "ground_truth_score": 9.0,
       "baseline_prior_score": 6.5,
-      "agent_verdict_score": 9.24,
+      "agent_verdict_score": 4.99,
       "internal_consistency_score": 4.3,
       "error_prior": 2.5,
-      "error_agent": 0.24,
-      "error_reduction": 2.26,
-      "agent_won": true,
+      "error_agent": 4.01,
+      "error_reduction": -1.51,
+      "agent_won": false,
       "date_id": "6c8cdf9fa2",
-      "engine": "offline"
+      "engine": "ollama"
     },
     {
       "pair_id": "emotional_stonewalling",
@@ -340,14 +340,14 @@
       "discovery_narrative": "Kiran probed emotional depth. Farhan deflected with defensive sarcasm; dealbreaker triggered.",
       "ground_truth_score": 2.8,
       "baseline_prior_score": 10.0,
-      "agent_verdict_score": 1.8,
+      "agent_verdict_score": 4.99,
       "internal_consistency_score": 8.2,
       "error_prior": 7.2,
-      "error_agent": 1.0,
-      "error_reduction": 6.2,
+      "error_agent": 2.19,
+      "error_reduction": 5.01,
       "agent_won": true,
       "date_id": "26fec6eccd",
-      "engine": "offline"
+      "engine": "ollama"
     },
     {
       "pair_id": "anxious_pursuit_avoidant_flight",
@@ -359,14 +359,14 @@
       "discovery_narrative": "Maya expressed need for constant check-ins. Julian declared multi-day silent retreats; trap triggered.",
       "ground_truth_score": 2.4,
       "baseline_prior_score": 10.0,
-      "agent_verdict_score": 1.8,
+      "agent_verdict_score": 4.8,
       "internal_consistency_score": 7.9,
       "error_prior": 7.6,
-      "error_agent": 0.6,
-      "error_reduction": 7.0,
+      "error_agent": 2.4,
+      "error_reduction": 5.2,
       "agent_won": true,
       "date_id": "6526920520",
-      "engine": "offline"
+      "engine": "ollama"
     },
     {
       "pair_id": "fearful_volatility",
@@ -378,14 +378,14 @@
       "discovery_narrative": "Both attempted aggressive banter testing. Escalated into mutual emotional defensiveness.",
       "ground_truth_score": 2.6,
       "baseline_prior_score": 10.0,
-      "agent_verdict_score": 1.89,
+      "agent_verdict_score": 5.88,
       "internal_consistency_score": 7.8,
       "error_prior": 7.4,
-      "error_agent": 0.71,
-      "error_reduction": 6.69,
+      "error_agent": 3.28,
+      "error_reduction": 4.12,
       "agent_won": true,
       "date_id": "9e4f49ab2c",
-      "engine": "offline"
+      "engine": "ollama"
     },
     {
       "pair_id": "narcissistic_empath_trap",
@@ -397,14 +397,14 @@
       "discovery_narrative": "Oliver monologued about his celebrity guestlists. Maya recognized narcissistic pattern and opted out.",
       "ground_truth_score": 2.2,
       "baseline_prior_score": 10.0,
-      "agent_verdict_score": 1.8,
+      "agent_verdict_score": 4.34,
       "internal_consistency_score": 8.0,
       "error_prior": 7.8,
-      "error_agent": 0.4,
-      "error_reduction": 7.4,
+      "error_agent": 2.14,
+      "error_reduction": 5.66,
       "agent_won": true,
       "date_id": "a9102f33ea",
-      "engine": "offline"
+      "engine": "ollama"
     },
     {
       "pair_id": "defensive_sarcasm_collision",
@@ -416,14 +416,14 @@
       "discovery_narrative": "Rohit deployed caustic roasting. Tara named boundary violation on emotional safety; date declined.",
       "ground_truth_score": 3.0,
       "baseline_prior_score": 10.0,
-      "agent_verdict_score": 1.93,
+      "agent_verdict_score": 4.99,
       "internal_consistency_score": 7.4,
       "error_prior": 7.0,
-      "error_agent": 1.07,
-      "error_reduction": 5.93,
+      "error_agent": 1.99,
+      "error_reduction": 5.01,
       "agent_won": true,
       "date_id": "80639c115d",
-      "engine": "offline"
+      "engine": "ollama"
     },
     {
       "pair_id": "space_first_vs_protest_behavior",
@@ -435,14 +435,14 @@
       "discovery_narrative": "Nina named 48-hour silent cooldown rule. Devansh explained anxious trigger; conflict style deadlock.",
       "ground_truth_score": 2.9,
       "baseline_prior_score": 10.0,
-      "agent_verdict_score": 1.8,
+      "agent_verdict_score": 6.2,
       "internal_consistency_score": 7.6,
       "error_prior": 7.1,
-      "error_agent": 1.1,
-      "error_reduction": 6.0,
+      "error_agent": 3.3,
+      "error_reduction": 3.8,
       "agent_won": true,
       "date_id": "460e191a1d",
-      "engine": "offline"
+      "engine": "ollama"
     },
     {
       "pair_id": "controlling_pace_vs_autonomy",
@@ -454,14 +454,14 @@
       "discovery_narrative": "Victor attempted to lecture on proper mountain trip management. Cleo rejected condescension.",
       "ground_truth_score": 2.7,
       "baseline_prior_score": 10.0,
-      "agent_verdict_score": 1.91,
+      "agent_verdict_score": 4.8,
       "internal_consistency_score": 7.5,
       "error_prior": 7.3,
-      "error_agent": 0.79,
-      "error_reduction": 6.51,
+      "error_agent": 2.1,
+      "error_reduction": 5.2,
       "agent_won": true,
       "date_id": "0c4d3eaad0",
-      "engine": "offline"
+      "engine": "ollama"
     },
     {
       "pair_id": "passive_aggression_vs_direct_candor",
@@ -473,14 +473,14 @@
       "discovery_narrative": "Ken demanded radical candor in conflict. Rita retreated into uncomfortable silence; clash confirmed.",
       "ground_truth_score": 3.1,
       "baseline_prior_score": 10.0,
-      "agent_verdict_score": 1.8,
+      "agent_verdict_score": 5.21,
       "internal_consistency_score": 7.5,
       "error_prior": 6.9,
-      "error_agent": 1.3,
-      "error_reduction": 5.6,
+      "error_agent": 2.11,
+      "error_reduction": 4.79,
       "agent_won": true,
       "date_id": "fa19c16be3",
-      "engine": "offline"
+      "engine": "ollama"
     },
     {
       "pair_id": "outdoor_soulmates",
@@ -511,14 +511,14 @@
       "discovery_narrative": "Discovered shared secret dream of launching independent narrative game studio together.",
       "ground_truth_score": 9.2,
       "baseline_prior_score": 10.0,
-      "agent_verdict_score": 9.02,
+      "agent_verdict_score": 6.3,
       "internal_consistency_score": 7.0,
       "error_prior": 0.8,
-      "error_agent": 0.18,
-      "error_reduction": 0.62,
-      "agent_won": true,
+      "error_agent": 2.9,
+      "error_reduction": -2.1,
+      "agent_won": false,
       "date_id": "12b7f19fec",
-      "engine": "offline"
+      "engine": "ollama"
     },
     {
       "pair_id": "ceramics_trail_hikers",
@@ -530,14 +530,14 @@
       "discovery_narrative": "Gentle resonance over clay, wood craft, and forest walks created effortless warm chemistry.",
       "ground_truth_score": 8.9,
       "baseline_prior_score": 8.7,
-      "agent_verdict_score": 8.99,
+      "agent_verdict_score": 6.3,
       "internal_consistency_score": 6.8,
       "error_prior": 0.2,
-      "error_agent": 0.09,
-      "error_reduction": 0.11,
-      "agent_won": true,
+      "error_agent": 2.6,
+      "error_reduction": -2.4,
+      "agent_won": false,
       "date_id": "558dd13597",
-      "engine": "offline"
+      "engine": "ollama"
     },
     {
       "pair_id": "chamber_vinyl_harmony",
@@ -549,14 +549,14 @@
       "discovery_narrative": "Luthiery art and tape mastering converged in shared reverence for acoustic stillness.",
       "ground_truth_score": 9.1,
       "baseline_prior_score": 10.0,
-      "agent_verdict_score": 1.84,
+      "agent_verdict_score": 6.3,
       "internal_consistency_score": 6.6,
       "error_prior": 0.9,
-      "error_agent": 7.26,
-      "error_reduction": -6.36,
+      "error_agent": 2.8,
+      "error_reduction": -1.9,
       "agent_won": false,
       "date_id": "ada2551f16",
-      "engine": "offline"
+      "engine": "ollama"
     },
     {
       "pair_id": "community_health_allies",
@@ -568,14 +568,14 @@
       "discovery_narrative": "Pediatric care and child play architecture aligned into profound shared life purpose.",
       "ground_truth_score": 9.3,
       "baseline_prior_score": 6.5,
-      "agent_verdict_score": 6.5,
+      "agent_verdict_score": 3.05,
       "internal_consistency_score": 6.7,
       "error_prior": 2.8,
-      "error_agent": 2.8,
-      "error_reduction": 0.0,
+      "error_agent": 6.25,
+      "error_reduction": -3.45,
       "agent_won": false,
       "date_id": "e6299af701",
-      "engine": "offline"
+      "engine": "ollama"
     },
     {
       "pair_id": "eco_architect_sanctuary",
@@ -606,14 +606,14 @@
       "discovery_narrative": "Dawn schedules, endurance philosophies, and mutual emotional calm established deep bond.",
       "ground_truth_score": 9.0,
       "baseline_prior_score": 10.0,
-      "agent_verdict_score": 4.74,
+      "agent_verdict_score": 6.3,
       "internal_consistency_score": 7.3,
       "error_prior": 1.0,
-      "error_agent": 4.26,
-      "error_reduction": -3.26,
+      "error_agent": 2.7,
+      "error_reduction": -1.7,
       "agent_won": false,
       "date_id": "f43d2cb328",
-      "engine": "offline"
+      "engine": "ollama"
     },
     {
       "pair_id": "literary_translators_dialogue",
@@ -644,14 +644,14 @@
       "discovery_narrative": "Sameer named high-velocity networking calendar; Anita confirmed need for quiet evenings. Friction.",
       "ground_truth_score": 4.0,
       "baseline_prior_score": 6.5,
-      "agent_verdict_score": 6.73,
+      "agent_verdict_score": 4.34,
       "internal_consistency_score": 7.1,
       "error_prior": 2.5,
-      "error_agent": 2.73,
-      "error_reduction": -0.23,
-      "agent_won": false,
+      "error_agent": 0.34,
+      "error_reduction": 2.16,
+      "agent_won": true,
       "date_id": "202899e9f1",
-      "engine": "offline"
+      "engine": "ollama"
     },
     {
       "pair_id": "social_battery_clash",
@@ -682,14 +682,14 @@
       "discovery_narrative": "Damon spoke of private equity status; Willow shared off-grid yurt life. Mutual value mismatch.",
       "ground_truth_score": 3.5,
       "baseline_prior_score": 6.5,
-      "agent_verdict_score": 6.58,
+      "agent_verdict_score": 2.8,
       "internal_consistency_score": 5.9,
       "error_prior": 3.0,
-      "error_agent": 3.08,
-      "error_reduction": -0.08,
-      "agent_won": false,
+      "error_agent": 0.7,
+      "error_reduction": 2.3,
+      "agent_won": true,
       "date_id": "dfa541a8b5",
-      "engine": "offline"
+      "engine": "ollama"
     },
     {
       "pair_id": "hustle_culture_vs_sabbatical",
@@ -701,14 +701,14 @@
       "discovery_narrative": "Evan pitched 8-figure grind. Maya spoke of presence and mortality; irreconcilable worldviews.",
       "ground_truth_score": 3.6,
       "baseline_prior_score": 6.5,
-      "agent_verdict_score": 6.51,
+      "agent_verdict_score": 3.8,
       "internal_consistency_score": 6.3,
       "error_prior": 2.9,
-      "error_agent": 2.91,
-      "error_reduction": -0.01,
-      "agent_won": false,
+      "error_agent": 0.2,
+      "error_reduction": 2.7,
+      "agent_won": true,
       "date_id": "30cea587e8",
-      "engine": "offline"
+      "engine": "ollama"
     },
     {
       "pair_id": "two_alpha_builders_clash",
@@ -720,14 +720,14 @@
       "discovery_narrative": "Both CEOs demanded the other relocate headquarters. Neither willing to compromise; deadlock.",
       "ground_truth_score": 3.8,
       "baseline_prior_score": 8.7,
-      "agent_verdict_score": 7.01,
+      "agent_verdict_score": 4.8,
       "internal_consistency_score": 8.8,
       "error_prior": 4.9,
-      "error_agent": 3.21,
-      "error_reduction": 1.69,
+      "error_agent": 1.0,
+      "error_reduction": 3.9,
       "agent_won": true,
       "date_id": "42e1521af4",
-      "engine": "offline"
+      "engine": "ollama"
     },
     {
       "pair_id": "frugal_homesteader_vs_jetsetter",
@@ -739,14 +739,14 @@
       "discovery_narrative": "Silas condemned consumerism; Genevieve stated luxury lifestyle necessity. Financial gulf.",
       "ground_truth_score": 3.2,
       "baseline_prior_score": 6.5,
-      "agent_verdict_score": 1.97,
+      "agent_verdict_score": 2.52,
       "internal_consistency_score": 6.1,
       "error_prior": 3.3,
-      "error_agent": 1.23,
-      "error_reduction": 2.07,
+      "error_agent": 0.68,
+      "error_reduction": 2.62,
       "agent_won": true,
       "date_id": "f59648bbf4",
-      "engine": "offline"
+      "engine": "ollama"
     },
     {
       "pair_id": "perpetual_student_vs_pragmatic_builder",
@@ -758,14 +758,14 @@
       "discovery_narrative": "Nadia probed career execution timelines; Hugo defended endless dissertation. Practical friction.",
       "ground_truth_score": 4.2,
       "baseline_prior_score": 6.5,
-      "agent_verdict_score": 6.72,
+      "agent_verdict_score": 4.87,
       "internal_consistency_score": 6.5,
       "error_prior": 2.3,
-      "error_agent": 2.52,
-      "error_reduction": -0.22,
-      "agent_won": false,
+      "error_agent": 0.67,
+      "error_reduction": 1.63,
+      "agent_won": true,
       "date_id": "24efb3b35d",
-      "engine": "offline"
+      "engine": "ollama"
     },
     {
       "pair_id": "night_shift_er_vs_9to5_routine",
@@ -777,14 +777,14 @@
       "discovery_narrative": "Sean and Grace mapped their daily clocks: completely opposite circadian existence.",
       "ground_truth_score": 4.4,
       "baseline_prior_score": 6.5,
-      "agent_verdict_score": 6.81,
+      "agent_verdict_score": 2.8,
       "internal_consistency_score": 6.6,
       "error_prior": 2.1,
-      "error_agent": 2.41,
-      "error_reduction": -0.31,
-      "agent_won": false,
+      "error_agent": 1.6,
+      "error_reduction": 0.5,
+      "agent_won": true,
       "date_id": "b781d9f1f4",
-      "engine": "offline"
+      "engine": "ollama"
     },
     {
       "pair_id": "polite_zero_spark",
@@ -796,14 +796,14 @@
       "discovery_narrative": "Conversation was pleasant, structured, and thoroughly unromantic. Mutual polite pass.",
       "ground_truth_score": 4.8,
       "baseline_prior_score": 10.0,
-      "agent_verdict_score": 8.79,
+      "agent_verdict_score": 6.2,
       "internal_consistency_score": 6.7,
       "error_prior": 5.2,
-      "error_agent": 3.99,
-      "error_reduction": 1.21,
+      "error_agent": 1.4,
+      "error_reduction": 3.8,
       "agent_won": true,
       "date_id": "211f736446",
-      "engine": "offline"
+      "engine": "ollama"
     },
     {
       "pair_id": "mismatched_tempo",
@@ -815,14 +815,14 @@
       "discovery_narrative": "Rohan repeatedly spoke over Maya pauses; Maya felt overwhelmed by machine-gun tempo.",
       "ground_truth_score": 4.6,
       "baseline_prior_score": 6.5,
-      "agent_verdict_score": 6.55,
+      "agent_verdict_score": 3.74,
       "internal_consistency_score": 6.4,
       "error_prior": 1.9,
-      "error_agent": 1.95,
-      "error_reduction": -0.05,
-      "agent_won": false,
+      "error_agent": 0.86,
+      "error_reduction": 1.04,
+      "agent_won": true,
       "date_id": "af7e7fd506",
-      "engine": "offline"
+      "engine": "ollama"
     },
     {
       "pair_id": "humor_disconnect",
@@ -834,14 +834,14 @@
       "discovery_narrative": "Kunal jokes landed with confusion; Ananya found irony cynical. Harmless but disconnected.",
       "ground_truth_score": 4.7,
       "baseline_prior_score": 6.5,
-      "agent_verdict_score": 1.82,
+      "agent_verdict_score": 4.34,
       "internal_consistency_score": 6.6,
       "error_prior": 1.8,
-      "error_agent": 2.88,
-      "error_reduction": -1.08,
-      "agent_won": false,
+      "error_agent": 0.36,
+      "error_reduction": 1.44,
+      "agent_won": true,
       "date_id": "c61b4ee68e",
-      "engine": "offline"
+      "engine": "ollama"
     },
     {
       "pair_id": "platonic_friend_zone",
@@ -853,14 +853,14 @@
       "discovery_narrative": "Excellent conversation about climbing routes, but zero romantic spark. Friend-zone confirmed.",
       "ground_truth_score": 4.9,
       "baseline_prior_score": 10.0,
-      "agent_verdict_score": 8.94,
+      "agent_verdict_score": 5.49,
       "internal_consistency_score": 7.0,
       "error_prior": 5.1,
-      "error_agent": 4.04,
-      "error_reduction": 1.06,
+      "error_agent": 0.59,
+      "error_reduction": 4.51,
       "agent_won": true,
       "date_id": "fbbdbd8bfc",
-      "engine": "offline"
+      "engine": "ollama"
     },
     {
       "pair_id": "polite_dinner_interview",
@@ -891,14 +891,14 @@
       "discovery_narrative": "Neither initiated proactive curiosity; polite nodding in parallel without connection.",
       "ground_truth_score": 4.7,
       "baseline_prior_score": 8.7,
-      "agent_verdict_score": 7.11,
+      "agent_verdict_score": 5.88,
       "internal_consistency_score": 6.3,
       "error_prior": 4.0,
-      "error_agent": 2.41,
-      "error_reduction": 1.59,
+      "error_agent": 1.18,
+      "error_reduction": 2.82,
       "agent_won": true,
       "date_id": "20bf68e3f7",
-      "engine": "offline"
+      "engine": "ollama"
     },
     {
       "pair_id": "warm_cousin_energy",
@@ -910,14 +910,14 @@
       "discovery_narrative": "Great mutual warmth and wholesome laughter; zero flirtatious attraction or romantic spark.",
       "ground_truth_score": 5.0,
       "baseline_prior_score": 10.0,
-      "agent_verdict_score": 8.99,
+      "agent_verdict_score": 6.3,
       "internal_consistency_score": 6.9,
       "error_prior": 5.0,
-      "error_agent": 3.99,
-      "error_reduction": 1.01,
+      "error_agent": 1.3,
+      "error_reduction": 3.7,
       "agent_won": true,
       "date_id": "d4c82603e3",
-      "engine": "offline"
+      "engine": "ollama"
     },
     {
       "pair_id": "agreeable_apathy",
@@ -929,14 +929,14 @@
       "discovery_narrative": "Conversation was completely frictionless and completely unmemorable. Agreeable apathy.",
       "ground_truth_score": 4.8,
       "baseline_prior_score": 10.0,
-      "agent_verdict_score": 8.99,
+      "agent_verdict_score": 6.2,
       "internal_consistency_score": 6.5,
       "error_prior": 5.2,
-      "error_agent": 4.19,
-      "error_reduction": 1.01,
+      "error_agent": 1.4,
+      "error_reduction": 3.8,
       "agent_won": true,
       "date_id": "a9d6dc752c",
-      "engine": "offline"
+      "engine": "ollama"
     }
   ]
 }
